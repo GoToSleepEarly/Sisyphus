@@ -1,0 +1,2749 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)https://www.cnblogs.com/arthinking/p/13205303.html -->
+<html lang="zh-cn"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="never">
+    <meta name="description" content="相信大家看过无数的MySQL调优经验贴了，会告诉你各种调优手段，如： 避免 select *； join字段走索引； 慎用in和not in，用exists取代in； 避免在where子句中对字段进行">
+    <meta property="og:description" content="相信大家看过无数的MySQL调优经验贴了，会告诉你各种调优手段，如： 避免 select *； join字段走索引； 慎用in和not in，用exists取代in； 避免在where子句中对字段进行">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园</title>
+    <link id="favicon" rel="shortcut icon" href="https://common.cnblogs.com/favicon.svg" type="image/svg+xml">
+    
+    <link rel="stylesheet" href="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/blog-common.min.css">
+    <link id="MainCss" rel="stylesheet" href="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/bundle-codinglife.min.css">
+    <link type="text/css" rel="stylesheet" href="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/custom.css">
+    <link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/bundle-codinglife-mobile.min.css">
+    
+    <link type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/arthinking/rss">
+    <link type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/arthinking/rsd.xml">
+    <link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/arthinking/wlwmanifest.xml">
+    <script src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/osd.js.下载"></script><script async="" src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/analytics.js.下载"></script><script>
+        var currentBlogId = 591198;
+        var currentBlogApp = 'arthinking';
+        var cb_enable_mathjax = false;
+        var isLogined = false;
+        var isBlogOwner = false;
+        var skinName = 'CodingLife';
+        var visitorUserId = '';
+    </script>
+        <script>
+            var currentPostDateAdded = '2020-06-28 10:13';
+        </script>
+    <script src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/jquery-2.2.0.min.js.下载"></script>
+    <script src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/blog-common.min.js.下载"></script>
+    
+    
+    
+<script src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/pubads_impl_2020120801.js.下载" async=""></script><link rel="preload" href="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/f.txt" as="script"><script type="text/javascript" src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/f.txt"></script><link rel="prefetch" href="https://1741ac423e02398324fb86b2c9ce3fbc.safeframe.googlesyndication.com/safeframe/1-0-37/html/container.html"><link rel="prefetch" href="https://tpc.googlesyndication.com/safeframe/1-0-37/html/container.html"><style type="text/css">h6{margin:0;padding:0;}            .box{position: fixed; left: 10px;top: 60px;background: rgba(255, 255, 255, 0.8);max-height: 600px;font-size:10px; overflow-x: hidden; overflow-y: scroll; font-family:'Verdana,Arial,Helvetica,sans-serif'; border: 2px solid #ccc;padding: 4px; border-radius:5px;min-width:100px;max-width:200px;cursor:default;}            .box::-webkit-scrollbar {width : 10px;height: 1px;}            .box::-webkit-scrollbar-thumb {/*滚动条里面小方块*/border-radius: 10px;background-color: #9a9a9a;background-image: 45deg,rgba(255, 255, 255, 0.2) 25%,transparent 25%,transparent 50%,rgba(255, 255, 255, 0.2) 50%,rgba(255, 255, 255, 0.2) 75%,transparent 75%,transparent}                            .box::-webkit-scrollbar-track {/*滚动条里面轨道*/box-shadow : inset 0 0 5px rgba(0, 0, 0, 0.2);border-radius: 10px;background: ##dadada;}                            .boxHide{border:none;width:100px;height:30px;padding:0;}                            .box-title{text-align:center;font-size:20px;color:#444;}                            .box-quit{position: absolute;text-align:center; right: 0;top: 4px;cursor:pointer;font-weight:bold;}                            .box-quitAnother{background:#ffc09a;left:0;top:0;color:#ffffff;}                            a.box-anchor{display:block;text-decoration:none;color:black; border-left: 3px solid transparent;padding:0 3px;margin-bottom: 3px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}                            a.box-anchor:hover{color:#3399ff;}                            a.box-anchorActive{color:#3399ff;text-decoration:underline;border-color:#2175bc};</style></head>
+<body class="no-navbar">
+    <a name="top"></a>
+        <div id="bannerbar" class="bannerbar-mobile formobile">
+            <a href="https://brands.cnblogs.com/aws/free?source=mobile-banner" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;aws-mobile-bannerbar&#39;)">
+            <img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/35695-20201211073419417-355442931.jpg" alt="">
+            </a>
+        </div>
+    <div id="top_nav" class="navbar forpc navbar-custom">
+        <nav id="nav_main" class="navbar-main">
+            <ul id="nav_left" class="navbar-list navbar-left">
+                <li class="navbar-branding"><a href="https://www.cnblogs.com/" title="开发者的网上家园"><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/logo.svg" alt="博客园Logo"></a></li>
+                <li><a href="https://www.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-sitehome&#39;)">首页</a></li>
+                <li><a href="https://news.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-news&#39;)">新闻</a></li>
+                <li><a href="https://q.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-q&#39;)">博问</a></li>
+                <li><a id="nav_brandzone" href="https://brands.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-brands&#39;)">专区</a></li>
+                <li><a href="https://ing.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-ing&#39;)">闪存</a></li>
+                <li><a href="https://edu.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-edu&#39;)">班级</a></li>
+            </ul>
+            <ul id="nav_right" class="navbar-list navbar-right">
+                <li>
+                    <form id="zzk_search" class="navbar-search" action="https://zzk.cnblogs.com/s" method="get">
+                        <input name="w" id="zzk_search_input" placeholder="代码改变世界" type="text" tabindex="3">
+                        <button type="submit" id="zzk_search_button">
+                            <img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/search.svg" alt="搜索">
+                        </button>
+                    </form>
+                </li>
+                <li id="navbar_login_status" class="navbar-list">
+                    <a id="navblog-myblog-icon" class="navbar-user-info navbar-blog" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx" alt="我的博客" title="我的博客" style="display: none;">
+                        <img id="myblog_icon" class="navbar-icon" src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/myblog.svg" alt="我的博客">
+                    </a>
+                    <a class="navbar-user-info navbar-message navbar-icon-wrapper" href="https://msg.cnblogs.com/" alt="短消息" title="短消息" style="display: none;">
+                        <img id="msg_icon" class="navbar-icon" src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/message.svg" alt="短消息">
+                        <span id="msg_count" style="display: none"></span>
+                    </a>
+                    <div id="user_info" class="navbar-user-info dropdown" style="display: none;">
+                        <a class="dropdown-button" href="https://home.cnblogs.com/">
+                            <img id="user_icon" class="navbar-avatar" src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/avatar-default.svg" alt="用户头像">
+                        </a>
+                        <div class="dropdown-menu">
+                            <a id="navblog-myblog-text" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx">我的博客</a>
+                            <a href="https://home.cnblogs.com/">我的园子</a>
+                            <a href="https://account.cnblogs.com/settings/account">账号设置</a>
+                            <a href="javascript:void(0)" onclick="logout();">退出登录</a>
+                        </div>
+                    </div>
+                    <a class="navbar-anonymous" href="https://account.cnblogs.com/signup/" style="display: inline;">注册</a>
+                    <a class="navbar-anonymous" href="javascript:void(0);" onclick="login()" style="display: inline;">登录</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    
+    <!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+        <a id="lnkBlogLogo" href="https://www.cnblogs.com/arthinking/"><img id="blogLogo" src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/logo.gif" alt="返回主页"></a>		
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle HeaderMainTitle" href="https://www.cnblogs.com/arthinking/">arthinking</a>
+</h1>
+<h2></h2>
+
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+	<div id="navigator">
+		
+<ul id="navList">
+<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">
+博客园</a>
+</li>
+<li>
+<a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/arthinking/">
+首页</a>
+</li>
+<li>
+
+<a id="blog_nav_newpost" class="menu" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">
+新随笔</a>
+</li>
+<li>
+<a id="blog_nav_contact" class="menu" href="https://msg.cnblogs.com/send/arthinking-itzhai">
+联系</a></li>
+<li>
+<a id="blog_nav_rss" class="menu" href="javascript:void(0)" data-rss="https://www.cnblogs.com/arthinking/rss/">
+订阅</a>
+<!--<partial name="./Shared/_XmlLink.cshtml" model="Model" /></li>--></li>
+<li>
+<a id="blog_nav_admin" class="menu" href="https://i.cnblogs.com/">
+管理</a>
+</li>
+</ul>
+
+
+		<div class="blogStats">
+			<span id="stats_post_count">随笔 - 6&nbsp; </span>
+<span id="stats_article_count">文章 - 0&nbsp; </span>
+<span id="stats-comment_count">评论 - 60</span>
+
+		</div><!--end: blogStats -->
+	</div><!--end: navigator 博客导航栏 -->
+</div><!--end: header 头部 -->
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		<div id="post_detail">
+    <!--done-->
+    <div id="topics">
+        <div class="post">
+            <h1 class="postTitle">
+                
+<a id="cb_post_title_url" class="postTitle2 vertical-middle" href="https://www.cnblogs.com/arthinking/p/13205303.html">
+    <span>SQL运行内幕：从执行原理看调优的本质</span>
+    
+
+
+</a>
+
+            </h1>
+            <div class="clear"></div>
+            <div class="postBody">
+                
+    <div id="cnblogs_post_description" style="display: none">
+        <img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000208613-459149325.png" class="desc_img">我们真的需要背那些MySQL调优手段吗？我觉得是没有必要的，在掌握MySQL存储架构和SQL执行原理的情况下，我们就很自然的明白，为什么要提议这么优化了，甚至能够发现别人提的不太合理的优化手段。
+    </div>
+<div id="cnblogs_post_body" class="blogpost-body cnblogs-markdown">
+    <p>相信大家看过无数的MySQL调优经验贴了，会告诉你各种调优手段，如：</p>
+<ul>
+<li>避免 select *；</li>
+<li>join字段走索引；</li>
+<li>慎用in和not in，用exists取代in；</li>
+<li>避免在where子句中对字段进行函数操作；</li>
+<li>尽量避免更新聚集索引；</li>
+<li>group by如果不需要排序，手动加上 order by null；</li>
+<li>join选择小表作为驱动表；</li>
+<li>order by字段尽量走索引...</li>
+</ul>
+<p>其中有些手段也许跟随者MySQL版本的升级过时了。我们真的需要背这些调优手段吗？我觉得是没有必要的，在掌握<code>MySQL存储架构</code>和<code>SQL执行原理</code>的情况下，我们就很自然的明白，为什么要提议这么优化了，甚至能够发现别人提的不太合理的优化手段。</p>
+<p>在 <a href="https://www.itzhai.com/database/insight-into-the-underlying-architecture-of-mysql-buffer-and-disk.html" target="_blank">洞悉MySQL底层架构：游走在缓冲与磁盘之间</a> 这篇文章中，我们已经介绍了MySQL的存储架构，详细对你在MySQL<code>存储</code>、<code>索引</code>、<code>缓冲</code>、<code>IO</code>相关的调优经验中有了一定的其实。</p>
+<p>本文，我们重点讲解常用的SQL的执行原理，从执行原理，以及MySQL内部对SQL的优化机制，来分析SQL要如何调优，理解为什么要这样...那样...那样...调优。</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628234500190-1979572113.png" alt="" loading="lazy"></p>
+<p>如果没有特别说明，本文以MySQL5.7版本作为讲解和演示。</p>
+<p>阅读完本文，您将了解到：</p>
+<ul>
+<li><strong>COUNT：</strong> MyISAM和InnoDB存储引擎处理count的区别是什么？</li>
+<li><strong>COUNT：</strong> count为何性能差？</li>
+<li><strong>COUNT：</strong> count有哪些书写方式，怎么count统计会快点？</li>
+<li><strong>ORDER BY：</strong> order by语句有哪些排序模式，以及每种排序模式的优缺点？</li>
+<li><strong>ORDER BY：</strong> order by语句会用到哪些排序算法，在什么场景下会选择哪种排序算法</li>
+<li><strong>ORDER BY：</strong> 如何查看和分析sql的order by优化手段(执行计划 + OPTIMIZER_TRACE日志)</li>
+<li><strong>ORDER BY：</strong> 如何优化order by语句的执行效率？(思想：减小行查询大小，尽量走索引，能够走覆盖索引最佳，可适当增加sort buffer内存大小)</li>
+<li><strong>JOIN：</strong> join走索引的情况下是如何执行的？</li>
+<li><strong>JOIN：</strong> join不走索引的情况下是如何执行的？</li>
+<li><strong>JOIN：</strong> MySQL对Index Nested-Loop Join做了什么优化？(MMR，BKA)</li>
+<li><strong>JOIN：</strong> BNL算法对缓存会产生什么影响？有什么优化策略？</li>
+<li><strong>JOIN：</strong> 有哪些常用的join语句？</li>
+<li><strong>JOIN：</strong> 针对join语句，有哪些优化手段？</li>
+<li><strong>UNION：</strong> union语句执行原理是怎样的？</li>
+<li><strong>UNION：</strong> union是如何去重的？</li>
+<li><strong>GROUP BY：</strong> group by完全走索引的情况下执行计划如何？</li>
+<li><strong>GROUP BY：</strong> 什么情况下group by会用到临时表？什么情况下会用到临时表+排序？</li>
+<li><strong>GROUP BY：</strong> 对group by有什么优化建议？</li>
+<li><strong>DISTINCT：</strong> distinct关键词执行原理是什么？</li>
+<li><strong>子查询：</strong> 有哪些常见的子查询使用方式？</li>
+<li><strong>子查询：</strong> 常见的子查询优化有哪些？</li>
+<li><strong>子查询：</strong> 真的要尽量使用关联查询取代子查询吗？</li>
+<li><strong>子查询：</strong>in 的效率真的这么慢吗？</li>
+<li><strong>子查询：</strong> MySQL 5.6之后对子查询做了哪些优化？(SEMIJOIN，Materializatioin，Exists优化策略)</li>
+<li><strong>子查询：</strong> Semijoin有哪些优化策略，其中Materializatioin策略有什么执行方式，为何要有这两种执行方式？</li>
+<li><strong>子查询：</strong> 除了in转Exists这种优化优化，MariaDB中的exists转in优化措施有什么作用？</li>
+</ul>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628234517359-555486504.png" alt="" loading="lazy"></p>
+<h1 id="anchor1">1、count</h1>
+<p><strong>存储引擎的区别</strong></p>
+<ul>
+<li>
+<p>MyISAM引擎每张表中存放了一个meta信息，里面包含了row_count属性，内存和文件中各有一份，内存的count变量值通过读取文件中的count值来进行初始化。<sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn1" id="fnref1">[1]</a></sup>但是如果带有where条件，还是必须得进行表扫描</p>
+</li>
+<li>
+<p>InnoDB引擎执行count()的时候，需要把数据一行行从引擎里面取出来进行统计。</p>
+</li>
+</ul>
+<p>下面我们介绍InnoDB中的count()。</p>
+<h2 id="anchor2">count中的一致性视图</h2>
+<p><strong>InnoDB中为何不像MyISAM那样维护一个row_count变量呢？</strong></p>
+<p>前面 <a href="https://www.itzhai.com/database/insight-into-the-underlying-architecture-of-mysql-buffer-and-disk.html" target="_blank">洞悉MySQL底层架构：游走在缓冲与磁盘之间</a> 一文我们了解到，InnoDB为了实现事务，是需要MVCC支持的。MVCC的关键是一致性视图。一个事务开启瞬间，所有活跃的事务(未提交)构成了一个视图数组，InnoDB就是通过这个视图数组来判断行数据是否需要undo到指定的版本。</p>
+<p>如下图，假设执行count的时候，一致性视图得到当前事务能够取到的最大事务ID DATA_TRX_ID=1002，那么行记录中事务ID超过1002都都要通过undo log进行版本回退，最终才能得出最终哪些行记录是当前事务需要统计的：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628234603245-1057639770.png" alt="" loading="lazy"></p>
+<p>row1是其他事务新插入的记录，当前事务不应该算进去。所以最终得出，当前事务应该统计row2，row3。</p>
+<blockquote>
+<p><strong>执行count会影响其他页面buffer pool的命中率吗？</strong></p>
+<p>我们知道buffer pool中的LRU算法是是经过改进的，默认情况下，旧子列表(old区)占3/8，count加载的页面一直往旧子列表中插入，在旧子列表中淘汰，不会晋升到新子列表中。所以不会影响其他页面buffer pool的命中率。</p>
+</blockquote>
+<h2 id="anchor3">count(主键)</h2>
+<p>count(主键)执行流程如下：</p>
+<ul>
+<li>执行器请求存储引擎获取数据；</li>
+<li>为了保证扫描数据量更少，<strong>存储引擎找到最小的那颗索引树获取所有记录</strong>，返回记录的id给到server。返回记录之前会进行MVCC及其可见性的判断，只返回当前事务可见的数据；</li>
+<li>server获取到记录之后，判断id如果不为空，则累加到结果记录中。</li>
+</ul>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628234639633-933947836.png" alt="" loading="lazy"></p>
+<h2 id="anchor4">count(1)</h2>
+<p>count(1)与count(主键)执行流程基本一致，区别在于，针对查询出的每一条记录，不会取记录中的值，而是<strong>直接返回一个"1"</strong>用于统计累加。统计了所有的行。</p>
+<h2 id="anchor5">count(字段)</h2>
+<p>与count(主键)类似，会筛选非空的字段进行统计。如果<strong>字段没有添加索引，那么会扫描聚集索引树，导致扫描的数据页会比较多，效率相对慢点</strong>。</p>
+<h2 id="anchor6">count(*)</h2>
+<p>count(*)不会取记录的值，与count(1)类似。</p>
+<p>执行效率对比：count(字段) &lt; count(主键) &lt; count(1)</p>
+<h1 id="anchor7">2、order by</h1>
+<p>以下是我们本节作为演示例子的表，假设我们有如下表：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628234718297-1287344126.png" alt="" loading="lazy"></p>
+<p>索引如下：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628234751795-485442321.png" alt="" loading="lazy"></p>
+<p>对应的idx_d索引结构如下(这里我们做了一些夸张的手法，让一个页数据变小，为了展现在索引树中的查找流程)：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628234821619-964468367.png" alt="" loading="lazy"></p>
+<h2 id="anchor8">2.1、如何跟踪执行优化</h2>
+<p>为了方便分析sql的执行流程，我们可以在当前session中开启 optimizer_trace:</p>
+<blockquote>
+<p>SET optimizer_trace='enabled=on';</p>
+</blockquote>
+<p>然后执行sql，执行完之后，就可以通过以下堆栈信息查看执行详情了：</p>
+<blockquote>
+<p>SELECT * FROM information_schema.OPTIMIZER_TRACE\G;</p>
+</blockquote>
+<p>以下是</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> a, b, c, d <span class="hljs-keyword">from</span> t20 <span class="hljs-keyword">force</span> <span class="hljs-keyword">index</span>(idx_abc)  <span class="hljs-keyword">where</span> a=<span class="hljs-number">3</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> d <span class="hljs-keyword">limit</span> <span class="hljs-number">100</span>,<span class="hljs-number">2</span>;
+</code></pre>
+<p>的执行结果，其中符合a=3的有8457条记录，<strong>针对order by重点关注以下属性</strong>：</p>
+<pre><code class="language-json hljs"><span class="hljs-string">"filesort_priority_queue_optimization"</span>: {  <span class="hljs-comment">// 是否启用优先级队列</span>
+  <span class="hljs-attr">"limit"</span>: <span class="hljs-number">102</span>,           <span class="hljs-comment">// 排序后需要取的行数，这里为 limit 100,2，也就是100+2=102</span>
+  <span class="hljs-attr">"rows_estimate"</span>: <span class="hljs-number">24576</span>, <span class="hljs-comment">// 估计参与排序的行数</span>
+  <span class="hljs-attr">"row_size"</span>: <span class="hljs-number">123</span>,        <span class="hljs-comment">// 行大小</span>
+  <span class="hljs-attr">"memory_available"</span>: <span class="hljs-number">32768</span>,    <span class="hljs-comment">// 可用内存大小，即设置的sort buffer大小</span>
+  <span class="hljs-attr">"chosen"</span>: <span class="hljs-literal">true</span>          <span class="hljs-comment">// 是否启用优先级队列</span>
+},
+...
+<span class="hljs-string">"filesort_summary"</span>: {
+  <span class="hljs-attr">"rows"</span>: <span class="hljs-number">103</span>,                <span class="hljs-comment">// 排序过程中会持有的行数</span>
+  <span class="hljs-attr">"examined_rows"</span>: <span class="hljs-number">8457</span>,      <span class="hljs-comment">// 参与排序的行数，InnoDB层返回的行数</span>
+  <span class="hljs-attr">"number_of_tmp_files"</span>: <span class="hljs-number">0</span>,   <span class="hljs-comment">// 外部排序时，使用的临时文件数量</span>
+  <span class="hljs-attr">"sort_buffer_size"</span>: <span class="hljs-number">13496</span>,  <span class="hljs-comment">// 内存排序使用的内存大小</span>
+  <span class="hljs-attr">"sort_mode"</span>: <span class="hljs-string">"sort_key, additional_fields"</span>  <span class="hljs-comment">// 排序模式</span>
+}
+</code></pre>
+<h3 id="anchor9">2.1.1、排序模式</h3>
+<p>其中 sort_mode有如下几种形式：</p>
+<ul>
+<li><code>sort_key, rowid</code>：表明排序缓冲区元组包含排序键值和原始表行的行id，排序后需要使用行id进行回表，这种算法也称为<code>original filesort algorithm</code>(回表排序算法)；</li>
+<li><code>sort_key, additional_fields</code>：表明排序缓冲区元组包含排序键值和查询所需要的列，排序后直接从缓冲区元组取数据，无需回表，这种算法也称为<code>modified filesort algorithm</code>(不回表排序)；</li>
+<li><code>sort_key, packed_additional_fields</code>：类似上一种形式，但是附加的列(如varchar类型)紧密地打包在一起，而不是使用固定长度的编码。</li>
+</ul>
+<h4 id="如何选择排序模式">如何选择排序模式</h4>
+<p>选择哪种排序模式，与<code>max_length_for_sort_data</code>这个属性有关，这个属性默认值大小为1024字节：</p>
+<ul>
+<li>如果查询列和排序列占用的大小超过这个值，那么会转而使用<code>sort_key, rowid</code>模式；</li>
+<li>如果不超过，那么所有列都会放入sort buffer中，使用<code>sort_key, additional_fields</code>或者<code>sort_key, packed_additional_fields</code>模式；</li>
+<li>如果查询的记录太多，那么会使用<code>sort_key, packed_additional_fields</code>对可变列进行压缩。</li>
+</ul>
+<h3 id="anchor10">2.1.2、排序算法</h3>
+<p>基于参与排序的数据量的不同，可以选择不同的排序算法：</p>
+<ul>
+<li>
+<p>如果排序取的结果很小，小于内存，那么会使用<code>优先级队列</code>进行堆排序；</p>
+<ul>
+<li>
+<p>例如，以下只取了前面10条记录，会通过优先级队列进行排序：</p>
+</li>
+<li>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> a, b, c, d <span class="hljs-keyword">from</span> t20 <span class="hljs-keyword">force</span> <span class="hljs-keyword">index</span>(idx_abc)  <span class="hljs-keyword">where</span> a=<span class="hljs-number">3</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> d <span class="hljs-keyword">limit</span> <span class="hljs-number">10</span>;
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>如果排序limit n, m，n太大了，也就是说需要取排序很后面的数据，那么会使用sort buffer进行<code>快速排序</code>：</p>
+<ul>
+<li>
+<p>如下，表中a=1的数据又三条，但是由于需要limit到很后面的记录，MySQL会对比优先级队列排序和快速排序的开销，选择一个比较合适的排序算法，这里最终放弃了优先级队列，转而使用sort buffer进行快速排序：</p>
+</li>
+<li>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> a, b, c, d <span class="hljs-keyword">from</span> t20 <span class="hljs-keyword">force</span> <span class="hljs-keyword">index</span>(idx_abc)  <span class="hljs-keyword">where</span> a=<span class="hljs-number">1</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> d <span class="hljs-keyword">limit</span> <span class="hljs-number">300</span>,<span class="hljs-number">2</span>;
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>如果参与排序的数据sort buffer装不下了，那么我们会一批一批的给sort buffer进行内存快速排序，结果放入排序临时文件，最终使对所有排好序的临时文件进行<code>归并排序</code>，得到最终的结果;</p>
+<ul>
+<li>
+<p>如下，a=3的记录超过了sort buffer，我们要查找的数据是排序后1000行起，sort buffer装不下1000行数据了，最终MySQL选择使用sort buffer进行分批快排，把最终结果进行归并排序：</p>
+</li>
+<li>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> a, b, c, d <span class="hljs-keyword">from</span> t20 <span class="hljs-keyword">force</span> <span class="hljs-keyword">index</span>(idx_abc)  <span class="hljs-keyword">where</span> a=<span class="hljs-number">3</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> d <span class="hljs-keyword">limit</span> <span class="hljs-number">1000</span>,<span class="hljs-number">10</span>;
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="anchor11">2.2、order by走索引避免排序</h2>
+<p>执行如下sql：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> a, b, c, d <span class="hljs-keyword">from</span> t20 <span class="hljs-keyword">force</span> <span class="hljs-keyword">index</span>(idx_d) <span class="hljs-keyword">where</span> d <span class="hljs-keyword">like</span> <span class="hljs-string">'t%'</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> d <span class="hljs-keyword">limit</span> <span class="hljs-number">2</span>;
+</code></pre>
+<p>我们看一下执行计划：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628234902249-1292230147.png" alt="" loading="lazy"></p>
+<p>发现Extra列为：<code>Using index condition</code>，也就是这里只走了索引。</p>
+<p>执行流程如下图所示：</p>
+<p>通过idx_d索引进行range_scan查找，扫描到4条记录，然后order by继续走索引，已经排好序，直接取前面两条，然后去聚集索引查询完整记录，返回最终需要的字段作为查询结果。这个过程只需要借助索引。</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628234945603-1559987123.png" alt="" loading="lazy"></p>
+<p><strong>如何查看和修改sort buffer大小？</strong></p>
+<p>我们看一下当前的sort buffer大小：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628235020232-2056460751.png" alt="" loading="lazy"></p>
+<p>可以发现，这里默认配置了sort buffer大小为512k。</p>
+<p>我们可以设置这个属性的大小：</p>
+<blockquote>
+<p>SET GLOBAL sort_buffer_size = 32*1024;</p>
+<p>或者</p>
+<p>SET sort_buffer_size = 32*1024;</p>
+</blockquote>
+<p>下面我们统一把sort buffer设置为32k</p>
+<pre><code class="hljs apache"><span class="hljs-attribute">SET</span> sort_buffer_size = <span class="hljs-number">32</span>*<span class="hljs-number">1024</span>; 
+</code></pre>
+<h2 id="anchor12">2.3、排序算法案例</h2>
+<h3 id="anchor13">2.3.1、使用优先级队列进行堆排序</h3>
+<p>如果排序取的结果很小，并且小于sort buffer，那么会使用优先级队列进行堆排序；</p>
+<p>例如，以下只取了前面10条记录：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> a, b, c, d <span class="hljs-keyword">from</span> t20 <span class="hljs-keyword">force</span> <span class="hljs-keyword">index</span>(idx_abc) <span class="hljs-keyword">where</span> a=<span class="hljs-number">3</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> d <span class="hljs-keyword">limit</span> <span class="hljs-number">10</span>;
+</code></pre>
+<p>a=3的总记录数：<code>8520</code>。查看执行计划：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628235051346-428277259.png" alt="" loading="lazy"></p>
+<p>发现这里where条件用到了索引，order by limit用到了排序。我们进一步看看执行的optimizer_trace日志：</p>
+<pre><code class="language-json hljs"><span class="hljs-string">"filesort_priority_queue_optimization"</span>: {
+  <span class="hljs-attr">"limit"</span>: <span class="hljs-number">10</span>,
+  <span class="hljs-attr">"rows_estimate"</span>: <span class="hljs-number">27033</span>,
+  <span class="hljs-attr">"row_size"</span>: <span class="hljs-number">123</span>,
+  <span class="hljs-attr">"memory_available"</span>: <span class="hljs-number">32768</span>,
+  <span class="hljs-attr">"chosen"</span>: <span class="hljs-literal">true</span>  <span class="hljs-comment">// 使用优先级队列进行排序</span>
+},
+<span class="hljs-string">"filesort_execution"</span>: [
+],
+<span class="hljs-string">"filesort_summary"</span>: {
+  <span class="hljs-attr">"rows"</span>: <span class="hljs-number">11</span>,
+  <span class="hljs-attr">"examined_rows"</span>: <span class="hljs-number">8520</span>,
+  <span class="hljs-attr">"number_of_tmp_files"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"sort_buffer_size"</span>: <span class="hljs-number">1448</span>,
+  <span class="hljs-attr">"sort_mode"</span>: <span class="hljs-string">"sort_key, additional_fields"</span>
+}
+</code></pre>
+<p>发现这里是用到了优先级队列进行排序。排序模式是：sort_key, additional_fields，即先回表查询完整记录，把排序需要查找的所有字段都放入sort buffer进行排序。</p>
+<p>所以这个执行流程如下图所示：</p>
+<ol>
+<li>通过where条件a=3扫描到8520条记录；</li>
+<li>回表查找记录；</li>
+<li>把8520条记录中需要的字段放入sort buffer中；</li>
+<li>在sort buffer中进行堆排序；</li>
+<li>在排序好的结果中取limit 10前10条，写入net buffer，准备发送给客户端。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628235133372-2136165743.png" alt="" loading="lazy"></p>
+<h3 id="anchor14">2.3.2、内部快速排序</h3>
+<p>如果排序limit n, m，n太大了，也就是说需要取排序很后面的数据，那么会使用sort buffer进行快速排序。MySQL会对比优先级队列排序和归并排序的开销，选择一个比较合适的排序算法。</p>
+<blockquote>
+<p><strong>如何衡量究竟是使用优先级队列还是内存快速排序？</strong><br>
+一般来说，快速排序算法效率高于堆排序，但是堆排序实现的优先级队列，无需排序完所有的元素，就可以得到order by limit的结果。<br>
+MySQL源码中声明了快速排序速度是堆排序的3倍，在实际排序的时候，会根据待排序数量大小进行切换算法。如果数据量太大的时候，会转而使用快速排序。</p>
+</blockquote>
+<p>有如下SQL：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> a, b, c, d <span class="hljs-keyword">from</span> t20 <span class="hljs-keyword">force</span> <span class="hljs-keyword">index</span>(idx_abc)  <span class="hljs-keyword">where</span> a=<span class="hljs-number">1</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> d <span class="hljs-keyword">limit</span> <span class="hljs-number">300</span>,<span class="hljs-number">2</span>;
+</code></pre>
+<p>我们把sort buffer设置为32k：</p>
+<pre><code class="hljs apache"><span class="hljs-attribute">SET</span> sort_buffer_size = <span class="hljs-number">32</span>*<span class="hljs-number">1024</span>; 
+</code></pre>
+<p>其中a=1的记录有3条。查看执行计划：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628235439071-1419808000.png" alt="" loading="lazy"></p>
+<p>可以发现，这里where条件用到了索引，order by limit 用到了排序。我们进一步看看执行的optimizer_trace日志：</p>
+<pre><code class="language-json hljs"><span class="hljs-string">"filesort_priority_queue_optimization"</span>: {
+  <span class="hljs-attr">"limit"</span>: <span class="hljs-number">302</span>,
+  <span class="hljs-attr">"rows_estimate"</span>: <span class="hljs-number">27033</span>,
+  <span class="hljs-attr">"row_size"</span>: <span class="hljs-number">123</span>,
+  <span class="hljs-attr">"memory_available"</span>: <span class="hljs-number">32768</span>,
+  <span class="hljs-attr">"strip_additional_fields"</span>: {
+    <span class="hljs-attr">"row_size"</span>: <span class="hljs-number">57</span>,
+    <span class="hljs-attr">"sort_merge_cost"</span>: <span class="hljs-number">33783</span>,
+    <span class="hljs-attr">"priority_queue_cost"</span>: <span class="hljs-number">61158</span>,
+    <span class="hljs-attr">"chosen"</span>: <span class="hljs-literal">false</span>  <span class="hljs-comment">// 对比发现快速排序开销成本比优先级队列更低，这里不适用优先级队列</span>
+  }
+},
+<span class="hljs-string">"filesort_execution"</span>: [
+],
+<span class="hljs-string">"filesort_summary"</span>: {
+  <span class="hljs-attr">"rows"</span>: <span class="hljs-number">3</span>,
+  <span class="hljs-attr">"examined_rows"</span>: <span class="hljs-number">3</span>,
+  <span class="hljs-attr">"number_of_tmp_files"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"sort_buffer_size"</span>: <span class="hljs-number">32720</span>,
+  <span class="hljs-attr">"sort_mode"</span>: <span class="hljs-string">"&lt;sort_key, packed_additional_fields&gt;"</span>
+}
+</code></pre>
+<p>可以发现这里最终放弃了优先级队列，转而使用sort buffer进行快速排序。</p>
+<p>所以这个执行流程如下图所示：</p>
+<ol>
+<li>通过where条件a=1扫描到3条记录；</li>
+<li>回表查找记录；</li>
+<li>把3条记录中需要的字段放入<code>sort buffer</code>中；</li>
+<li>在sort buffer中进行<code>快速排序</code>；</li>
+<li>在排序好的结果中取limit 300, 2第300、301条记录，写入net buffer，准备发送给客户端。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628235532500-640184688.png" alt="" loading="lazy"></p>
+<h3 id="anchor15">2.3.3、外部归并排序</h3>
+<p>当参与排序的数据太多，一次性放不进去sort buffer的时候，那么我们会一批一批的给sort buffer进行内存排序，结果放入排序临时文件，最终使对所有排好序的临时文件进行归并排序，得到最终的结果。</p>
+<p>有如下sql：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> a, b, c, d <span class="hljs-keyword">from</span> t20 <span class="hljs-keyword">force</span> <span class="hljs-keyword">index</span>(idx_abc) <span class="hljs-keyword">where</span> a=<span class="hljs-number">3</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> d <span class="hljs-keyword">limit</span> <span class="hljs-number">1000</span>,<span class="hljs-number">10</span>;
+</code></pre>
+<p>其中a=3的记录有8520条。执行计划如下：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628235606769-504921666.png" alt="" loading="lazy"></p>
+<p>可以发现，这里where用到了索引，order by limit用到了排序。进一步查看执行的optimizer_trace日志：</p>
+<pre><code class="language-json hljs"><span class="hljs-string">"filesort_priority_queue_optimization"</span>: {
+  <span class="hljs-attr">"limit"</span>: <span class="hljs-number">1010</span>,
+  <span class="hljs-attr">"rows_estimate"</span>: <span class="hljs-number">27033</span>,
+  <span class="hljs-attr">"row_size"</span>: <span class="hljs-number">123</span>,
+  <span class="hljs-attr">"memory_available"</span>: <span class="hljs-number">32768</span>,
+  <span class="hljs-attr">"strip_additional_fields"</span>: {
+    <span class="hljs-attr">"row_size"</span>: <span class="hljs-number">57</span>,
+    <span class="hljs-attr">"chosen"</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-attr">"cause"</span>: <span class="hljs-string">"not_enough_space"</span>  <span class="hljs-comment">// sort buffer空间不够，无法使用优先级队列进行排序了</span>
+  }
+},
+<span class="hljs-string">"filesort_execution"</span>: [
+],
+<span class="hljs-string">"filesort_summary"</span>: {
+  <span class="hljs-attr">"rows"</span>: <span class="hljs-number">8520</span>,
+  <span class="hljs-attr">"examined_rows"</span>: <span class="hljs-number">8520</span>,
+  <span class="hljs-attr">"number_of_tmp_files"</span>: <span class="hljs-number">24</span>,  <span class="hljs-comment">// 用到了24个外部文件进行排序</span>
+  <span class="hljs-attr">"sort_buffer_size"</span>: <span class="hljs-number">32720</span>,
+  <span class="hljs-attr">"sort_mode"</span>: <span class="hljs-string">"&lt;sort_key, packed_additional_fields&gt;"</span>
+}
+</code></pre>
+<p>我们可以看到，由于limit 1000，要返回排序后1000行以后的记录，显然sort buffer已经不能支撑这么大的优先级队列了，所以转而使用sort buffer内存排序，而这里需要在sort buffer中分批执行快速排序，得到多个排序好的外部临时文件，最终执行归并排序。（外部临时文件的位置由tmpdir参数指定）</p>
+<p>其流程如下图所示：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628235638990-1836394942.png" alt="" loading="lazy"></p>
+<h2 id="anchor16">2.4、排序模式案例</h2>
+<h3 id="anchor17">2.4.1、sort_key, additional_fields模式</h3>
+<p><code>sort_key, additional_fields</code>，排序缓冲区元组包含排序键值和查询所需要的列（先回表取需要的数据，存入排序缓冲区中），排序后直接从缓冲区元组取数据，无需再次回表。</p>
+<p>上面 2.3.1、2.3.2节的例子都是这种排序模式，就不继续举例了。</p>
+<h3 id="anchor18">2.4.2、&lt;sort_key, packed_additional_fields&gt;模式</h3>
+<p><code>sort_key, packed_additional_fields</code>：类似上一种形式，但是附加的列(如varchar类型)紧密地打包在一起，而不是使用固定长度的编码。</p>
+<p>上面2.3.3节的例子就是这种排序模式，由于参与排序的总记录大小太大了，因此需要对附加列进行紧密地打包操作，以节省内存。</p>
+<h3 id="anchor19">2.4.3、&lt;sort_key, rowid&gt;模式</h3>
+<p>前面我们提到，选择哪种排序模式，与<code>max_length_for_sort_data</code><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn2" id="fnref2">[2]</a></sup>这个属性有关，<code>max_length_for_sort_data</code>规定了排序行的最大大小，这个属性默认值大小为1024字节：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628235718090-825698401.png" alt="" loading="lazy"></p>
+<p>也就是说如果查询列和排序列占用的大小小于这个值，这个时候会走<code>sort_key, additional_fields</code>或者<code>sort_key, packed_additional_fields</code>算法，否则，那么会转而使用<code>sort_key, rowid</code>模式。</p>
+<p>现在我们特意把这个值设置小一点，模拟<code>sort_key, rowid</code>模式：</p>
+<pre><code class="hljs sql"><span class="hljs-keyword">SET</span> max_length_for_sort_data = <span class="hljs-number">100</span>;
+</code></pre>
+<p>这个时候执行sql：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> a, b, c, d <span class="hljs-keyword">from</span> t20 <span class="hljs-keyword">force</span> <span class="hljs-keyword">index</span>(idx_abc) <span class="hljs-keyword">where</span> a=<span class="hljs-number">3</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> d <span class="hljs-keyword">limit</span> <span class="hljs-number">10</span>;
+</code></pre>
+<p>这个时候再查看sql执行的optimizer_trace日志：</p>
+<pre><code class="language-json hljs"><span class="hljs-string">"filesort_priority_queue_optimization"</span>: {
+  <span class="hljs-attr">"limit"</span>: <span class="hljs-number">10</span>,
+  <span class="hljs-attr">"rows_estimate"</span>: <span class="hljs-number">27033</span>,
+  <span class="hljs-attr">"row_size"</span>: <span class="hljs-number">49</span>,
+  <span class="hljs-attr">"memory_available"</span>: <span class="hljs-number">32768</span>,
+  <span class="hljs-attr">"chosen"</span>: <span class="hljs-literal">true</span>
+},
+<span class="hljs-string">"filesort_execution"</span>: [
+],
+<span class="hljs-string">"filesort_summary"</span>: {
+  <span class="hljs-attr">"rows"</span>: <span class="hljs-number">11</span>,
+  <span class="hljs-attr">"examined_rows"</span>: <span class="hljs-number">8520</span>,
+  <span class="hljs-attr">"number_of_tmp_files"</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">"sort_buffer_size"</span>: <span class="hljs-number">632</span>,
+  <span class="hljs-attr">"sort_mode"</span>: <span class="hljs-string">"&lt;sort_key, rowid&gt;"</span>
+}
+</code></pre>
+<p>可以发现这个时候切换到了<code>sort_key, rowid</code>模式，在这个模式下，执行流程如下：</p>
+<ol>
+<li>where条件a=3扫描到8520条记录；</li>
+<li>回表查找记录；</li>
+<li>找到这8520条记录的<code>id</code>和<code>d</code>字段，放入sort buffer中进行堆排序；</li>
+<li>排序完成后，取前面10条；</li>
+<li>取这10条的id回表查询需要的a，b，c，d字段值；</li>
+<li>依次返回结果给到客户端。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628235809734-1435835344.png" alt="" loading="lazy"></p>
+<p>可以发现，正因为行记录太大了，所以sort buffer中只存了需要排序的字段和主键id，以时间换取空间，最终排序完成，再次从聚集索引中查找到所有需要的字段返回给客户端，很明显，这里多了一次回表操作的磁盘读，整体效率上是稍微低一点的。</p>
+<h2 id="anchor20">2.5、order by优化总结</h2>
+<p>根据以上的介绍，我们可以总结出以下的order by语句的相关优化手段：</p>
+<ul>
+<li>order by字段尽量使用固定长度的字段类型，因为排序字段不支持压缩；</li>
+<li>order by字段如果需要用可变长度，应尽量控制长度，道理同上；</li>
+<li>查询中尽量不用用select *，避免查询过多，导致order by的时候sort buffer内存不够导致外部排序，或者行大小超过了<code>max_length_for_sort_data</code>导致走了<code>sort_key, rowid</code>排序模式，使得产生了更多的磁盘读，影响性能；</li>
+<li>尝试给排序字段和相关条件加上联合索引，能够用到覆盖索引最佳。</li>
+</ul>
+<h1 id="anchor21">3、join</h1>
+<p>为了演示join，接下来我们需要用到这两个表：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> <span class="hljs-string">`t30`</span> ( 
+  <span class="hljs-string">`id`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span> AUTO_INCREMENT,
+  <span class="hljs-string">`a`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`b`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`c`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+  PRIMARY <span class="hljs-keyword">KEY</span> (<span class="hljs-string">`id`</span>),
+  <span class="hljs-keyword">KEY</span> idx_a(a)
+) <span class="hljs-keyword">ENGINE</span>=<span class="hljs-keyword">InnoDB</span> <span class="hljs-keyword">CHARSET</span>=utf8mb4;
+
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> <span class="hljs-string">`t31`</span> ( 
+  <span class="hljs-string">`id`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span> AUTO_INCREMENT,
+  <span class="hljs-string">`a`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`f`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`c`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+  PRIMARY <span class="hljs-keyword">KEY</span> (<span class="hljs-string">`id`</span>),
+  <span class="hljs-keyword">KEY</span> idx_a(a)
+) <span class="hljs-keyword">ENGINE</span>=<span class="hljs-keyword">InnoDB</span> <span class="hljs-keyword">CHARSET</span>=utf8mb4;
+
+<span class="hljs-keyword">insert</span> <span class="hljs-keyword">into</span> t30(a,b,c) <span class="hljs-keyword">values</span>(<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>),(<span class="hljs-number">12</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>),(<span class="hljs-number">3</span>,<span class="hljs-number">3</span>,<span class="hljs-number">3</span>),(<span class="hljs-number">11</span>, <span class="hljs-number">12</span>, <span class="hljs-number">31</span>),(<span class="hljs-number">15</span>,<span class="hljs-number">1</span>,<span class="hljs-number">32</span>),(<span class="hljs-number">33</span>,<span class="hljs-number">33</span>,<span class="hljs-number">43</span>),(<span class="hljs-number">5</span>,<span class="hljs-number">13</span>,<span class="hljs-number">14</span>),(<span class="hljs-number">4</span>,<span class="hljs-number">13</span>,<span class="hljs-number">14</span>),(<span class="hljs-number">16</span>,<span class="hljs-number">13</span>,<span class="hljs-number">14</span>),(<span class="hljs-number">10</span>,<span class="hljs-number">13</span>,<span class="hljs-number">14</span>);
+
+<span class="hljs-keyword">insert</span> <span class="hljs-keyword">into</span> t31(a,f,c) <span class="hljs-keyword">values</span>(<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>),(<span class="hljs-number">21</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>),(<span class="hljs-number">3</span>,<span class="hljs-number">3</span>,<span class="hljs-number">3</span>),(<span class="hljs-number">12</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>),(<span class="hljs-number">31</span>,<span class="hljs-number">20</span>,<span class="hljs-number">2</span>),(<span class="hljs-number">4</span>,<span class="hljs-number">10</span>,<span class="hljs-number">3</span>),(<span class="hljs-number">2</span>,<span class="hljs-number">23</span>,<span class="hljs-number">24</span>),(<span class="hljs-number">22</span>,<span class="hljs-number">23</span>,<span class="hljs-number">24</span>),(<span class="hljs-number">5</span>,<span class="hljs-number">23</span>,<span class="hljs-number">24</span>),(<span class="hljs-number">20</span>,<span class="hljs-number">23</span>,<span class="hljs-number">24</span>);
+</code></pre>
+<p>在MySQL官方文档中 <code>8.8.2 EXPLAIN Output Format</code><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn3" id="fnref3">[3]</a></sup> 提到：MySQL使用<code>Nested-Loop Loin</code>算法处理所有的关联查询。使用这种算法，意味着这种执行模式：</p>
+<ul>
+<li>从第一个表中读取一行，然后在第二个表、第三个表...中找到匹配的行，以此类推；</li>
+<li>处理完所有关联的表后，MySQL将输出选定的列，如果列不在当前关联的索引树中，那么会进行回表查找完整记录；</li>
+<li>继续遍历，从表中取出下一行，重复以上步骤。</li>
+</ul>
+<p>下面我们所讲到的都是<code>Nested-Loop Join</code>算法的不同实现。</p>
+<blockquote>
+<p><strong>多表join：</strong>不管多少个表join，都是用的Nested-Loop Join实现的。如果有第三个join的表，那么会把前两个表的join结果集作为循环基础数据，在执行一次Nested-Loop Join，到第三个表中匹配数据，更多多表同理。</p>
+</blockquote>
+<h2 id="anchor22">3.1、join走索引（Index Nested-Loop Join）</h2>
+<h3 id="anchor23">3.1.1、Index Nested-Loop Join</h3>
+<p>我们执行以下sql：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">straight_join</span> t31 <span class="hljs-keyword">on</span> t30.a=t31.a;
+</code></pre>
+<p>查看执行计划：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200628235951708-1454667247.png" alt="" loading="lazy"></p>
+<p>可以发现：</p>
+<ul>
+<li>t30作为驱动表，t31作为被驱动表；</li>
+<li>通过a字段关联，去t31表查找数据的时候用到了索引。</li>
+</ul>
+<p>该sql语句的执行流程如下图：</p>
+<ol>
+<li>首先遍历t30聚集索引；</li>
+<li>针对每个t30的记录，找到a的值，去t31的idx_a索引中找是否存在记录；</li>
+<li>如果存在则拿到t30对应索引记录的id回表查找完整记录；</li>
+<li>分别取t30和t31的所有字段作为结果返回。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000029840-1425719990.png" alt="" loading="lazy"></p>
+<p>由于这个过程中用到了idx_a索引，所以这种算法也称为：<code>Index Nested-Loop </code>(索引嵌套循环join)。其伪代码结构如下：</p>
+<pre><code class="language-java hljs"><span class="hljs-comment">// A 为t30聚集索引</span>
+<span class="hljs-comment">// B 为t31聚集索引</span>
+<span class="hljs-comment">// BIndex 为t31 idx_a索引</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">indexNestedLoopJoin</span><span class="hljs-params">()</span></span>{
+  List result;
+  <span class="hljs-keyword">for</span>(a in A) {
+    <span class="hljs-keyword">for</span>(bi in BIndex) {
+      <span class="hljs-keyword">if</span> (a satisfy condition bi) {
+        output &lt;a, b&gt;;
+      }
+    }
+  }
+}
+</code></pre>
+<p>假设t30记录数为m，t31记录数为n，每一次查找索引树的复杂度为log2(n)，所以以上场景，总的复杂度为：<code>m + m*2*log2(n)</code>。</p>
+<p>也就是说<strong>驱动表越小，复杂度越低，越能提高搜索效率。</strong></p>
+<h3 id="anchor24">3.1.2、Index nested-Loop Join的优化</h3>
+<p>我们可以发现，以上流程，每次从驱动表取一条数据，然后去被驱动表关联取数，表现为磁盘的随记读，效率是比较低低，有没有优化的方法呢？</p>
+<p>这个就得从MySQL的<code>MRR（Multi-Range Read）</code><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn4" id="fnref4">[4]</a></sup>优化机制说起了。</p>
+<h4 id="3121、multi-range-read优化">3.1.2.1、Multi-Range Read优化</h4>
+<p>我们执行以下代码，强制开启MMR功能：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">set</span> optimizer_switch=<span class="hljs-string">"mrr_cost_based=off"</span>
+</code></pre>
+<p>然后执行以下SQL，其中a是索引：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">force</span> <span class="hljs-keyword">index</span>(idx_a) <span class="hljs-keyword">where</span> a&lt;=<span class="hljs-number">12</span> <span class="hljs-keyword">limit</span> <span class="hljs-number">10</span>;
+</code></pre>
+<p>可以得到如下执行计划：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000057180-1992408015.png" alt="" loading="lazy"></p>
+<p>可以发现，Extra列提示用到了MRR优化。</p>
+<blockquote>
+<p>这里为了演示走索引的场景，所以加了force index关键词。</p>
+<p>正常不加force index的情况下，MySQL优化器会检查到这里即使走了索引还是需要回表查询，并且表中的数据量不多，那干脆就直接扫描全表，不走索引，效率更加高了。</p>
+</blockquote>
+<p>如果没有MRR优化，那么流程是这样的：</p>
+<ol>
+<li>在idx_a索引中找到a&lt;10的记录；</li>
+<li>取前面10条，拿着id去回表查找完整记录，这里回表查询是<strong>随机读，效率较差</strong>；</li>
+<li>取到的结果通过net buffer返回给客户端。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000137059-2122285448.png" alt="" loading="lazy"></p>
+<p>使用了MRR优化之后，这个执行流程是这样的：</p>
+<ol>
+<li>在idx_abc索引中找到a&lt;10的记录；</li>
+<li>取10条，把id放入<code>read rnd buffer</code>;</li>
+<li><code>read rnd buffer</code>中的id排序；</li>
+<li>排序之后回表查询完整记录，id越多，排好序之后越有可能产生连续的id，去磁盘顺序读；</li>
+<li>查询结果写入net buffer返回给客户端；</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000208613-459149325.png" alt="" loading="lazy"></p>
+<h4 id="3122、batched-key-access">3.1.2.2、Batched Key Access</h4>
+<p>与Multi-Range Read的优化思路类似，MySQL也是通过把随机读改为顺序读，让<code>Index Nested-Loop Join</code>提升查询效率，这个算法称为<code>Batched Key Access(BKA)</code><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn5" id="fnref5">[5]</a></sup>算法。</p>
+<p>我们知道，默认情况下，是扫描驱动表，一行一行的去被驱动表匹配记录。这样就无法触发MRR优化了，为了能够触发MRR，于是BKA算法登场了。</p>
+<p>在BKA算法中，<code>驱动表</code>通过使用<code>join buffer</code>批量在<code>被驱动表</code>的<code>辅助索引</code>中关联匹配数据，得到一批结果，一次性传递个数据库引擎的MRR接口，从而可以利用到MRR对磁盘读的优化。</p>
+<p>为了启用这个算法，我们执行以下命令（BKA依赖于MRR）：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">set</span> optimizer_switch=<span class="hljs-string">'mrr=on,mrr_cost_based=off,batched_key_access=on'</span>;
+</code></pre>
+<p>我们再次执行以下关联查询sql：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">straight_join</span> t31 <span class="hljs-keyword">on</span> t30.a=t31.a;
+</code></pre>
+<p>我们可以得到如下的执行计划：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000240505-1747147812.png" alt="" loading="lazy"></p>
+<p>可以发现，这里用到了：<code>Using join buffer(Batched Key Access)</code>。</p>
+<p>执行流程如下：</p>
+<ol>
+<li>把驱动表的数据批量放入join buffer中；</li>
+<li>在join buffer中批与被驱动表的辅助索引匹配结果，得到一个结果集；</li>
+<li>把上一步的结果集批量提交给引擎的MRR接口；</li>
+<li>MRR接口处理同上一节，主要进行了磁盘顺序读的优化；</li>
+<li>组合输出最终结果，可以看到，这里的结果与没有开启BKA优化的顺序有所不同，这里使用了t31被驱动表的id排序作为输出顺序，因为最后一步对被驱动表t31读取进行MRR优化的时候做了排序。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000310414-1228142578.png" alt="" loading="lazy"></p>
+<p>如果join条件没走索引，又会是什么情况呢，接下来我们尝试执行下对应的sql。</p>
+<h2 id="anchor25">3.2、join不走索引（Block Nested-Loop Join）</h2>
+<h3 id="anchor26">3.2.1、Block Nested-Loop Join (BNL)</h3>
+<p>我们执行以下sql：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">straight_join</span> t31 <span class="hljs-keyword">on</span> t30.c=t31.c;
+</code></pre>
+<p>查看执行计划：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000339979-924013009.png" alt="" loading="lazy"></p>
+<p>可以发现：</p>
+<ul>
+<li>t30作为驱动表，t31作为被驱动表；</li>
+<li>通过c字段关联，去t31表查找数据的时候没有用到索引；</li>
+<li>join的过程中用到了join buffer，这里提示用到了Block Nested Loop Join；</li>
+</ul>
+<p>该语句的执行流程如下图：</p>
+<ol>
+<li>t30驱动表中的数据分批(分块)存入join buffer，如果一次可以全部存入，则这里会一次性存入；</li>
+<li>t31被驱动表中扫描记录，依次取出与join buffer中的记录对比(内存中对比，快)，判断是否满足c相等的条件；</li>
+<li>满足条件的记录合并结果输出到net buffer中，最终传输给客户端。</li>
+</ol>
+<p>然后<strong>清空join buffer，存入下一批t30的数据，重复以上流程。</strong></p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000411161-1704857662.png" alt="" loading="lazy"></p>
+<p>显然，每批数据都需要扫描一遍被驱动表，批次越多，扫描越多，但是内存判断总次数是不变的。所以总批次越小，越高效。所以，跟上一个算法一样，<strong>驱动表越小，复杂度越低，越能提高搜索效率。</strong></p>
+<h3 id="anchor27">3.2.2、BNL问题</h3>
+<p>在 <a href="https://www.itzhai.com/database/insight-into-the-underlying-architecture-of-mysql-buffer-and-disk.html" target="_blank">洞悉MySQL底层架构：游走在缓冲与磁盘之间</a> 一文中，我们介绍了MySQL Buffer Pool的LRU算法，如下：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000440385-2128424936.png" alt="" loading="lazy"></p>
+<p>默认情况下，同一个数据页，在一秒钟之后再次访问，那么就会晋升到新子列表(young区)。</p>
+<p>恰巧，<strong>如果我们用到了BNL算法，那么分批执行的话，就会重复扫描被驱动表去匹配每一个批次了。</strong></p>
+<p>考虑以下两种会影响buffer pool的场景：</p>
+<ul>
+<li>如果这个时候join扫描了一个很大的冷表，那么在join这段期间，会持续的往旧子列表(old区)写数据页，淘汰队尾的数据页，这会影响其他业务数据页晋升到新子列表，因为很可能在一秒内，其他业务数据就从旧子列表中被淘汰掉了；</li>
+<li>而如果这个时候BNL算法把驱动表分为了多个批次，每个批次扫描匹配被驱动表，都超过1秒钟，那么这个时候，被驱动表的数据页就会被晋升到新子列表，这个时候也会把其他业务的数据页提前从新子列表中淘汰掉。</li>
+</ul>
+<h3 id="anchor28">3.2.3、BNL问题解决方案</h3>
+<h4 id="3231、调大-join_buffer_size">3.2.3.1、调大 join_buffer_size</h4>
+<p><strong>针对以上这种场景，为了避免影响buffer pool，最直接的办法就是增加join_buffer_size的值，以减少对被驱动表的扫描次数。</strong></p>
+<h4 id="3232、把bnl转换为bka">3.2.3.2、把BNL转换为BKA</h4>
+<p>我们可以通过把join的条件加上索引，从而避免了BNL算法，转而使用BKA算法，这样也可以加快记录的匹配速度，以及从磁盘读取被驱动表记录的速度。</p>
+<h4 id="3233、通过添加临时表">3.2.3.3、通过添加临时表</h4>
+<p>有时候，被驱动表很大，但是关联查询又很少使用，直接给关联字段加索引太浪费空间了，这个时候就可以通过把被驱动表的数据放入临时表，在零时表中添加索引的方式，以达成3.2.3.2的优化效果。</p>
+<h4 id="3234、使用hash-join">3.2.3.4、使用hash join</h4>
+<p>什么是hash join呢，简单来说就是这样的一种模型：</p>
+<blockquote>
+<p>把驱动表满足条件的数据取出来，放入一个hash结构中，然后把被驱动表满足条件的数据取出来，一行一行的去hash结构中寻找匹配的数据，依次找到满足条件的所有记录。</p>
+</blockquote>
+<p>一般情况下，MySQL的join实现都是以上介绍的各种nested-loop算法的实现，但是从MySQL 8.0.18<sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn6" id="fnref6">[6]</a></sup>开始，我们可以使用hash join来实现表连续查询了。感兴趣可以进一步阅读这篇文章进行了解：[Hash join in MySQL 8 | MySQL Server Blog](<a href="https://mysqlserverteam.com/hash-join-in-mysql-8/#:~:text=MySQL" target="_blank">https://mysqlserverteam.com/hash-join-in-mysql-8/#:~:text=MySQL</a> only supports inner hash,more often than it does.)</p>
+<h2 id="anchor29">3.3、各种join</h2>
+<p>我们在平时工作中，会遇到各种各样的join语句，主要有如下：</p>
+<p><strong>INNER JOIN</strong></p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000511069-820706903.png" alt="" loading="lazy"></p>
+<p><strong>LEFT JOIN</strong></p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000539873-1629355725.png" alt="" loading="lazy"></p>
+<p><strong>RIGHT JOIN</strong></p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000608574-1893913722.png" alt="" loading="lazy"></p>
+<p><strong>FULL OUTER JOIN</strong></p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000643704-28413628.png" alt="" loading="lazy"></p>
+<p><strong>LEFT JOIN EXCLUDING INNER JOIN</strong></p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000713387-244069094.png" alt="" loading="lazy"></p>
+<p><strong>RIGHT JOIN EXCLUDING INNER JOIN</strong></p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000746694-612464598.png" alt="" loading="lazy"></p>
+<p><strong>OUTER JOIN EXCLUDING INNER JOIN</strong></p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000816049-507862496.png" alt="" loading="lazy"></p>
+<p>更详细的介绍，可以参考：</p>
+<ul>
+<li><a href="https://www.guru99.com/joins.html" target="_blank">MySQL JOINS Tutorial: INNER, OUTER, LEFT, RIGHT, CROSS</a><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn7" id="fnref7">[7]</a></sup></li>
+<li><a href="https://stackoverflow.com/questions/34149582/how-the-sql-join-actually-works" target="_blank">How the SQL join actually works?</a><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn8" id="fnref8">[8]</a></sup></li>
+</ul>
+<h2 id="anchor30">3.3、join使用总结</h2>
+<ul>
+<li>join优化的目标是尽可能减少join中Nested-Loop的循环次数，所以请让小表做驱动表；</li>
+<li>关联字段尽量走索引，这样就可以用到Index Nested-Loop Join了；</li>
+<li>如果有order by，请使用驱动表的字段作为order by，否则会使用 using temporary；</li>
+<li>如果不可避免要用到BNL算法，为了减少被驱动表多次扫描导致的对Buffer Pool利用率的影响，那么可以尝试把 join_buffer_size调大；</li>
+<li>为了进一步加快BNL算法的执行效率，我们可以给关联条件加上索引，转换为BKA算法；如果加索引成本较高，那么可以通过临时表添加索引来实现；</li>
+<li>如果您使用的是MySQL 8.0.18，可以尝试使用hash join，如果是较低版本，也可以自己在程序中实现一个hash join。</li>
+</ul>
+<h1 id="anchor31">4、union</h1>
+<p>通过使用union可以把两个查询结果合并起来，注意：</p>
+<blockquote>
+<p>union all不会去除重复的行，union则会去除重复读的行。</p>
+</blockquote>
+<h2 id="anchor32">4.1、union all</h2>
+<p>执行下面sql：</p>
+<pre><code class="language-sql hljs">(<span class="hljs-keyword">select</span> <span class="hljs-keyword">id</span> <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> <span class="hljs-keyword">id</span> <span class="hljs-keyword">desc</span> <span class="hljs-keyword">limit</span> <span class="hljs-number">10</span>) <span class="hljs-keyword">union</span> <span class="hljs-keyword">all</span> (<span class="hljs-keyword">select</span> c <span class="hljs-keyword">from</span> t31 <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> <span class="hljs-keyword">id</span> <span class="hljs-keyword">desc</span> <span class="hljs-keyword">limit</span> <span class="hljs-number">10</span>)
+</code></pre>
+<p>该sql执行计划如下图：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000852921-1747788112.png" alt="" loading="lazy"></p>
+<p>执行流程如下：</p>
+<ol>
+<li>从t30表查询出结果，直接写出到net buffer，传回给客户端；</li>
+<li>从331表查询出结果，直接写出到net buffer，传回给客户端。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000918599-323937057.png" alt="" loading="lazy"></p>
+<h2 id="anchor33">4.2、union</h2>
+<p>执行下面sql：</p>
+<pre><code class="language-sql hljs">(<span class="hljs-keyword">select</span> <span class="hljs-keyword">id</span> <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> <span class="hljs-keyword">id</span> <span class="hljs-keyword">desc</span> <span class="hljs-keyword">limit</span> <span class="hljs-number">10</span>) <span class="hljs-keyword">union</span> (<span class="hljs-keyword">select</span> c <span class="hljs-keyword">from</span> t31 <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> <span class="hljs-keyword">id</span> <span class="hljs-keyword">desc</span> <span class="hljs-keyword">limit</span> <span class="hljs-number">10</span>)
+</code></pre>
+<p>该sql执行计划如下图：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629000949453-1884590618.png" alt="" loading="lazy"></p>
+<p>执行流程如下：</p>
+<ol>
+<li>从t30查询出记录，写入到临时表；</li>
+<li>从t30查询出记录，写入临时表，在临时表中通过唯一索引去重；</li>
+<li>把临时表的数据通过net buffer返回给客户端。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001012900-1850673322.png" alt="" loading="lazy"></p>
+<h1 id="anchor34">5、group by</h1>
+<h2 id="anchor35">5.1、完全走索引</h2>
+<p>我们给t30加一个索引：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">alter</span> <span class="hljs-keyword">table</span> t30 <span class="hljs-keyword">add</span> <span class="hljs-keyword">index</span> idx_c(c);
+</code></pre>
+<p>执行以下group bysql：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> c, <span class="hljs-keyword">count</span>(*) <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span> c;
+</code></pre>
+<p>执行计划如下：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001116850-1499736401.png" alt="" loading="lazy"></p>
+<p>发现这里只用到了索引，原因是<code>idx_c</code>索引本身就是按照c排序好的，那么直接顺序扫描idx_c索引，可以直接统计到每一个c值有多少条记录，无需做其他的统计了。</p>
+<h2 id="anchor36">5.2、临时表</h2>
+<p>现在我们把刚刚的<code>idx_c</code>索引给删掉，执行以下sql：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> c, <span class="hljs-keyword">count</span>(*) <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span> c <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> <span class="hljs-literal">null</span>;
+</code></pre>
+<blockquote>
+<p>为了避免排序，所以我们这里添加了 order by null，表示不排序。</p>
+</blockquote>
+<p>执行计划如下：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001146886-830594212.png" alt="" loading="lazy"></p>
+<p>可以发现，这里用到了内存临时表。其执行流程如下：</p>
+<ol>
+<li>扫描t30聚集索引；</li>
+<li>建立一个临时表，以字段c为主键，依次把扫描t30的记录通过临时表的字段c进行累加；</li>
+<li>把最后累加得到的临时表返回给客户端。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001213664-901155021.png" alt="" loading="lazy"></p>
+<h2 id="anchor37">5.3、临时表 + 排序</h2>
+<p>如果我们把上一步的<code>order by null</code>去掉，默认情况下，group by的结果是会通过c字段排序的。我们看看其执行计划：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001243079-1821427420.png" alt="" loading="lazy"></p>
+<p>可以发现，这里除了用到临时表，还用到了排序。</p>
+<p>我们进一步看看其执行的<code>OPTIMIZER_TRACE</code>日志：</p>
+<pre><code class="language-json hljs"><span class="hljs-string">"steps"</span>: [
+  {
+    <span class="hljs-attr">"creating_tmp_table"</span>: {
+      <span class="hljs-attr">"tmp_table_info"</span>: {
+        <span class="hljs-attr">"table"</span>: <span class="hljs-string">"intermediate_tmp_table"</span>,  <span class="hljs-comment">// 创建中间临时表</span>
+        <span class="hljs-attr">"row_length"</span>: <span class="hljs-number">13</span>,
+        <span class="hljs-attr">"key_length"</span>: <span class="hljs-number">4</span>,
+        <span class="hljs-attr">"unique_constraint"</span>: <span class="hljs-literal">false</span>,
+        <span class="hljs-attr">"location"</span>: <span class="hljs-string">"memory (heap)"</span>,
+        <span class="hljs-attr">"row_limit_estimate"</span>: <span class="hljs-number">1290555</span>
+      }
+    }
+  },
+  {
+    <span class="hljs-attr">"filesort_information"</span>: [
+      {
+        <span class="hljs-attr">"direction"</span>: <span class="hljs-string">"asc"</span>,
+        <span class="hljs-attr">"table"</span>: <span class="hljs-string">"intermediate_tmp_table"</span>,
+        <span class="hljs-attr">"field"</span>: <span class="hljs-string">"c"</span>
+      }
+    ],
+    <span class="hljs-attr">"filesort_priority_queue_optimization"</span>: {
+      <span class="hljs-attr">"usable"</span>: <span class="hljs-literal">false</span>,
+      <span class="hljs-attr">"cause"</span>: <span class="hljs-string">"not applicable (no LIMIT)"</span> <span class="hljs-comment">// 由于没有 limit，不采用优先级队列排序</span>
+    },
+    <span class="hljs-attr">"filesort_execution"</span>: [
+    ],
+    <span class="hljs-attr">"filesort_summary"</span>: {
+      <span class="hljs-attr">"rows"</span>: <span class="hljs-number">7</span>,
+      <span class="hljs-attr">"examined_rows"</span>: <span class="hljs-number">7</span>,
+      <span class="hljs-attr">"number_of_tmp_files"</span>: <span class="hljs-number">0</span>,
+      <span class="hljs-attr">"sort_buffer_size"</span>: <span class="hljs-number">344</span>,
+      <span class="hljs-attr">"sort_mode"</span>: <span class="hljs-string">"&lt;sort_key, rowid&gt;"</span>  <span class="hljs-comment">// rowid排序模式</span>
+    }
+  }
+]
+</code></pre>
+<p>通过日志也可以发现，这里用到了中间临时表，由于没有limit限制条数，这里没有用到优先级队列排序，这里的排序模式为<code>sort_key, rowid</code>。其执行流程如下：</p>
+<ol>
+<li>扫描t30聚集索引；</li>
+<li>建立一个临时表，以字段c为主键，依次把扫描t30的记录通过临时表的字段c进行累加；</li>
+<li>把得到的临时表放入sort buffer进行排序，这里通过rowid进行排序；</li>
+<li>通过排序好的rowid回临时表查找需要的字段，返回给客户端。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001315106-871652437.png" alt="" loading="lazy"></p>
+<blockquote>
+<p><strong>临时表是存放在磁盘还是内存？</strong></p>
+<p>tmp_table_size 参数用于设置内存临时表的大小，如果临时表超过这个大小，那么会转为磁盘临时表：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001347517-1465534971.png" alt="" loading="lazy"></p>
+<p>可以通过以下sql设置当前session中的内存临时表大小：SET tmp_table_size = 102400;</p>
+</blockquote>
+<h2 id="anchor38">5.5、直接排序</h2>
+<p>查看官方文档的 <code>SELECT Statement</code><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn9" id="fnref9">[9]</a></sup>，可以发现SELECT后面可以使用许多修饰符来影响SQL的执行效果：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span>
+    [<span class="hljs-keyword">ALL</span> | <span class="hljs-keyword">DISTINCT</span> | <span class="hljs-keyword">DISTINCTROW</span> ]
+    [<span class="hljs-keyword">HIGH_PRIORITY</span>]
+    [<span class="hljs-keyword">STRAIGHT_JOIN</span>]
+    [<span class="hljs-keyword">SQL_SMALL_RESULT</span>] [<span class="hljs-keyword">SQL_BIG_RESULT</span>] [<span class="hljs-keyword">SQL_BUFFER_RESULT</span>]
+    [<span class="hljs-keyword">SQL_CACHE</span> | SQL_NO_CACHE] [<span class="hljs-keyword">SQL_CALC_FOUND_ROWS</span>]
+    select_expr [, select_expr] ...
+    [into_option]
+    [<span class="hljs-keyword">FROM</span> table_references
+      [<span class="hljs-keyword">PARTITION</span> partition_list]]
+    [<span class="hljs-keyword">WHERE</span> where_condition]
+    [<span class="hljs-keyword">GROUP</span> <span class="hljs-keyword">BY</span> {col_name | expr | <span class="hljs-keyword">position</span>}
+      [<span class="hljs-keyword">ASC</span> | <span class="hljs-keyword">DESC</span>], ... [<span class="hljs-keyword">WITH</span> <span class="hljs-keyword">ROLLUP</span>]]
+    [<span class="hljs-keyword">HAVING</span> where_condition]
+    [<span class="hljs-keyword">ORDER</span> <span class="hljs-keyword">BY</span> {col_name | expr | <span class="hljs-keyword">position</span>}
+      [<span class="hljs-keyword">ASC</span> | <span class="hljs-keyword">DESC</span>], ...]
+    [<span class="hljs-keyword">LIMIT</span> {[<span class="hljs-keyword">offset</span>,] <span class="hljs-keyword">row_count</span> | <span class="hljs-keyword">row_count</span> <span class="hljs-keyword">OFFSET</span> <span class="hljs-keyword">offset</span>}]
+    [<span class="hljs-keyword">PROCEDURE</span> procedure_name(argument_list)]
+    [into_option]
+    [<span class="hljs-keyword">FOR</span> <span class="hljs-keyword">UPDATE</span> | <span class="hljs-keyword">LOCK</span> <span class="hljs-keyword">IN</span> <span class="hljs-keyword">SHARE</span> <span class="hljs-keyword">MODE</span>]
+
+into_option: {
+    <span class="hljs-keyword">INTO</span> <span class="hljs-keyword">OUTFILE</span> <span class="hljs-string">'file_name'</span>
+        [<span class="hljs-built_in">CHARACTER</span> <span class="hljs-keyword">SET</span> charset_name]
+        export_options
+  | <span class="hljs-keyword">INTO</span> <span class="hljs-keyword">DUMPFILE</span> <span class="hljs-string">'file_name'</span>
+  | <span class="hljs-keyword">INTO</span> var_name [, var_name] ...
+}
+</code></pre>
+<p>这里我们重点关注下这两个：</p>
+<ul>
+<li><code>SQL_BIG_RESULT</code>：可以在包含group by 和distinct的SQL中使用，提醒优化器查询数据量很大，这个时候MySQL会直接选用磁盘临时表取代内存临时表，避免执行过程中发现内存不足才转为磁盘临时表。这个时候更倾向于使用排序取代二维临时表统计结果。后面我们会演示这样的案例；</li>
+<li><code>SQL_SMALL_RESULT</code>：可以在包含group by 和distinct的SQL中使用，提醒优化器数据量很小，提醒优化器直接选用内存临时表，这样会通过临时表统计，而不是排序。</li>
+</ul>
+<p>当然，在平时工作中，不是特定的调优场景，以上两个修饰符还是比较少用到的。</p>
+<p><strong>接下来我们就通过例子来说明下使用了<code>SQL_BIG_RESULT</code>修饰符的SQL执行流程。</strong></p>
+<p>有如下SQL：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> <span class="hljs-keyword">SQL_BIG_RESULT</span> c, <span class="hljs-keyword">count</span>(*) <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span> c;
+</code></pre>
+<p>执行计划如下：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001417065-1375734351.png" alt="" loading="lazy"></p>
+<p>可以发现，这里只用到了排序，没有用到索引或者临时表。这里用到了<code>SQL_BIG_RESULT</code>修饰符，告诉优化器group by的数据量很大，直接选用磁盘临时表，但磁盘临时表存储效率不高，最终优化器使用数组排序的方式来完成这个查询。（当然，这个例子实际的结果集并不大，只是作为演示用）</p>
+<p>其执行结果如下：</p>
+<ol>
+<li>扫描t30表，逐行的把c字段放入sort buffer；</li>
+<li>在sort buffer中对c字段进行排序，得到一个排序好的c数组；</li>
+<li>遍历这个排序好的c数组，统计结果并输出。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001444930-497697578.png" alt="" loading="lazy"></p>
+<h2 id="anchor39">5.4、group by 优化建议</h2>
+<ul>
+<li>尽量让group by走索引，能最大程度的提高效率；</li>
+<li>如果group by结果不需要排序，那么可以加上<code>group by null</code>，避免进行排序；</li>
+<li>如果group by的数据量很大，可以使用<code>SQL_BIG_RESULT</code>修饰符，提醒优化器应该使用排序算法得到group的结果。</li>
+</ul>
+<h1 id="anchor40">6、distinct<sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn10" id="fnref10">[10]</a></sup></h1>
+<p>在大多数情况下，<code>DISTINCT</code>可以考虑为<code>GROUP BY</code>的一个特殊案例，如下两个SQL是等效的：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> <span class="hljs-keyword">distinct</span> a, b, c <span class="hljs-keyword">from</span> t30;
+
+<span class="hljs-keyword">select</span> a, b, c <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span> a, b, c <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> <span class="hljs-literal">null</span>;
+</code></pre>
+<p>这两个SQL的执行计划如下：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001513290-1502092310.png" alt="" loading="lazy"></p>
+<p><strong>由于这种等效性，适用于Group by的查询优化也适用于DISTINCT。</strong></p>
+<p><strong>区别：</strong>distinct是在group by之后的每组中取出一条记录，distinct分组之后不进行排序。</p>
+<h2 id="anchor41">6.1、Extra中的distinct</h2>
+<p>在一个关联查询中，如果您只是查询驱动表的列，并且在驱动表的列中声明了distinct关键字，那么优化器会进行优化，在被驱动表中查找到匹配的第一行时，将停止继续扫描。如下SQL：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> <span class="hljs-keyword">distinct</span> t30.a  <span class="hljs-keyword">from</span> t30, t31 <span class="hljs-keyword">where</span> t30.c=t30.c;
+</code></pre>
+<p>执行计划如下，可以发现Extra列中有一个distinct，该标识即标识用到了这种优化<sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn10" id="fnref10:1">[10:1]</a></sup>：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001544410-1255411838.png" alt="" loading="lazy"></p>
+<h1 id="anchor42">7、子查询</h1>
+<p>首先，我们来明确几个概念：</p>
+<p><strong>子查询：</strong>可以是嵌套在另一个查询(select insert update delete)内，子查询也可以是嵌套在另一个子查询里面。</p>
+<p>MySQL子查询称为<strong>内部查询</strong>，而包含子查询的查询称为<strong>外部查询</strong>。子查询可以在使用表达式的任何地方使用。</p>
+<p>接下来我们使用以下表格来演示各种子查询：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">create</span> <span class="hljs-keyword">table</span> <span class="hljs-keyword">class</span> (
+  <span class="hljs-keyword">id</span> <span class="hljs-built_in">bigint</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">null</span> auto_increment,
+  class_num <span class="hljs-built_in">varchar</span>(<span class="hljs-number">10</span>) <span class="hljs-keyword">comment</span> <span class="hljs-string">'课程编号'</span>,
+  class_name <span class="hljs-built_in">varchar</span>(<span class="hljs-number">100</span>) <span class="hljs-keyword">comment</span> <span class="hljs-string">'课程名称'</span>,
+  pass_score <span class="hljs-built_in">integer</span> <span class="hljs-keyword">comment</span> <span class="hljs-string">'课程及格分数'</span>,
+  primary <span class="hljs-keyword">key</span> (<span class="hljs-keyword">id</span>)
+) <span class="hljs-keyword">comment</span> <span class="hljs-string">'课程'</span>;
+
+<span class="hljs-keyword">create</span> <span class="hljs-keyword">table</span> student_class (
+  <span class="hljs-keyword">id</span> <span class="hljs-built_in">bigint</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">null</span> auto_increment,
+  student_name <span class="hljs-built_in">varchar</span>(<span class="hljs-number">100</span>) <span class="hljs-keyword">comment</span> <span class="hljs-string">'学生姓名'</span>,
+  class_num <span class="hljs-built_in">varchar</span>(<span class="hljs-number">10</span>) <span class="hljs-keyword">comment</span> <span class="hljs-string">'课程编号'</span>,
+  score <span class="hljs-built_in">integer</span> <span class="hljs-keyword">comment</span> <span class="hljs-string">'课程得分'</span>,
+  primary <span class="hljs-keyword">key</span> (<span class="hljs-keyword">id</span>)
+) <span class="hljs-keyword">comment</span> <span class="hljs-string">'学生选修课程信息'</span>;
+
+<span class="hljs-keyword">insert</span> <span class="hljs-keyword">into</span> <span class="hljs-keyword">class</span>(class_num, class_name, pass_score) <span class="hljs-keyword">values</span> (<span class="hljs-string">'C001'</span>,<span class="hljs-string">'语文'</span>, <span class="hljs-number">60</span>),(<span class="hljs-string">'C002'</span>,<span class="hljs-string">'数学'</span>, <span class="hljs-number">70</span>),(<span class="hljs-string">'C003'</span>, <span class="hljs-string">'英文'</span>, <span class="hljs-number">60</span>),(<span class="hljs-string">'C004'</span>, <span class="hljs-string">'体育'</span>, <span class="hljs-number">80</span>),(<span class="hljs-string">'C005'</span>, <span class="hljs-string">'音乐'</span>, <span class="hljs-number">60</span>),(<span class="hljs-string">'C006'</span>, <span class="hljs-string">'美术'</span>, <span class="hljs-number">70</span>);
+
+<span class="hljs-keyword">insert</span> <span class="hljs-keyword">into</span> student_class(student_name, class_num, score) <span class="hljs-keyword">values</span>(<span class="hljs-string">'James'</span>, <span class="hljs-string">'C001'</span>, <span class="hljs-number">80</span>),(<span class="hljs-string">'Talor'</span>, <span class="hljs-string">'C005'</span>, <span class="hljs-number">75</span>),(<span class="hljs-string">'Kate'</span>, <span class="hljs-string">'C002'</span>, <span class="hljs-number">65</span>),(<span class="hljs-string">'David'</span>, <span class="hljs-string">'C006'</span>, <span class="hljs-number">82</span>),(<span class="hljs-string">'Ann'</span>, <span class="hljs-string">'C004'</span>, <span class="hljs-number">88</span>),(<span class="hljs-string">'Jan'</span>, <span class="hljs-string">'C003'</span>, <span class="hljs-number">70</span>),(<span class="hljs-string">'James'</span>, <span class="hljs-string">'C002'</span>, <span class="hljs-number">97</span>), (<span class="hljs-string">'Kate'</span>, <span class="hljs-string">'C005'</span>, <span class="hljs-number">90</span>), (<span class="hljs-string">'Jan'</span>, <span class="hljs-string">'C005'</span>, <span class="hljs-number">86</span>), (<span class="hljs-string">'Talor'</span>, <span class="hljs-string">'C006'</span>, <span class="hljs-number">92</span>);
+</code></pre>
+<p>子查询的用法比较多，我们先来列举下有哪些子查询的使用方法。</p>
+<h2 id="anchor43">7.1、子查询的使用方法</h2>
+<h3 id="anchor44">7.1.1、where中的子查询</h3>
+<h4 id="7111、比较运算符">7.1.1.1、比较运算符</h4>
+<p>可以使用比较运算法，例如=，&gt;，&lt;将子查询返回的单个值与where子句表达式进行比较，如</p>
+<p>查找学生选择的编号最大的课程信息：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> class.* <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">class</span> <span class="hljs-keyword">WHERE</span> class.class_num = ( <span class="hljs-keyword">SELECT</span> <span class="hljs-keyword">MAX</span>(class_num) <span class="hljs-keyword">FROM</span> student_class );
+</code></pre>
+<h4 id="7112、in和not-in">7.1.1.2、in和not in</h4>
+<p>如果子查询返回多个值，则可以在WHERE子句中使用其他运算符，例如IN或NOT IN运算符。如</p>
+<p>查找学生都选择了哪些课程：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> class.* <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">class</span> <span class="hljs-keyword">WHERE</span> class.class_num <span class="hljs-keyword">IN</span> ( <span class="hljs-keyword">SELECT</span> <span class="hljs-keyword">DISTINCT</span> class_num <span class="hljs-keyword">FROM</span> student_class );
+</code></pre>
+<h3 id="anchor45">7.1.2、from子查询</h3>
+<p>在FROM子句中使用子查询时，从子查询返回的结果集将用作临时表。该表称为派生表或实例化子查询。如 查找最热门和最冷门的课程分别有多少人选择：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> <span class="hljs-keyword">max</span>(<span class="hljs-keyword">count</span>), <span class="hljs-keyword">min</span>(<span class="hljs-keyword">count</span>) <span class="hljs-keyword">FROM</span> (<span class="hljs-keyword">SELECT</span> class_num, <span class="hljs-keyword">count</span>(<span class="hljs-number">1</span>) <span class="hljs-keyword">as</span> <span class="hljs-keyword">count</span> <span class="hljs-keyword">FROM</span> student_class <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span> class_num) <span class="hljs-keyword">as</span> t1;
+</code></pre>
+<h3 id="anchor46">7.1.3、关联子查询</h3>
+<p>前面的示例中，您注意到子查询是独立的。这意味着您可以将子查询作为独立查询执行。</p>
+<p>与<strong>独立子查询</strong>不同，<strong>关联子查询</strong>是使用外部查询中的数据的子查询。换句话说，相关子查询取决于外部查询。对于外部查询中的每一行，对关联子查询进行一次评估。</p>
+<p>下面是比较运算符中的一个关联子查询。</p>
+<p>查找每门课程超过平均分的学生课程记录：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> t1.* <span class="hljs-keyword">FROM</span> student_class t1 <span class="hljs-keyword">WHERE</span> t1.score &gt; ( <span class="hljs-keyword">SELECT</span> <span class="hljs-keyword">AVG</span>(score) <span class="hljs-keyword">FROM</span> student_class t2 <span class="hljs-keyword">WHERE</span> t1.class_num = t2.class_num);
+</code></pre>
+<blockquote>
+<p><strong>关联子查询中，针对每一个外部记录，都需要执行一次子查询</strong>，因为每一条外部记录的class_num可能都不一样。</p>
+</blockquote>
+<h3 id="anchor47">7.1.3.1、exists和not exists</h3>
+<p>当子查询与EXISTS或NOT EXISTS运算符一起使用时，子查询将返回布尔值TRUE或FALSE。</p>
+<p>查找所有学生总分大于100分的课程：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">class</span> t1 
+<span class="hljs-keyword">where</span> <span class="hljs-keyword">exists</span>(
+  <span class="hljs-keyword">select</span> <span class="hljs-keyword">sum</span>(score) <span class="hljs-keyword">as</span> total_score <span class="hljs-keyword">from</span> student_class t2 
+  <span class="hljs-keyword">where</span> t2.class_num=t1.class_num <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span> t2.class_num <span class="hljs-keyword">having</span> total_score &gt; <span class="hljs-number">100</span>
+)
+</code></pre>
+<h2 id="anchor48">7.2、子查询的优化</h2>
+<p>上面我们演示了子查询的各种用法，接下来，我们来讲一下子查询的优化<sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn11" id="fnref11">[11]</a></sup>。</p>
+<p>子查询主要由以下三种优化手段：</p>
+<ul>
+<li>Semijoin，半连接转换，把子查询sql自动转换为semijion；</li>
+<li>Materialization，子查询物化；</li>
+<li>EXISTS策略，in转exists；</li>
+</ul>
+<p><strong>其中Semijoin只能用于IN，= ANY，或者EXISTS的子查询中，不能用于NOT IN，&lt;&gt; ALL，或者NOT EXISTS的子查询中。</strong></p>
+<p>下面我们做一下详细的介绍。</p>
+<blockquote>
+<p><strong>真的要尽量使用关联查询取代子查询吗？</strong></p>
+<p>在《高性能MySQL》<sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn12" id="fnref12">[12]</a></sup>一书中，提到：优化子查询最重要的建议就是尽可能使用关联查询代替，但是，如果使用的是MySQL 5.6或者更新版本或者MariaDB，那么就可以直接忽略这个建议了。因为这些版本对子查询做了不少的优化，后面我们会重点介绍这些优化。</p>
+<p><strong>in的效率真的这么慢吗？</strong></p>
+<p>在MySQL5.6之后是做了不少优化的，下面我们就逐个来介绍。</p>
+</blockquote>
+<h3 id="anchor49">7.2.1、Semijoin</h3>
+<p>Semijoin<sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn13" id="fnref13">[13]</a></sup>，半连接，所谓半连接，指的是一张表在另一张表栈道匹配的记录之后，<strong>返回第一张表的记录</strong>。即使右边找到了几条匹配的记录，也最终返回左边的一条。</p>
+<p>所以，<strong>半连接非常适用于查找两个表之间是否存在匹配的记录，而不关注匹配了多少条记录这种场景。</strong></p>
+<p><strong>半连接通常用于IN或者EXISTS语句的优化。</strong></p>
+<h4 id="7211、优化场景">7.2.1.1、优化场景</h4>
+<p>上面我们讲到：接非常适用于查找两个表之间是否存在匹配的记录，而不关注匹配了多少条记录这种场景。</p>
+<p><strong>in关联子查询</strong></p>
+<p>这种场景，如果使用in来实现，可能会是这样：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> class_num, class_name
+    <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">class</span>
+    <span class="hljs-keyword">WHERE</span> class_num <span class="hljs-keyword">IN</span>
+        (<span class="hljs-keyword">SELECT</span> class_num <span class="hljs-keyword">FROM</span> student_class <span class="hljs-keyword">where</span> condition);
+</code></pre>
+<p>在这里，优化器可以识别出IN子句要求子查询仅从student_class表返回唯一的class_num。在这种情况下，查询会自动优化为使用半联接。</p>
+<p>如果使用exists来实现，可能会是这样：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> class_num, class_name
+    <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">class</span>
+    <span class="hljs-keyword">WHERE</span> <span class="hljs-keyword">EXISTS</span>
+        (<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> student_class <span class="hljs-keyword">WHERE</span> class.class_num = student_class.class_num);
+</code></pre>
+<p><strong>优化案例</strong></p>
+<p>统计有学生分数不及格的课程：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> t1.class_num, t1.class_name
+    <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">class</span> t1
+    <span class="hljs-keyword">WHERE</span> t1.class_num <span class="hljs-keyword">IN</span>
+        (<span class="hljs-keyword">SELECT</span> t2.class_num <span class="hljs-keyword">FROM</span> student_class t2 <span class="hljs-keyword">where</span> t2.score &lt; t1.pass_score);
+</code></pre>
+<p>我们可以通过执行以下脚本，查看sql做了什么优化：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">explain</span> <span class="hljs-keyword">extended</span> <span class="hljs-keyword">SELECT</span> t1.class_num, t1.class_name <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">class</span> t1 <span class="hljs-keyword">WHERE</span> t1.class_num <span class="hljs-keyword">IN</span>         (<span class="hljs-keyword">SELECT</span> t2.class_num <span class="hljs-keyword">FROM</span> student_class t2 <span class="hljs-keyword">where</span> t2.score &lt; t1.pass_score);
+<span class="hljs-keyword">show</span> <span class="hljs-keyword">warnings</span>\G;
+</code></pre>
+<p>得到如下执行执行计划，和SQL重写结果：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001634764-450173671.png" alt="" loading="lazy"></p>
+<p>从这个SQL重写结果中，可以看出，最终子查询变为了semi join语句：</p>
+<pre><code class="language-sql hljs"><span class="hljs-comment">/* select#1 */</span> <span class="hljs-keyword">select</span> <span class="hljs-string">`test`</span>.<span class="hljs-string">`t1`</span>.<span class="hljs-string">`class_num`</span> <span class="hljs-keyword">AS</span> <span class="hljs-string">`class_num`</span>,<span class="hljs-string">`test`</span>.<span class="hljs-string">`t1`</span>.<span class="hljs-string">`class_name`</span> <span class="hljs-keyword">AS</span> <span class="hljs-string">`class_name`</span> 
+<span class="hljs-keyword">from</span> <span class="hljs-string">`test`</span>.<span class="hljs-string">`class`</span> <span class="hljs-string">`t1`</span> 
+<span class="hljs-keyword">semi</span> <span class="hljs-keyword">join</span> (<span class="hljs-string">`test`</span>.<span class="hljs-string">`student_class`</span> <span class="hljs-string">`t2`</span>) <span class="hljs-keyword">where</span> ((<span class="hljs-string">`test`</span>.<span class="hljs-string">`t2`</span>.<span class="hljs-string">`class_num`</span> = <span class="hljs-string">`test`</span>.<span class="hljs-string">`t1`</span>.<span class="hljs-string">`class_num`</span>) <span class="hljs-keyword">and</span> (<span class="hljs-string">`test`</span>.<span class="hljs-string">`t2`</span>.<span class="hljs-string">`score`</span> &lt; <span class="hljs-string">`test`</span>.<span class="hljs-string">`t1`</span>.<span class="hljs-string">`pass_score`</span>))
+</code></pre>
+<p>而执行计划中，我们看Extra列：</p>
+<blockquote>
+<p>Using where; FirstMatch(t1); Using join buffer (Block Nested Loop)</p>
+</blockquote>
+<p><code>Using join buffer</code>这项是在join关联查询的时候会用到，前面讲join语句的时候已经介绍过了，现在我们重点看一下<code>FirstMatch(t1)</code>这个优化项。</p>
+<p><strong><code>FirstMatch(t1)</code>是Semijoin优化策略中的一种。</strong>下面我们详细介绍下Semijoin有哪些优化策略。</p>
+<h4 id="7212、semijoin优化策略">7.2.1.2、Semijoin优化策略</h4>
+<p>MySQL支持5中Semijoin优化策略，下面逐一介绍。</p>
+<h5 id="72121、firstmatch">7.2.1.2.1、FirstMatch</h5>
+<p>在内部表寻找与外部表匹配的记录，<strong>一旦找到第一条，则停止继续匹配</strong>。</p>
+<p>案例 - 统计有学生分数不及格的课程：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> t1.class_num, t1.class_name
+    <span class="hljs-keyword">FROM</span> <span class="hljs-keyword">class</span> t1
+    <span class="hljs-keyword">WHERE</span> t1.class_num <span class="hljs-keyword">IN</span>
+        (<span class="hljs-keyword">SELECT</span> t2.class_num <span class="hljs-keyword">FROM</span> student_class t2 <span class="hljs-keyword">where</span> t2.score &lt; t1.pass_score);
+</code></pre>
+<p>执行计划：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001704423-1306680595.png" alt="" loading="lazy"></p>
+<p>执行流程，图比较大，请大家放大观看：</p>
+<ol>
+<li>扫描class表，把class表分批放入join buffer中，分批处理；</li>
+<li>在批次中依次取出每一条记录，在student_class表中扫描查找符合条件的记录，如果找到，则立刻返回，并从该条匹配的class记录取出查询字段返回；</li>
+<li>依次继续扫描遍历。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001811195-1196896915.png" alt="" loading="lazy"></p>
+<p>您也可以去MariaDB官网，查看官方的<code>FirstMatch Strategy</code><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn14" id="fnref14">[14]</a></sup>解释。</p>
+<h5 id="72122、duplicate-weedout">7.2.1.2.2、Duplicate Weedout</h5>
+<p>将Semijoin作为一个常规的inner join，然后通过使用一个临时表去重。</p>
+<p>具体演示案例，参考MariaDB官网：<a href="https://mariadb.com/kb/en/duplicateweedout-strategy/" target="_blank">DuplicateWeedout Strategy</a><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn15" id="fnref15">[15]</a></sup>，以下是官网例子的图示：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001839553-1442544054.png" alt="" loading="lazy"></p>
+<p>可以看到，灰色区域为临时表，通过临时表唯一索引进行去重。</p>
+<h5 id="72123、loosescan">7.2.1.2.3、LooseScan</h5>
+<p>把内部表的数据基于索引进行分组，取每组第一条数据进行匹配。</p>
+<p>具体演示案例，参考MariaDB官网：<a href="https://mariadb.com/kb/en/loosescan-strategy/" target="_blank">LooseScan Strategy</a><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn16" id="fnref16">[16]</a></sup>，以下是官网例子的图示：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001911115-18818617.png" alt="" loading="lazy"></p>
+<h5 id="7214、materialization">7.2.1.4、Materialization<sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn17" id="fnref17">[17]</a></sup></h5>
+<p>如果子查询是独立的(非关联子查询)，则优化器可以选择将独立子查询产生的结果存储到一张物化临时表中。</p>
+<blockquote>
+<p>为了触发这个优化，我们需要往表里面添加多点数据，好让优化器认为这个优化是有价值的。</p>
+</blockquote>
+<p>我们执行以下SQL：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">class</span> t1 <span class="hljs-keyword">where</span> t1.class_num <span class="hljs-keyword">in</span>(<span class="hljs-keyword">select</span> t2.class_num <span class="hljs-keyword">from</span> student_class t2 <span class="hljs-keyword">where</span> t2.score &gt; <span class="hljs-number">80</span>) <span class="hljs-keyword">and</span> t1.class_num <span class="hljs-keyword">like</span> <span class="hljs-string">'C%'</span>;
+</code></pre>
+<p>执行流程如下：</p>
+<ol>
+<li>执行子查询：通过where条件从student_class 表中找出符合条件的记录，把所有记录放入物化临时表；</li>
+<li>通过where条件从class表中找出符合条件的记录，与物化临时表进行join操作。</li>
+</ol>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629001937165-1614139058.png" alt="" loading="lazy"></p>
+<blockquote>
+<p><strong>物化表的唯一索引</strong></p>
+<p>MySQL会报物化子查询所有查询字段组成一个唯一索引，用于去重。如上面图示，灰色连线的两条记录冲突去重了。</p>
+</blockquote>
+<p>join操作可以从两个方向执行：</p>
+<ul>
+<li>从物化表关联class表，也就是说，<code>扫描物化表</code>，去与class表记录进行匹配，这种我们称为<code>Materialize-scan</code>；</li>
+<li>从class表关联物化表，也就是，扫描class表，去<code>物化表中查找</code>匹配记录，这种我们称为<code>Materialize-lookup</code>，这个时候，我们用到了物化表的唯一索引进行查找，效率会很快。</li>
+</ul>
+<p>下面我们介绍下这两种执行方式。</p>
+<h6 id="materialize-lookup">Materialize-lookup</h6>
+<p>还是以上面的sql为例：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">class</span> t1 <span class="hljs-keyword">where</span> t1.class_num <span class="hljs-keyword">in</span>(<span class="hljs-keyword">select</span> t2.class_num <span class="hljs-keyword">from</span> student_class t2 <span class="hljs-keyword">where</span> t2.score &gt; <span class="hljs-number">80</span>) <span class="hljs-keyword">and</span> t1.class_num <span class="hljs-keyword">like</span> <span class="hljs-string">'C%'</span>;
+</code></pre>
+<p>执行计划如下：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629002007303-42898758.png" alt="" loading="lazy"></p>
+<p>可以发现：</p>
+<ul>
+<li>t2表的select_type为MATERIALIZED，这意味着id=2这个查询结果将存储在物化临时表中。并把该查询的所有字段作为临时表的唯一索引，防止插入重复记录；</li>
+<li>id=1的查询接收一个<code>subquery2</code>的表名，这个表正式我们从id=2的查询得到的物化表。</li>
+<li>id=1的查询首先扫描t1表，依次拿到t1表的每一条记录，去<code>subquery2</code>执行<code>eq_ref</code>，这里用到了<code>auto_key</code>，得到匹配的记录。</li>
+</ul>
+<p>也就是说，优化器选择了对t1(class)表进行全表扫描，然后去物化表进行所以等值查找，最终得到结果。</p>
+<p>执行模型如下图所示：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629002032232-335063117.png" alt="" loading="lazy"></p>
+<p><strong>原则：小表驱动大表，关联字段被驱动表添加索引</strong></p>
+<p>如果<strong>子查询查出来的物化表很小，而外部表很大，并且关联字段是外部表的索引字段，那么优化器会选择扫描物化表去关联外部表</strong>，也就是<code>Materialize-scan</code>，下面演示这个场景。</p>
+<h6 id="materialize-scan">Materialize-scan</h6>
+<p>现在我们尝试给class表添加class_num唯一索引：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">alter</span> <span class="hljs-keyword">table</span> <span class="hljs-keyword">class</span> <span class="hljs-keyword">add</span> <span class="hljs-keyword">unique</span> uk_class_num(class_num);
+</code></pre>
+<p>并且在class中插入更多的数据。然后执行同样的sql，得到以下执行计划：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629002059261-319733715.png" alt="" loading="lazy"></p>
+<p>可以发现，这个时候id=1的查询是选择了subquery2，也就是物化表进行扫描，扫描结果逐行去t1表(class)进行<code>eq_ref</code>匹配，匹配过程中用到了t1表的索引。</p>
+<p>这里的执行流程正好与上面的相反，选择了从class表关联物化表。</p>
+<p>现在，我问大家：<strong>Materialization策略什么时候会选择从外部表关联内部表？</strong>相信大家心里应该有答案了。</p>
+<p>执行模型如下：</p>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629002126112-1250659543.png" alt="" loading="lazy"></p>
+<p><strong>原则：小表驱动大表，关联字段被驱动表添加索引</strong></p>
+<p>现在留给大家另一个问题：<strong>以上例子中，这两种Materialization的开销分别是多少(从行读和行写的角度统计)</strong></p>
+<blockquote>
+<p>答案：</p>
+<p>Materialize-lookup：40次读student_class表，40次写物化临时表，42次读外部表，40次lookup检索物化临时表；</p>
+<p>Materialize-scan：15次读student_class表，15次写物化临时表，15次扫描物化临时表，执行15次class表索引查询。</p>
+</blockquote>
+<h3 id="anchor50">7.2.2、Materialization</h3>
+<p>优化器使用<code>Materialization</code>(物化)来实现更加有效的子查询处理。<strong>物化针对非关联子查询进行优化。</strong></p>
+<p>物化通过把子查询结果存储为临时表（通常在内存中）来加快查询的执行速度。MySQL在第一次获取子查询结果时，会将结果物化为临时表。随后如果再次需要子查询的结果，则直接从临时表中读取。</p>
+<p>优化器可以使用<strong>哈希索引</strong>为临时表建立索引，以使查找更加高效，并且通过索引来消除重复项，让表保持更小。</p>
+<p>子查询物化的临时表在可能的情况下存储在<strong>内存</strong>中，如果表太大，则会退回到磁盘上进行存储。</p>
+<h4 id="为何要使用物化优化">为何要使用物化优化</h4>
+<p>如果未开启物化优化，那么优化器有时会将非关联子查询重写为关联子查询。</p>
+<p>可以通过以下命令查询优化开关(<code>Switchable Optimizations</code><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn18" id="fnref18">[18]</a></sup>)状态：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> @@optimizer_switch\G;
+</code></pre>
+<p>也就是说，如下的in独立子查询语句：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> t1
+<span class="hljs-keyword">WHERE</span> t1.a <span class="hljs-keyword">IN</span> (<span class="hljs-keyword">SELECT</span> t2.b <span class="hljs-keyword">FROM</span> t2 <span class="hljs-keyword">WHERE</span> where_condition);
+</code></pre>
+<p>会重写为exists关联子查询语句：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> t1
+<span class="hljs-keyword">WHERE</span> <span class="hljs-keyword">EXISTS</span> (<span class="hljs-keyword">SELECT</span> t2.b <span class="hljs-keyword">FROM</span> t2 <span class="hljs-keyword">WHERE</span> where_condition <span class="hljs-keyword">AND</span> t1.a=t2.b);
+</code></pre>
+<p><strong>开启了物化开关之后，独立子查询避免了这样的重写，使得子查询只会查询一次，而不是重写为exists语句导致外部每一行记录都会执行一次子查询，严重降低了效率。</strong></p>
+<h3 id="anchor51">7.2.3、EXISTS策略</h3>
+<p>考虑以下的子查询：</p>
+<pre><code class="language-sql hljs">outer_expr IN (<span class="hljs-keyword">SELECT</span> inner_expr <span class="hljs-keyword">FROM</span> ... <span class="hljs-keyword">WHERE</span> subquery_where)
+</code></pre>
+<p>MySQL“从外到内”来评估查询。也就是说，它首先获取外部表达式outer_expr的值，然后运行子查询并获取其产生的结果集用于比较。</p>
+<h4 id="7231、condition-push-down-条件下推">7.2.3.1、condition push down 条件下推</h4>
+<p>如果我们可以把outer_expr下推到子查询中进行条件判断，如下：</p>
+<pre><code class="language-sql hljs">EXISTS (<span class="hljs-keyword">SELECT</span> <span class="hljs-number">1</span> <span class="hljs-keyword">FROM</span> ... <span class="hljs-keyword">WHERE</span> subquery_where <span class="hljs-keyword">AND</span> outer_expr=inner_expr)
+</code></pre>
+<p>这样就能够减少子查询的行数了。相比于直接用IN来说，这样就可以加快SQL的执行效率了。</p>
+<p>而涉及到NULL值的处理，相对就比较复杂，由于篇幅所限，这里作为延伸学习，感兴趣的朋友可以进一步阅读：</p>
+<p><a href="https://dev.mysql.com/doc/refman/8.0/en/subquery-optimization-with-exists.html" target="_blank">8.2.2.3 Optimizing Subqueries with the EXISTS Strategy</a><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn19" id="fnref19">[19]</a></sup></p>
+<blockquote>
+<p><strong>延伸：</strong><br>
+除了让关联的in子查询转为exists进行优化之外。在MariaDB 10.0.2版本中，引入了另一种相反的优化措施：可以让exists子查询转换为非关联in子查询，这样就可以用上非关联资产性的物化优化策略了。</p>
+<p>详细可以阅读：<a href="https://mariadb.com/kb/en/exists-to-in-optimization/" target="_blank">EXISTS-to-IN Optimization</a><sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn20" id="fnref20">[20]</a></sup></p>
+</blockquote>
+<h3 id="anchor52">7.2.4、总结</h3>
+<p>总结一下子查询的优化方式：</p>
+<ul>
+<li>首先优先使用Semijoin来进行优化，消除子查询，通常选用FirstMatch策略来做表连接；</li>
+<li>如果不可以使用Semijoin进行优化，并且当前子查询是非关联子查询，则会物化子查询，避免多次查询，同时这一步的优化会遵循选用小表作为驱动表的原则，尽量走索引字段关联，分为两种执行方式：Materialize-lookup，Materialization-scan。通常会选用哈希索引为物化临时表提高检索效率；</li>
+<li>如果子查询不能物化，那就只能考虑Exists优化策略了，通过<code>condition push down</code>把条件下推到exists子查询中，减少子查询的结果集，从而达到优化的目的。</li>
+</ul>
+<h1 id="anchor53">8、limit offset, rows</h1>
+<p>limit的用法：</p>
+<blockquote>
+<p>limit [offset], [rows]</p>
+</blockquote>
+<p>其中 offset表示偏移量，rows表示需要返回的行数。</p>
+<pre><code class="hljs ruby">offset  limit  表中的剩余数据
+ <span class="hljs-number">_</span><span class="hljs-params">||</span><span class="hljs-number">_</span>   _<span class="hljs-number">_</span><span class="hljs-params">||</span>_<span class="hljs-number">_</span>   _<span class="hljs-number">_</span><span class="hljs-params">||</span>_<span class="hljs-number">_</span>
+<span class="hljs-params">|    |</span> <span class="hljs-params">|      |</span> <span class="hljs-params">|
+RRRRRR RRRRRRRR RRR...
+       |</span>_____<span class="hljs-number">_</span><span class="hljs-params">|
+          |</span><span class="hljs-params">|
+         结果集
+</span></code></pre>
+<h2 id="anchor54">8.1、执行原理</h2>
+<p>MySQL进行表扫描，读取到第 offset + rows条数据之后，丢弃前面offset条记录，返回剩余的rows条记录。</p>
+<p>比如以下sql：</p>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> <span class="hljs-keyword">id</span> <span class="hljs-keyword">limit</span> <span class="hljs-number">10000</span>, <span class="hljs-number">10</span>;
+</code></pre>
+<p>这样总共会扫描10010条。</p>
+<h2 id="anchor55">8.2、优化手段</h2>
+<p>如果查询的offset很大，避免直接使用offset，而是通过id到聚集索引中检索查找。</p>
+<ol>
+<li>利用自增索引，如：</li>
+</ol>
+<pre><code class="language-sql hljs"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> t30 <span class="hljs-keyword">where</span> <span class="hljs-keyword">id</span> &gt; <span class="hljs-number">10000</span> <span class="hljs-keyword">limit</span> <span class="hljs-number">10</span>;
+</code></pre>
+<p>当然，这也是会有问题的，如果id中间产生了非连续的记录，这样定位就不准确了。写到这里，篇幅有点长了，最后这个问题留给大家思考，感兴趣的朋友可以进一步思考探讨与延伸。</p>
+<hr>
+<p>这篇文章的内容就差不多介绍到这里了，能够阅读到这里的朋友真的是很有耐心，为你点个赞。</p>
+<p>本文为<code>arthinking</code>基于相关技术资料和官方文档撰写而成，确保内容的准确性，如果你发现了有何错漏之处，烦请高抬贵手帮忙指正，万分感激。</p>
+<p>大家可以关注我的博客：<code>itzhai.com</code> 获取更多文章，我将持续更新后端相关技术，涉及JVM、Java基础、架构设计、网络编程、数据结构、数据库、算法、并发编程、分布式系统等相关内容。</p>
+<p>如果您觉得读完本文有所收获的话，可以<code>关注</code>我的账号，或者<code>点赞</code>吧，码字不易，您的支持就是我写作的最大动力，再次感谢！</p>
+<p>关注我的公众号，及时获取最新的文章。</p>
+<p>更多文章</p>
+<ul>
+<li>关注公众号进入会话窗口获取</li>
+<li>JVM系列专题：公众号发送 JVM</li>
+</ul>
+<blockquote>
+<p>本文作者： arthinking</p>
+<p>博客链接： <a href="https://www.itzhai.com/database/how-sql-works-understand-the-essence-of-tuning-by-the-execution-principle.html" target="_blank">https://www.itzhai.com/database/how-sql-works-understand-the-essence-of-tuning-by-the-execution-principle.html</a></p>
+<p><a href="https://www.itzhai.com/database/how-sql-works-understand-the-essence-of-tuning-by-the-execution-principle.html" target="_blank">SQL运行内幕：从执行原理看调优的本质</a></p>
+<p>版权声明： 版权归作者所有，未经许可不得转载，侵权必究！联系作者请加公众号。</p>
+</blockquote>
+<hr>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/aHR0cHM6Ly91c2VyLWdvbGQtY2RuLnhpdHUuaW8vMjAyMC8yLzE1LzE3MDQ3ZjAwNmFlZTRkMjk" alt="" loading="lazy"></p>
+<h1 id="anchor56">References</h1>
+<hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p><a href="https://zhuanlan.zhihu.com/p/54378839" target="_blank">https://zhuanlan.zhihu.com/p/54378839. Retrieved from https://zhuanlan.zhihu.com/p/54378839</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn2" class="footnote-item"><p><a href="https://dev.mysql.com/doc/refman/5.7/en/order-by-optimization.html" target="_blank">8.2.1.14 ORDER BY Optimization. Retrieved from https://dev.mysql.com/doc/refman/5.7/en/order-by-optimization.html</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref2" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn3" class="footnote-item"><p><a href="https://dev.mysql.com/doc/refman/5.7/en/explain-output.html" target="_blank">8.8.2 EXPLAIN Output Format. Retrieved from https://dev.mysql.com/doc/refman/5.7/en/explain-output.html</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref3" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn4" class="footnote-item"><p><a href="https://conferences.oreilly.com/mysql2008/public/schedule/detail/582" target="_blank">Batched Key Access: a Significant Speed-up for Join Queries. Retrieved from https://conferences.oreilly.com/mysql2008/public/schedule/detail/582</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref4" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn5" class="footnote-item"><p><a href="http://underpop.online.fr/m/mysql/manual/mysql-optimization-bka-optimization.html" target="_blank">Batched Key Access Joins. Retrieved from http://underpop.online.fr/m/mysql/manual/mysql-optimization-bka-optimization.html</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref5" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn6" class="footnote-item"><p>[Hash join in MySQL 8. MySQL Server Blog. Retrieved from <a href="https://mysqlserverteam.com/hash-join-in-mysql-8/#:~:text=MySQL" target="_blank">https://mysqlserverteam.com/hash-join-in-mysql-8/#:~:text=MySQL</a> only supports inner hash,more often than it does](<a href="https://mysqlserverteam.com/hash-join-in-mysql-8/#:~:text=MySQL" target="_blank">https://mysqlserverteam.com/hash-join-in-mysql-8/#:~:text=MySQL</a> only supports inner hash,more often than it does) <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref6" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn7" class="footnote-item"><p><a href="https://www.guru99.com/joins.html" target="_blank">MySQL JOINS Tutorial: INNER, OUTER, LEFT, RIGHT, CROSS. Retrieved from https://www.guru99.com/joins.html</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref7" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn8" class="footnote-item"><p><a href="https://stackoverflow.com/questions/34149582/how-the-sql-join-actually-works" target="_blank">How the SQL join actually works?. Retrieved from https://stackoverflow.com/questions/34149582/how-the-sql-join-actually-works</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref8" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn9" class="footnote-item"><p><a href="https://dev.mysql.com/doc/refman/5.7/en/select.html" target="_blank">13.2.9 SELECT Statement. Retrieved from https://dev.mysql.com/doc/refman/5.7/en/select.html</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref9" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn10" class="footnote-item"><p><a href="https://dev.mysql.com/doc/refman/8.0/en/distinct-optimization.html" target="_blank">8.2.1.18 DISTINCT Optimization. Retrieved from https://dev.mysql.com/doc/refman/8.0/en/distinct-optimization.html</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref10" class="footnote-backref">↩︎</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref10:1" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn11" class="footnote-item"><p><a href="https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html#optimizer-hints-subquery" target="_blank">Subquery Optimizer Hints. Retrieved from https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html#optimizer-hints-subquery</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref11" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn12" class="footnote-item"><p>高性能MySQL第3版[M]. 电子工业出版社, 2013-5:239. <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref12" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn13" class="footnote-item"><p><a href="https://dev.mysql.com/doc/refman/5.7/en/semijoins.html" target="_blank">8.2.2.1 Optimizing Subqueries, Derived Tables, and View References with Semijoin Transformations. Retrieved from https://dev.mysql.com/doc/refman/5.7/en/semijoins.html</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref13" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn14" class="footnote-item"><p><a href="https://mariadb.com/kb/en/firstmatch-strategy/" target="_blank">FirstMatch Strategy. Retrieved from https://mariadb.com/kb/en/firstmatch-strategy/</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref14" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn15" class="footnote-item"><p><a href="https://mariadb.com/kb/en/duplicateweedout-strategy/" target="_blank">DuplicateWeedout Strategy. Retrieved from https://mariadb.com/kb/en/duplicateweedout-strategy/</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref15" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn16" class="footnote-item"><p><a href="https://mariadb.com/kb/en/loosescan-strategy/" target="_blank">LooseScan Strategy. Retrieved from https://mariadb.com/kb/en/loosescan-strategy/</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref16" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn17" class="footnote-item"><p><a href="https://mariadb.com/kb/en/semi-join-materialization-strategy/" target="_blank">Semi-join Materialization Strategy. Retrieved from https://mariadb.com/kb/en/semi-join-materialization-strategy/</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref17" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn18" class="footnote-item"><p><a href="https://dev.mysql.com/doc/refman/5.7/en/switchable-optimizations.html" target="_blank">Switchable Optimizations. Retrieved from https://dev.mysql.com/doc/refman/5.7/en/switchable-optimizations.html</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref18" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn19" class="footnote-item"><p><a href="https://dev.mysql.com/doc/refman/8.0/en/subquery-optimization-with-exists.html" target="_blank">8.2.2.3 Optimizing Subqueries with the EXISTS Strategy. Retrieved from https://dev.mysql.com/doc/refman/8.0/en/subquery-optimization-with-exists.html</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref19" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn20" class="footnote-item"><p><a href="https://mariadb.com/kb/en/exists-to-in-optimization/" target="_blank">EXISTS-to-IN Optimization. Retrieved from https://mariadb.com/kb/en/exists-to-in-optimization/</a> <a href="https://www.cnblogs.com/arthinking/p/13205303.html#fnref20" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+
+</div>
+<div id="MySignature" style="display: block;">Java架构杂谈</div>
+<div class="clear"></div>
+<div id="blog_post_info_block"><div id="BlogPostCategory">
+    分类: 
+            <a href="https://www.cnblogs.com/arthinking/category/1779121.html" target="_blank">数据库</a></div>
+<div id="EntryTag">
+    标签: 
+            <a href="https://www.cnblogs.com/arthinking/tag/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>,             <a href="https://www.cnblogs.com/arthinking/tag/MySQL/">MySQL</a></div>
+
+    <div id="blog_post_info">
+<div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(13205303,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+        <a id="green_channel_follow" onclick="follow(&#39;80d2bdf0-5c6b-e211-aa8f-842b2b196315&#39;);" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/arthinking/" target="_blank"><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/20200629214124.png" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/arthinking/">arthinking-itzhai</a><br>
+            <a href="https://home.cnblogs.com/u/arthinking/followees/">关注 - 0</a><br>
+            <a href="https://home.cnblogs.com/u/arthinking/followers/">粉丝 - 43</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow(&#39;80d2bdf0-5c6b-e211-aa8f-842b2b196315&#39;);return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(13205303,&#39;Digg&#39;)">
+        <span class="diggnum" id="digg_count">23</span>
+    </div>
+    <div class="buryit" onclick="votePost(13205303,&#39;Bury&#39;)">
+        <span class="burynum" id="bury_count">1</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+
+<script type="text/javascript">
+    currentDiggType = 0;
+</script></div>
+    <div class="clear"></div>
+    <div id="post_next_prev">
+
+    <a href="https://www.cnblogs.com/arthinking/p/13034126.html" class="p_n_p_prefix">« </a> 上一篇：    <a href="https://www.cnblogs.com/arthinking/p/13034126.html" title="发布于 2020-06-02 22:09">洞悉MySQL底层架构：游走在缓冲与磁盘之间</a>
+    <br>
+    <a href="https://www.cnblogs.com/arthinking/p/13429848.html" class="p_n_p_prefix">» </a> 下一篇：    <a href="https://www.cnblogs.com/arthinking/p/13429848.html" title="发布于 2020-08-03 22:07">两万字长文50+张趣图带你领悟网络编程的内功心法</a>
+
+</div>
+</div>
+            </div>
+            <div class="postDesc">posted @ 
+<span id="post-date">2020-06-28 22:13</span>&nbsp;
+<a href="https://www.cnblogs.com/arthinking/">arthinking-itzhai</a>&nbsp;
+阅读(<span id="post_view_count">2624</span>)&nbsp;
+评论(<span id="post_comment_count">11</span>)&nbsp;
+<a href="https://i.cnblogs.com/EditPosts.aspx?postid=13205303" rel="nofollow">编辑</a>&nbsp;
+<a href="javascript:void(0)" onclick="AddToWz(13205303);return false;">收藏</a></div>
+        </div>
+	    
+	    
+    </div><!--end: topics 文章、评论容器-->
+</div>
+<script src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/highlight.min.js.下载"></script>
+<script>markdown_highlight();</script>
+<script>
+    var allowComments = true, cb_blogId = 591198, cb_blogApp = 'arthinking', cb_blogUserGuid = '80d2bdf0-5c6b-e211-aa8f-842b2b196315';
+    var cb_entryId = 13205303, cb_entryCreatedDate = '2020-06-28 22:13', cb_postType = 1;
+    updatePostStats(
+        [cb_entryId],
+        function(id, count) { $("#post_view_count").text(count) },
+        function(id, count) { $("#post_comment_count").text(count) })
+</script>
+<a name="!comments"></a>
+<div id="blog-comments-placeholder">
+
+<div id="comment_pager_top">
+    
+</div>
+
+<br>
+<div class="feedback_area_title">评论列表</div>
+<div class="feedbackNoItems">
+    <div class="feedbackNoItems"></div>
+</div>
+    <div class="feedbackItem">
+        <div class="feedbackListSubtitle">
+            <div class="feedbackManage">
+                &nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+            </div>
+            
+<a href="https://www.cnblogs.com/arthinking/p/13205303.html#4618344" class="layer">#1楼</a>
+<a name="4618344" id="comment_anchor_4618344"></a>
+ 
+<span class="comment_date">2020-06-29 08:47</span>
+
+ 
+        <a id="a_comment_author_4618344" href="https://www.cnblogs.com/WebAssembly/" target="_blank">WebAssembly</a>
+
+        </div>
+        <div class="feedbackCon">
+            
+<div id="comment_body_4618344" data-format-type="Markdown" class="blog_comment_body cnblogs-markdown">
+    <p>好文</p>
+
+</div>
+        <div class="comment_vote">
+            <span class="comment_error" style="color: red"></span>
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4618344, &#39;Digg&#39;, this.parentElement, false);">
+                支持(1)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment(4618344, &#39;Bury&#39;, this.parentElement, false);">
+                反对(0)
+            </a>
+        </div>
+        
+
+        </div>
+    </div>
+    <div class="feedbackItem">
+        <div class="feedbackListSubtitle">
+            <div class="feedbackManage">
+                &nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+            </div>
+            
+<a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621054" class="layer">#2楼</a>
+<a name="4621054" id="comment_anchor_4621054"></a>
+ 
+<span class="comment_date">2020-07-02 09:06</span>
+
+ 
+        <a id="a_comment_author_4621054" href="https://www.cnblogs.com/oxspirt/" target="_blank">立志做一个好的程序员</a>
+
+        </div>
+        <div class="feedbackCon">
+            
+<div id="comment_body_4621054" data-format-type="Markdown" class="blog_comment_body cnblogs-markdown">
+    <p>sql优化，不错</p>
+
+</div>
+        <div class="comment_vote">
+            <span class="comment_error" style="color: red"></span>
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4621054, &#39;Digg&#39;, this.parentElement, false);">
+                支持(1)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment(4621054, &#39;Bury&#39;, this.parentElement, false);">
+                反对(0)
+            </a>
+        </div>
+        
+
+        </div>
+    </div>
+    <div class="feedbackItem">
+        <div class="feedbackListSubtitle">
+            <div class="feedbackManage">
+                &nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+            </div>
+            
+<a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621105" class="layer">#3楼</a>
+<a name="4621105" id="comment_anchor_4621105"></a>
+ 
+<span class="comment_date">2020-07-02 09:40</span>
+
+ 
+        <a id="a_comment_author_4621105" href="https://www.cnblogs.com/jaynessvip/" target="_blank">墨竹丶蝉翼</a>
+
+        </div>
+        <div class="feedbackCon">
+            
+<div id="comment_body_4621105" data-format-type="Markdown" class="blog_comment_body cnblogs-markdown">
+    <p>滚去我的收藏夹吃灰</p>
+
+</div>
+        <div class="comment_vote">
+            <span class="comment_error" style="color: red"></span>
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4621105, &#39;Digg&#39;, this.parentElement, false);">
+                支持(2)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment(4621105, &#39;Bury&#39;, this.parentElement, false);">
+                反对(0)
+            </a>
+        </div>
+        <span id="comment_4621105_avatar" style="display:none">
+            https://pic.cnblogs.com/face/1267773/20200903092131.png
+        </span>
+
+        </div>
+    </div>
+    <div class="feedbackItem">
+        <div class="feedbackListSubtitle">
+            <div class="feedbackManage">
+                &nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+            </div>
+            
+<a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621246" class="layer">#4楼</a>
+<a name="4621246" id="comment_anchor_4621246"></a>
+ 
+<span class="comment_date">2020-07-02 11:29</span>
+
+ 
+        <a id="a_comment_author_4621246" href="https://www.cnblogs.com/albertly/" target="_blank">木土家的田童</a>
+
+        </div>
+        <div class="feedbackCon">
+            
+<div id="comment_body_4621246" data-format-type="Markdown" class="blog_comment_body cnblogs-markdown">
+    <p>图用什么工具画的？</p>
+
+</div>
+        <div class="comment_vote">
+            <span class="comment_error" style="color: red"></span>
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4621246, &#39;Digg&#39;, this.parentElement, false);">
+                支持(0)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment(4621246, &#39;Bury&#39;, this.parentElement, false);">
+                反对(0)
+            </a>
+        </div>
+        
+
+        </div>
+    </div>
+    <div class="feedbackItem">
+        <div class="feedbackListSubtitle">
+            <div class="feedbackManage">
+                &nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+            </div>
+            
+<a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621332" class="layer">#5楼</a>
+<a name="4621332" id="comment_anchor_4621332"></a>
+[<span class="louzhu">楼主</span>] 
+<span class="comment_date">2020-07-02 13:32</span>
+
+ 
+        <a id="a_comment_author_4621332" href="https://www.cnblogs.com/arthinking/" target="_blank">arthinking-itzhai</a>
+
+        </div>
+        <div class="feedbackCon">
+            
+<div id="comment_body_4621332" data-format-type="Markdown" class="blog_comment_body cnblogs-markdown">
+    <p><a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621246" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,4621246);">@</a>木土家的田童<br>
+PPT</p>
+
+</div>
+        <div class="comment_vote">
+            <span class="comment_error" style="color: red"></span>
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4621332, &#39;Digg&#39;, this.parentElement, false);">
+                支持(0)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment(4621332, &#39;Bury&#39;, this.parentElement, false);">
+                反对(0)
+            </a>
+        </div>
+        <span id="comment_4621332_avatar" style="display:none">
+            https://pic.cnblogs.com/face/494394/20200629214124.png
+        </span>
+
+        </div>
+    </div>
+    <div class="feedbackItem">
+        <div class="feedbackListSubtitle">
+            <div class="feedbackManage">
+                &nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+            </div>
+            
+<a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621665" class="layer">#6楼</a>
+<a name="4621665" id="comment_anchor_4621665"></a>
+ 
+<span class="comment_date">2020-07-02 17:42</span>
+
+ 
+        <a id="a_comment_author_4621665" href="https://www.cnblogs.com/dehai/" target="_blank">何德海</a>
+
+        </div>
+        <div class="feedbackCon">
+            
+<div id="comment_body_4621665" data-format-type="Markdown" class="blog_comment_body cnblogs-markdown">
+    <p>分析得很到位，赞</p>
+
+</div>
+        <div class="comment_vote">
+            <span class="comment_error" style="color: red"></span>
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4621665, &#39;Digg&#39;, this.parentElement, false);">
+                支持(1)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment(4621665, &#39;Bury&#39;, this.parentElement, false);">
+                反对(0)
+            </a>
+        </div>
+        <span id="comment_4621665_avatar" style="display:none">
+            https://pic.cnblogs.com/face/624797/20200703083834.png
+        </span>
+
+        </div>
+    </div>
+    <div class="feedbackItem">
+        <div class="feedbackListSubtitle">
+            <div class="feedbackManage">
+                &nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+            </div>
+            
+<a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621690" class="layer">#7楼</a>
+<a name="4621690" id="comment_anchor_4621690"></a>
+ 
+<span class="comment_date">2020-07-02 17:59</span>
+
+ 
+        <a id="a_comment_author_4621690" href="https://www.cnblogs.com/yuanxingke/" target="_blank">忽如远行客</a>
+
+        </div>
+        <div class="feedbackCon">
+            
+<div id="comment_body_4621690" data-format-type="Markdown" class="blog_comment_body cnblogs-markdown">
+    <p>弄个导航链接看起来就更方便了</p>
+
+</div>
+        <div class="comment_vote">
+            <span class="comment_error" style="color: red"></span>
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4621690, &#39;Digg&#39;, this.parentElement, false);">
+                支持(1)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment(4621690, &#39;Bury&#39;, this.parentElement, false);">
+                反对(0)
+            </a>
+        </div>
+        
+
+        </div>
+    </div>
+    <div class="feedbackItem">
+        <div class="feedbackListSubtitle">
+            <div class="feedbackManage">
+                &nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+            </div>
+            
+<a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621754" class="layer">#8楼</a>
+<a name="4621754" id="comment_anchor_4621754"></a>
+ 
+<span class="comment_date">2020-07-02 19:15</span>
+
+ 
+        <a id="a_comment_author_4621754" href="https://www.cnblogs.com/kismetv/" target="_blank">编程迷思</a>
+
+        </div>
+        <div class="feedbackCon">
+            
+<div id="comment_body_4621754" data-format-type="Markdown" class="blog_comment_body cnblogs-markdown">
+    <p>好文，支持</p>
+
+</div>
+        <div class="comment_vote">
+            <span class="comment_error" style="color: red"></span>
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4621754, &#39;Digg&#39;, this.parentElement, false);">
+                支持(1)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment(4621754, &#39;Bury&#39;, this.parentElement, false);">
+                反对(0)
+            </a>
+        </div>
+        <span id="comment_4621754_avatar" style="display:none">
+            https://pic.cnblogs.com/face/1174710/20180329153616.png
+        </span>
+
+        </div>
+    </div>
+    <div class="feedbackItem">
+        <div class="feedbackListSubtitle">
+            <div class="feedbackManage">
+                &nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+            </div>
+            
+<a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621835" class="layer">#9楼</a>
+<a name="4621835" id="comment_anchor_4621835"></a>
+[<span class="louzhu">楼主</span>] 
+<span class="comment_date">2020-07-02 21:15</span>
+
+ 
+        <a id="a_comment_author_4621835" href="https://www.cnblogs.com/arthinking/" target="_blank">arthinking-itzhai</a>
+
+        </div>
+        <div class="feedbackCon">
+            
+<div id="comment_body_4621835" data-format-type="Markdown" class="blog_comment_body cnblogs-markdown">
+    <p><a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621754" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,4621754);">@</a>编程迷思<br>
+谢谢</p>
+
+</div>
+        <div class="comment_vote">
+            <span class="comment_error" style="color: red"></span>
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4621835, &#39;Digg&#39;, this.parentElement, false);">
+                支持(0)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment(4621835, &#39;Bury&#39;, this.parentElement, false);">
+                反对(0)
+            </a>
+        </div>
+        <span id="comment_4621835_avatar" style="display:none">
+            https://pic.cnblogs.com/face/494394/20200629214124.png
+        </span>
+
+        </div>
+    </div>
+    <div class="feedbackItem">
+        <div class="feedbackListSubtitle">
+            <div class="feedbackManage">
+                &nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+            </div>
+            
+<a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621848" class="layer">#10楼</a>
+<a name="4621848" id="comment_anchor_4621848"></a>
+[<span class="louzhu">楼主</span>] 
+<span class="comment_date">2020-07-02 21:42</span>
+
+ 
+        <a id="a_comment_author_4621848" href="https://www.cnblogs.com/arthinking/" target="_blank">arthinking-itzhai</a>
+
+        </div>
+        <div class="feedbackCon">
+            
+<div id="comment_body_4621848" data-format-type="Markdown" class="blog_comment_body cnblogs-markdown">
+    <p><a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621690" title="查看所回复的评论" onclick="commentManager.renderComments(0,50,4621690);">@</a>忽如远行客</p>
+<blockquote>
+<p>弄个导航链接看起来就更方便了</p>
+</blockquote>
+<p>感谢提议，已添加。</p>
+
+</div>
+        <div class="comment_vote">
+            <span class="comment_error" style="color: red"></span>
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4621848, &#39;Digg&#39;, this.parentElement, false);">
+                支持(0)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment(4621848, &#39;Bury&#39;, this.parentElement, false);">
+                反对(0)
+            </a>
+        </div>
+        <span id="comment_4621848_avatar" style="display:none">
+            https://pic.cnblogs.com/face/494394/20200629214124.png
+        </span>
+
+        </div>
+    </div>
+    <div class="feedbackItem">
+        <div class="feedbackListSubtitle">
+            <div class="feedbackManage">
+                &nbsp;&nbsp;
+
+<span class="comment_actions">
+    
+    
+    
+    
+</span>
+
+
+            </div>
+            
+<a href="https://www.cnblogs.com/arthinking/p/13205303.html#4621854" class="layer">#11楼</a>
+<a name="4621854" id="comment_anchor_4621854"></a>
+[<span class="louzhu">楼主</span>]    <span id="comment-maxId" style="display: none">4621854</span>
+    <span id="comment-maxDate" style="display: none">2020/7/2 下午9:51:08</span>
+ 
+<span class="comment_date">2020-07-02 21:51</span>
+
+ 
+        <a id="a_comment_author_4621854" href="https://www.cnblogs.com/arthinking/" target="_blank">arthinking-itzhai</a>
+
+        </div>
+        <div class="feedbackCon">
+            
+<div id="comment_body_4621854" data-format-type="Markdown" class="blog_comment_body cnblogs-markdown">
+    <p>@墨竹丶蝉翼</p>
+<blockquote>
+<p>滚去我的收藏夹吃灰</p>
+</blockquote>
+<p><img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200702215112144-125860087.jpg" alt=""></p>
+
+</div>
+        <div class="comment_vote">
+            <span class="comment_error" style="color: red"></span>
+            <a href="javascript:void(0);" class="comment_digg" onclick="return voteComment(4621854, &#39;Digg&#39;, this.parentElement, false);">
+                支持(0)
+            </a>
+            <a href="javascript:void(0);" class="comment_burry" onclick="return voteComment(4621854, &#39;Bury&#39;, this.parentElement, false);">
+                反对(0)
+            </a>
+        </div>
+        <span id="comment_4621854_avatar" style="display:none">
+            https://pic.cnblogs.com/face/494394/20200629214124.png
+        </span>
+
+        </div>
+    </div>
+
+<div id="comment_pager_bottom">
+    
+</div>
+
+
+</div>
+<div id="comment_form" class="commentform">
+    <a name="commentform"></a>
+    <div id="divCommentShow"></div>
+    <div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="https://www.cnblogs.com/arthinking/p/13205303.html#" onclick="return RefreshPage();">刷新页面</a><a href="https://www.cnblogs.com/arthinking/p/13205303.html#top">返回顶部</a></div>
+    <div id="comment_form_container" style="visibility: visible;"><div class="login_tips">
+    登录后才能发表评论，立即 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return login(&#39;commentform&#39;);">登录</a> 或
+    <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return register();">注册</a>，
+    <a href="https://www.cnblogs.com/">访问</a> 网站首页
+</div>
+<a href="https://www.cnblogs.com/cmt/p/14003277.html" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-login-tip-aws&#39;)">写给园友们的一封求助信</a>
+</div>
+    <div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+    <div id="ad_t2"><a href="http://www.softbam.com/index.htm" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-ucancode-1103&#39;)">【推荐】News: 大型组态、工控、仿真、CADGIS 50万行VC++源码免费下载</a><br><a href="https://www.wenjuan.com/s/UZBZJvjEKs/#%E3%80%8A%E5%8D%9A%E5%AE%A2%E5%9B%AD%E7%94%A8%E6%88%B7%E6%B6%88%E8%B4%B9%E8%A7%82%E8%B0%83%E6%9F%A5%E3%80%8B%EF%BC%8C%E5%BF%AB%E6%9D%A5%E5%8F%82%E4%B8%8E%E5%90%A7%E3%80%82%E3%80%90%E9%97%AE%E5%8D%B7%E7%BD%91%E6%8F%90%E4%BE%9B%E6%94%AF%E6%8C%81%E3%80%91" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-博客园问卷&#39;)">【推荐】有你助力，更好为你——博客园用户消费观调查，附带小惊喜！</a><br><a href="https://brands.cnblogs.com/huawei" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-华为专区&#39;)">【推荐】了不起的开发者，挡不住的华为，园子里的品牌专区</a><br><a href="https://brands.cnblogs.com/aws/free?source=CH" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-AWS&#39;)">【福利】AWS携手博客园为开发者送免费套餐+50元京东E卡</a><br><a href="https://brands.cnblogs.com/agora" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-声网专区&#39;)">【推荐】未知数的距离，毫秒间的传递，声网与你实时互动</a><br><a href="https://www.slidestalk.com/m/334?__fuid=31832" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-示说网3-CH&#39;)">【推荐】博客园x示说网，AI实战系列公开课第三期</a><br></div>
+    <div id="opt_under_post"></div>
+    <div id="cnblogs_c1" class="c_ad_block">
+        <div id="div-gpt-ad-1592365906576-0" style="width: 300px; height: 250px;" data-google-query-id="CMDg9trPze0CFXPETAIds-YGkA"><div id="google_ads_iframe_/1090369/C1_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C1_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C1_0" width="300" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" data-google-container-id="1" style="border: 0px; vertical-align: bottom;" data-load-complete="true" src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/saved_resource.html"></iframe></div></div>
+    </div>
+    <div id="under_post_news"><div class="recomm-block"><b>相关博文：</b><br>·  <a title="sql优化" href="https://www.cnblogs.com/zhangxuezhi/p/11962736.html" target="_blank" onclick="clickRecomItmem(11962736)">sql优化</a><br>·  <a title="sql优化" href="https://www.cnblogs.com/hualou/p/12071085.html" target="_blank" onclick="clickRecomItmem(12071085)">sql优化</a><br>·  <a title="SQL优化" href="https://www.cnblogs.com/smiletoyou/p/11979694.html" target="_blank" onclick="clickRecomItmem(11979694)">SQL优化</a><br>·  <a title="摘抄sql优化" href="https://www.cnblogs.com/yanghuiping/p/11976473.html" target="_blank" onclick="clickRecomItmem(11976473)">摘抄sql优化</a><br>·  <a title="SQL语句优化" href="https://www.cnblogs.com/wldbky/p/11995047.html" target="_blank" onclick="clickRecomItmem(11995047)">SQL语句优化</a><br>»  <a target="_blank" href="https://recomm.cnblogs.com/blogpost/13205303">更多推荐...</a></div></div>
+    <div id="cnblogs_c2" class="c_ad_block"><a href="https://brands.cnblogs.com/aws/free?source=C2" target="_blank"><img width="468" height="60" src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/2016690-20201029095514173-327529066.png" alt="AWS免费套餐" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;C2-AWS&#39;);"></a></div>
+    <div id="under_post_kb">
+<div class="itnews c_ad_block">
+    <b>最新 IT 新闻</b>:
+    <br>
+ ·          <a href="https://news.cnblogs.com/n/683270/" target="_blank">抖音之后，互联网失去创造力</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/683269/" target="_blank">SpaceX今年成功完成第25次发射 将SXM-7重型卫星推入轨道</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/683268/" target="_blank">为什么这么多人英年早秃？可能是因为不擅长“炸毛”！</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/683267/" target="_blank">虎牙回应合并案被审查：早前已主动向监管部门申报 积极配合审查程序</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/683266/" target="_blank">再见了“摩拜”！摩拜APP今晚正式停止服务</a>
+        <br>
+    » <a href="https://news.cnblogs.com/" title="IT 新闻" target="_blank">更多新闻...</a>
+</div></div>
+    <div id="HistoryToday" class="c_ad_block"></div>
+    <script type="text/javascript">
+       var commentManager = new blogCommentManager();
+       commentManager.renderComments(0);
+       fixPostBody();
+       deliverBigBanner();
+setTimeout(function() { incrementViewCount(cb_entryId); }, 50);       deliverT2();
+       deliverC1C2();
+       loadNewsAndKb();
+       loadBlogSignature();
+LoadPostCategoriesTags(cb_blogId, cb_entryId);       LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+       GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+       loadOptUnderPost();
+       GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);
+   </script>
+</div>
+
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+	<div id="sideBar">
+		<div id="sideBarMain">
+			<div id="sidebar_news" class="newsItem"><!--done-->
+<h3 class="catListTitle">公告</h3>
+
+<div id="blog-news">
+    <img src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/494394-20200629220249285-1396497753.png" width="300px">
+    <div id="profile_block">
+        昵称：
+        <a href="https://home.cnblogs.com/u/arthinking/">
+            arthinking-itzhai
+        </a>
+        <br>
+        园龄：
+        <a href="https://home.cnblogs.com/u/arthinking/" title="入园时间：2013-01-31">
+            7年10个月
+        </a>
+        <br>
+        粉丝：
+        <a href="https://home.cnblogs.com/u/arthinking/followers/">
+            43
+        </a>
+        <br>
+        关注：
+        <a href="https://home.cnblogs.com/u/arthinking/followees/">
+            0
+        </a>
+        <div id="p_b_follow">
+<a href="javascript:void(0)" onclick="follow(&#39;80d2bdf0-5c6b-e211-aa8f-842b2b196315&#39;)">+加关注</a></div>
+        <script>getFollowStatus('80d2bdf0-5c6b-e211-aa8f-842b2b196315');</script>
+    </div>
+</div>
+
+</div>
+<div id="sidebar_c3"></div>
+			<div id="blog-calendar" style="">
+
+<table id="blogCalendar" class="Cal" cellspacing="0" cellpadding="0" title="Calendar" border="0">
+    <tbody>
+        <tr>
+            <td colspan="7">
+                <table class="CalTitle" cellspacing="0" border="0">
+                    <tbody>
+                        <tr>
+                            <td class="CalNextPrev">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2020/11/14&#39;); return false;">&lt;</a>
+                            </td>
+                            <td align="center">2020年12月</td>
+                            <td align="right" class="CalNextPrev">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2021/01/14&#39;); return false;">&gt;</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    <tr>
+        <th class="CalDayHeader" align="center" abbr="日" scope="col">日</th>
+        <th class="CalDayHeader" align="center" abbr="一" scope="col">一</th>
+        <th class="CalDayHeader" align="center" abbr="二" scope="col">二</th>
+        <th class="CalDayHeader" align="center" abbr="三" scope="col">三</th>
+        <th class="CalDayHeader" align="center" abbr="四" scope="col">四</th>
+        <th class="CalDayHeader" align="center" abbr="五" scope="col">五</th>
+        <th class="CalDayHeader" align="center" abbr="六" scope="col">六</th>
+    </tr>
+            <tr>
+                            <td class="CalOtherMonthDay" align="center">29</td>
+                            <td class="CalOtherMonthDay" align="center">30</td>
+                        <td class="" align="center">
+                            1
+                        </td>
+                        <td class="" align="center">
+                            2
+                        </td>
+                        <td class="" align="center">
+                            3
+                        </td>
+                        <td class="" align="center">
+                            4
+                        </td>
+                    <td class="CalWeekendDay" align="center">
+                        5
+                    </td>
+            </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            6
+                        </td>
+                            <td class="" align="center">
+                                7
+                            </td>
+                            <td class="" align="center">
+                                8
+                            </td>
+                            <td class="" align="center">
+                                9
+                            </td>
+                            <td class="" align="center">
+                                10
+                            </td>
+                            <td class="" align="center">
+                                11
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            12
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            13
+                        </td>
+                            <td class="CalTodayDay" align="center">
+                                14
+                            </td>
+                            <td class="" align="center">
+                                15
+                            </td>
+                            <td class="" align="center">
+                                16
+                            </td>
+                            <td class="" align="center">
+                                17
+                            </td>
+                            <td class="" align="center">
+                                18
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            19
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            20
+                        </td>
+                            <td class="" align="center">
+                                21
+                            </td>
+                            <td class="" align="center">
+                                22
+                            </td>
+                            <td class="" align="center">
+                                23
+                            </td>
+                            <td class="" align="center">
+                                24
+                            </td>
+                            <td class="" align="center">
+                                25
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            26
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            27
+                        </td>
+                            <td class="" align="center">
+                                28
+                            </td>
+                            <td class="" align="center">
+                                29
+                            </td>
+                            <td class="" align="center">
+                                30
+                            </td>
+                            <td class="" align="center">
+                                31
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                1
+                            </td>
+                        <td class="CalOtherMonthDay" align="center">
+                            2
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalOtherMonthDay" align="center">
+                            3
+                        </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                4
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                5
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                6
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                7
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                8
+                            </td>
+                        <td class="CalOtherMonthDay" align="center">
+                            9
+                        </td>
+                </tr>
+    </tbody>
+</table></div><script>loadBlogDefaultCalendar();</script>			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"><!-- 搜索 -->
+<div id="sidebar_search" class="sidebar-block">
+    <div id="sidebar_search" class="mySearch">
+        <h3 class="catListTitle">搜索</h3>
+        <div id="sidebar_search_box">
+            <div id="widget_my_zzk" class="div_my_zzk">
+                <input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk">
+            </div>
+            <div id="widget_my_google" class="div_my_zzk">
+                <input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 常用链接 -->
+<div id="sidebar_shortcut" class="sidebar-block"><div class="catListLink">
+<h3 class="catListTitle">
+常用链接
+</h3>
+<ul>
+    
+<li><a href="https://www.cnblogs.com/arthinking/p/" title="我的博客的随笔列表">我的随笔</a></li>
+<li><a href="https://www.cnblogs.com/arthinking/MyComments.html" title="我的发表过的评论列表">我的评论</a></li>
+<li><a href="https://www.cnblogs.com/arthinking/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li>
+<li><a href="https://www.cnblogs.com/arthinking/RecentComments.html" title="我的博客的评论列表">最新评论</a></li>
+<li><a href="https://www.cnblogs.com/arthinking/tag/" title="我的博客的标签列表">我的标签</a></li>
+
+</ul>
+</div>
+
+</div>
+
+<!-- 最新随笔 -->
+
+
+<!-- 我的标签 -->
+<div id="sidebar_toptags" class="sidebar-block"><div class="catListTag">
+<h3 class="catListTitle">我的标签</h3>
+<ul>
+        <li>
+            <a href="https://www.cnblogs.com/arthinking/tag/MySQL/">MySQL<span class="tag-count">(2)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/arthinking/tag/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库<span class="tag-count">(2)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/arthinking/tag/%E7%AE%97%E6%B3%95/">算法<span class="tag-count">(1)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/arthinking/tag/%E7%BD%91%E7%BB%9C/">网络<span class="tag-count">(1)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/arthinking/tag/%E5%AD%A6%E4%B9%A0%E6%96%B9%E6%B3%95/">学习方法<span class="tag-count">(1)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/arthinking/tag/SOA/">SOA<span class="tag-count">(1)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/arthinking/tag/%E6%9E%B6%E6%9E%84/">架构<span class="tag-count">(1)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/arthinking/tag/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">数据结构<span class="tag-count">(1)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/arthinking/tag/Java/">Java<span class="tag-count">(1)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/arthinking/tag/JVM/">JVM<span class="tag-count">(1)</span></a>
+        </li>
+    <li>
+        <a href="https://www.cnblogs.com/arthinking/tag/">更多</a>
+    </li>
+
+</ul>
+</div>
+
+</div>
+
+<!-- 积分与排名 -->
+
+
+<!-- 随笔分类、随笔档案、文章分类、新闻分类、相册、链接 -->
+<div id="sidebar_categories">
+
+    <div id="sidebar_postcategory" class="catListPostCategory sidebar-block">
+        <h3 class="catListTitle">
+            
+随笔分类
+
+
+
+        </h3>
+
+        <ul>
+
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/arthinking/category/1755478.html" rel="" target="">
+    架构(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/arthinking/category/1755479.html" rel="" target="">
+    数据结构与算法(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/arthinking/category/1779121.html" rel="" target="">
+    数据库(2)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/arthinking/category/1820320.html" rel="" target="">
+    网络(1)
+</a>
+ 
+
+                </li>                
+            
+        </ul>
+
+
+    </div>    
+    <div id="sidebar_postarchive" class="catListPostArchive sidebar-block">
+        <h3 class="catListTitle">
+            
+随笔档案
+
+
+
+        </h3>
+
+        <ul>
+
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/arthinking/archive/2020/08.html" rel="" target="">
+    2020年8月(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/arthinking/archive/2020/06.html" rel="" target="">
+    2020年6月(2)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/arthinking/archive/2020/05.html" rel="" target="">
+    2020年5月(2)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/arthinking/archive/2020/03.html" rel="" target="">
+    2020年3月(1)
+</a>
+ 
+
+                </li>                
+            
+        </ul>
+
+
+    </div>    
+</div>
+
+<!-- 最新评论 -->
+<div id="sidebar_recentcomments" class="sidebar-block"><div class="catListComment">
+<h3 class="catListTitle">最新评论</h3>
+
+	<div class="RecentCommentBlock">
+        <ul>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/arthinking/p/13429848.html">1. Re:两万字长文50+张趣图带你领悟网络编程的内功心法</a></li>
+                    <li class="recent_comment_body"><p>这个可以，写的很全面，收藏一下。。。</p>
+</li>
+                    <li class="recent_comment_author">--李白不爱美女爱打野</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/arthinking/p/13429848.html">2. Re:两万字长文50+张趣图带你领悟网络编程的内功心法</a></li>
+                    <li class="recent_comment_body"><p>好文，正好可以帮助我复习一下。</p>
+</li>
+                    <li class="recent_comment_author">--ToTigerMountain</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/arthinking/p/13429848.html">3. Re:两万字长文50+张趣图带你领悟网络编程的内功心法</a></li>
+                    <li class="recent_comment_body">@sosukes 有道理...</li>
+                    <li class="recent_comment_author">--arthinking-itzhai</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/arthinking/p/13429848.html">4. Re:两万字长文50+张趣图带你领悟网络编程的内功心法</a></li>
+                    <li class="recent_comment_body"><p>太强了，不过还是建议分成几篇文章，这样看着后面的可能前面的就忘了</p>
+</li>
+                    <li class="recent_comment_author">--sosukes</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/arthinking/p/13429848.html">5. Re:两万字长文50+张趣图带你领悟网络编程的内功心法</a></li>
+                    <li class="recent_comment_body"><p>干货满满，表达杠杠！</p>
+</li>
+                    <li class="recent_comment_author">--弎吩锺熱℃</li>
+        </ul>
+    </div>
+</div>
+
+</div>
+
+
+<!-- 阅读排行榜 -->
+<div id="sidebar_topviewedposts" class="sidebar-block"><div class="catListView">
+<h3 class="catListTitle">阅读排行榜</h3>
+	<div id="TopViewPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/arthinking/p/12812786.html">
+                            1. 架构演变之路：为何要搞微服务架构？(3062)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/arthinking/p/13034126.html">
+                            2. 洞悉MySQL底层架构：游走在缓冲与磁盘之间(2920)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/arthinking/p/13205303.html">
+                            3. SQL运行内幕：从执行原理看调优的本质(2624)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/arthinking/p/13429848.html">
+                            4. 两万字长文50+张趣图带你领悟网络编程的内功心法(1916)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/arthinking/p/12812924.html">
+                            5. 数据结构：答应我，别再逃避我了好吗？(416)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div>
+
+</div>
+
+<!-- 评论排行榜 -->
+<div id="sidebar_topcommentedposts" class="sidebar-block"><div class="catListFeedback">
+<h3 class="catListTitle">评论排行榜</h3>
+	<div id="TopFeedbackPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/arthinking/p/13034126.html">
+                            1. 洞悉MySQL底层架构：游走在缓冲与磁盘之间(25)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/arthinking/p/13429848.html">
+                            2. 两万字长文50+张趣图带你领悟网络编程的内功心法(20)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/arthinking/p/13205303.html">
+                            3. SQL运行内幕：从执行原理看调优的本质(11)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/arthinking/p/12812786.html">
+                            4. 架构演变之路：为何要搞微服务架构？(3)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/arthinking/p/12593473.html">
+                            5. 如何远离浮躁的碎片化学习，给自己增加职场竞争力(1)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div>
+
+</div>
+
+<!-- 推荐排行榜 -->
+<div id="sidebar_topdiggedposts" class="sidebar-block">
+<div id="topdigg_posts_wrap">
+    <div class="catListView">
+        <h3 class="catListTitle">推荐排行榜</h3>
+        <div id="TopDiggPostsBlock">
+            <ul style="word-break: break-all">
+                        <li>
+                            <a href="https://www.cnblogs.com/arthinking/p/13429848.html">
+                                1. 两万字长文50+张趣图带你领悟网络编程的内功心法(36)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/arthinking/p/13034126.html">
+                                2. 洞悉MySQL底层架构：游走在缓冲与磁盘之间(30)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/arthinking/p/13205303.html">
+                                3. SQL运行内幕：从执行原理看调优的本质(23)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/arthinking/p/12812786.html">
+                                4. 架构演变之路：为何要搞微服务架构？(13)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/arthinking/p/12812924.html">
+                                5. 数据结构：答应我，别再逃避我了好吗？(1)
+                            </a>
+                        </li>
+            </ul>
+        </div>
+    </div>
+</div></div></div>
+                    <script>loadBlogSideColumn();</script>
+			</div>			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		<!--done-->
+Copyright © 2020 arthinking-itzhai
+<br><span id="poweredby">Powered by .NET 5.0.1-servicing.20575.16 on Kubernetes</span>
+
+
+
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+
+    <div id="page_end_html">
+        <script>
+
+    //事件处理程序兼容写法
+    function addEvent(target,type,handler){
+        if(target.addEventListener){
+            target.addEventListener(type,handler,false);
+        }else{
+            target.attachEvent('on'+type,function(event){
+                return handler.call(target,event);
+            });
+        }
+    }
+    //DOM结构稳定后，再操作
+    addEvent(window,'load', fnCata);
+
+    function fnCata(){
+        /*动态样式*/
+        function loadStyles(str){
+            loadStyles.mark = 'load';
+            var style = document.createElement("style");
+            style.type = "text/css";
+            try{
+                style.innerHTML = str;
+            }catch(ex){
+                style.styleSheet.cssText = str;
+            }
+            var head = document.getElementsByTagName('head')[0];
+            head.appendChild(style);
+        }
+        if(loadStyles.mark != 'load'){
+            loadStyles("h6{margin:0;padding:0;}\
+            .box{position: fixed; left: 10px;top: 60px;background: rgba(255, 255, 255, 0.8);max-height: 600px;font-size:10px; overflow-x: hidden; overflow-y: scroll; font-family:'Verdana,Arial,Helvetica,sans-serif'; border: 2px solid #ccc;padding: 4px; border-radius:5px;min-width:100px;max-width:200px;cursor:default;}\
+            .box::-webkit-scrollbar {width : 10px;height: 1px;}\
+            .box::-webkit-scrollbar-thumb {/*滚动条里面小方块*/border-radius: 10px;background-color: #9a9a9a;background-image: 45deg,rgba(255, 255, 255, 0.2) 25%,transparent 25%,transparent 50%,rgba(255, 255, 255, 0.2) 50%,rgba(255, 255, 255, 0.2) 75%,transparent 75%,transparent}\
+                            .box::-webkit-scrollbar-track {/*滚动条里面轨道*/box-shadow : inset 0 0 5px rgba(0, 0, 0, 0.2);border-radius: 10px;background: ##dadada;}\
+                            .boxHide{border:none;width:100px;height:30px;padding:0;}\
+                            .box-title{text-align:center;font-size:20px;color:#444;}\
+                            .box-quit{position: absolute;text-align:center; right: 0;top: 4px;cursor:pointer;font-weight:bold;}\
+                            .box-quitAnother{background:#ffc09a;left:0;top:0;color:#ffffff;}\
+                            a.box-anchor{display:block;text-decoration:none;color:black; border-left: 3px solid transparent;padding:0 3px;margin-bottom: 3px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}\
+                            a.box-anchor:hover{color:#3399ff;}\
+                            a.box-anchorActive{color:#3399ff;text-decoration:underline;border-color:#2175bc};");
+        };
+        /*设置章节标题函数*/
+        function setCatalog(){
+            //获取页面中所有的script标题
+            var aEle = document.getElementsByTagName('script');
+            //设置sel变量，用于保存其选择符的字符串值
+            var sel;
+            //获取script标签上的data-selector值
+            Array.prototype.forEach.call(aEle,function(item,index,array){
+                sel = item.getAttribute('data-selector');
+                if(sel) return;
+            })
+            //默认参数为h1标签
+            if(sel == undefined){
+                sel ='h1, h2, h3';
+            }
+            //选取博文
+            var article = document.getElementById('cnblogs_post_body');
+            //选取文章中所有的章节标题
+            var tempArray = article.querySelectorAll(sel);
+            //为每一个章节标题顺序添加锚点标识
+            Array.prototype.forEach.call(tempArray, function(item, index, array) {
+                item.setAttribute('id','anchor' + (1+index));
+            });
+            //返回章节标题这个类数组
+            return tempArray;
+        }
+        //设置全局变量Atitle保存添加锚点标识的标题项
+        var aTitle = setCatalog();
+
+        /*生成目录*/
+        function buildCatalog(arr){
+            //由于每个部件的创建过程都类似，所以写成一个函数进行服用
+            function buildPart(json){
+                var oPart = document.createElement(json.selector);
+                if(json.id){oPart.setAttribute('id',json.id);}
+                if(json.className){oPart.className = json.className;}
+                if(json.innerHTML){oPart.innerHTML = json.innerHTML;}
+                if(json.href){oPart.setAttribute('href',json.href);}
+                if(json.appendToBox){
+                    oBox.appendChild(oPart);
+                }
+                return oPart;
+            }
+            //取得章节标题的个数
+            len = arr.length;
+            //创建最外层div
+            var oBox = buildPart({
+                selector:'div',
+                id:'box',
+                className:'box boxHide'
+            });
+            //创建关闭按钮
+            buildPart({
+                selector:'span',
+                id:'boxQuit',
+                className:'box-quit box-quitAnother',
+                innerHTML:'显示目录',
+                appendToBox:true
+            });
+            //创建目录标题
+            buildPart({
+                selector:'h6',
+                className:'box-title',
+                innerHTML:'目录',
+                appendToBox:true
+            });
+            //创建目录项
+            for(var i = 0; i < len; i++){
+                tagName = arr[i].tagName;
+                itemSpace = '';
+                innerHtml = arr[i].innerHTML;
+                if (tagName === 'H1') {
+                    itemSpace = '';
+                    innerHtml = '<b>' + arr[i].innerHTML + '</b>';
+                }
+                if (tagName === 'H2') {
+                    itemSpace = ' ';
+                    innerHtml = '<span>&nbsp;&nbsp;' + arr[i].innerHTML + '</span>';
+                } else if (tagName === 'H3') {
+                    innerHtml = '<span>&nbsp;&nbsp;&nbsp;&nbsp;' + arr[i].innerHTML + '</span>';
+                }
+                buildPart({
+                    selector:'a',
+                    className:'box-anchor',
+                    href:'#anchor' + (1+i),
+                    innerHTML:/*'['+(i+1)+']'+*/ innerHtml,
+                    appendToBox:true
+                });
+            }
+            //将目录加入文档中
+            document.body.appendChild(oBox);
+        }
+
+        var browser={
+            versions:function(){ 
+                   var u = navigator.userAgent, app = navigator.appVersion; 
+                   return {  // 移动终端浏览器版本信息 
+                        trident: u.indexOf('Trident') > -1,  // IE内核
+                        presto: u.indexOf('Presto') > -1,    // Opera内核
+                        webKit: u.indexOf('AppleWebKit') > -1,  // 苹果、谷歌内核
+                        gecko: u.indexOf('Gecko') > -1 && u.indexOf('KHTML') == -1,  // 火狐内核
+                        mobile: !!u.match(/AppleWebKit.*Mobile.*/)||!!u.match(/AppleWebKit/)&&u.indexOf('QIHU')&&u.indexOf('Chrome')<0,  // 是否为移动终端  
+                        ios: !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/),  // iOS终端
+                        android: u.indexOf('Android') > -1 || u.indexOf('Linux') > -1,  // Android 终端或者 UC 浏览器
+                        iPhone: u.indexOf('iPhone') > -1 || u.indexOf('Mac') > -1,  // 是否为 iPhone 或者 QQHD 浏览器
+                        iPad: u.indexOf('iPad') > -1,   // 是否 iPad
+                        webApp: u.indexOf('Safari') == -1,   // 是否WEB应该程序，没有头部与底部。
+                        ua:u 
+                    };
+                 }(),
+                 
+                 language:(navigator.browserLanguage || navigator.language).toLowerCase()
+        };
+
+        if(browser.versions.mobile || browser.versions.iPad){
+           return;
+        }
+        
+        buildCatalog(aTitle);
+
+        /*事件部分*/
+        (function(){
+            var oBox = document.getElementById('box');
+            //设置目录内各组件的点击事件
+            oBox.onclick = function(e){
+                e = e || event;
+                // if(oBox.isMove) return;
+                var target = e.target || e.srcElement;
+                //设置关闭按钮的点击事件
+                console.log(target.id);
+                if(target.id === 'boxQuit'){
+                    if(target.isHide){
+                        target.innerHTML = '显示目录';
+                        target.className = 'box-quit box-quitAnother'
+                        this.className = 'box boxHide';
+                        target.isHide = false;
+                    }else{
+                        target.innerHTML = 'X';
+                        target.className = 'box-quit';
+                        this.className = 'box';
+                        target.isHide = true;
+                    }
+                }
+                //获取target的href值
+                var sHref = target.getAttribute('href');
+                //设置目录项的点击事件
+                if(/anchor/.test(sHref)){
+                    anchorActive(target);
+                }
+            }
+
+            //由于点击事件和滚轮事件都需要将目录项发生样式变化，所以声明锚点激活函数
+            function anchorActive(obj){
+                var parent = obj.parentNode;
+                var aAnchor = parent.getElementsByTagName('a');
+                //将所有目录项样式设置为默认状态
+                Array.prototype.forEach.call(aAnchor,function(item,index,array){
+                    item.className = 'box-anchor';
+                })
+                //将当前目录项样式设置为点击状态
+                obj.className = 'box-anchor box-anchorActive';
+            }
+
+            //设置滚轮事件
+            var wheel = function(e){
+                //获取列表项
+                var aAnchor = oBox.getElementsByTagName('a');
+                //获取章节题目项
+                aTitle.forEach(function(item,index,array){
+                    //获取当前章节题目离可视区上侧的距离
+                    var iTop = item.getBoundingClientRect().top;
+                    //获取下一个章节题目
+                    var oNext = array[index+1];
+                    //如果存在下一个章节题目，则获取下一个章节题目离可视区上侧的距离
+                    if(oNext){
+                        var iNextTop = array[index+1].getBoundingClientRect().top;
+                    }
+                    //当前章节题目离可视区上侧的距离小于10时
+                    if(iTop <= 10){
+                        //当下一个章节题目不存在， 或下一个章节题目离可视区上侧的距离大于10时，设置当前章节题目对应的目录项为激活态
+                        if(iNextTop > 10 || !oNext){
+                            anchorActive(aAnchor[index]);
+                        }
+                    }
+                });
+            }
+            document.body.onmousewheel = wheel;
+            document.body.addEventListener('DOMMouseScroll',wheel,false);
+            window.onscroll = wheel;
+
+            //拖拽实现
+            oBox.onmousedown = function(e){
+                //设置oBox的正在移动状态为假
+                oBox.isMove = false;
+                e = e || event;
+                //获取元素距离定位父级的x轴及y轴距离
+                var x0 = this.offsetLeft;
+                var y0 = this.offsetTop;
+                //获取此时鼠标距离视口左上角的x轴及y轴距离
+                var x1 = e.clientX;
+                var y1 = e.clientY;
+                document.onmousemove = function(e){
+                    //设置oBox的正在移动状态为真
+                    oBox.isMove = true;
+                    e = e || event;
+                    //获取此时鼠标距离视口左上角的x轴及y轴距离
+                    x2 = e.clientX;
+                    y2 = e.clientY;
+                    //计算此时元素应该距离视口左上角的x轴及y轴距离
+                    var X = x0 + (x2 - x1);
+                    var Y = y0 + (y2 - y1);
+                    //将X和Y的值赋给left和top，使元素移动到相应位置
+                    oBox.style.left = X + 'px';
+                    oBox.style.top = Y + 'px';
+                }
+                document.onmouseup = function(e){
+                    //当鼠标抬起时，拖拽结束，则将onmousemove赋值为null即可
+                    document.onmousemove = null;
+                    //释放全局捕获
+                    if(oBox.releaseCapture){
+                        oBox.isMove = false;
+                        oBox.releaseCapture();
+                    }
+                }
+                //阻止默认行为
+                return false;
+                //IE8-浏览器阻止默认行为
+                if(oBox.setCapture){
+                    oBox.setCapture();
+                }
+            }
+        })();
+    };
+
+</script>
+
+    </div>
+
+
+<iframe id="google_osd_static_frame_6220402681973" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px;" src="./SQL运行内幕：从执行原理看调优的本质 - arthinking-itzhai - 博客园_files/saved_resource(1).html"></iframe><div id="box" class="box boxHide"><span id="boxQuit" class="box-quit box-quitAnother">显示目录</span><h6 class="box-title">目录</h6><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor1"><b>1、count</b></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor2"><span>&nbsp;&nbsp;count中的一致性视图</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor3"><span>&nbsp;&nbsp;count(主键)</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor4"><span>&nbsp;&nbsp;count(1)</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor5"><span>&nbsp;&nbsp;count(字段)</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor6"><span>&nbsp;&nbsp;count(*)</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor7"><b>2、order by</b></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor8"><span>&nbsp;&nbsp;2.1、如何跟踪执行优化</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor9"><span>&nbsp;&nbsp;&nbsp;&nbsp;2.1.1、排序模式</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor10"><span>&nbsp;&nbsp;&nbsp;&nbsp;2.1.2、排序算法</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor11"><span>&nbsp;&nbsp;2.2、order by走索引避免排序</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor12"><span>&nbsp;&nbsp;2.3、排序算法案例</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor13"><span>&nbsp;&nbsp;&nbsp;&nbsp;2.3.1、使用优先级队列进行堆排序</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor14"><span>&nbsp;&nbsp;&nbsp;&nbsp;2.3.2、内部快速排序</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor15"><span>&nbsp;&nbsp;&nbsp;&nbsp;2.3.3、外部归并排序</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor16"><span>&nbsp;&nbsp;2.4、排序模式案例</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor17"><span>&nbsp;&nbsp;&nbsp;&nbsp;2.4.1、sort_key, additional_fields模式</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor18"><span>&nbsp;&nbsp;&nbsp;&nbsp;2.4.2、&lt;sort_key, packed_additional_fields&gt;模式</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor19"><span>&nbsp;&nbsp;&nbsp;&nbsp;2.4.3、&lt;sort_key, rowid&gt;模式</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor20"><span>&nbsp;&nbsp;2.5、order by优化总结</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor21"><b>3、join</b></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor22"><span>&nbsp;&nbsp;3.1、join走索引（Index Nested-Loop Join）</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor23"><span>&nbsp;&nbsp;&nbsp;&nbsp;3.1.1、Index Nested-Loop Join</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor24"><span>&nbsp;&nbsp;&nbsp;&nbsp;3.1.2、Index nested-Loop Join的优化</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor25"><span>&nbsp;&nbsp;3.2、join不走索引（Block Nested-Loop Join）</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor26"><span>&nbsp;&nbsp;&nbsp;&nbsp;3.2.1、Block Nested-Loop Join (BNL)</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor27"><span>&nbsp;&nbsp;&nbsp;&nbsp;3.2.2、BNL问题</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor28"><span>&nbsp;&nbsp;&nbsp;&nbsp;3.2.3、BNL问题解决方案</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor29"><span>&nbsp;&nbsp;3.3、各种join</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor30"><span>&nbsp;&nbsp;3.3、join使用总结</span></a><a class="box-anchor box-anchorActive" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor31"><b>4、union</b></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor32"><span>&nbsp;&nbsp;4.1、union all</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor33"><span>&nbsp;&nbsp;4.2、union</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor34"><b>5、group by</b></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor35"><span>&nbsp;&nbsp;5.1、完全走索引</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor36"><span>&nbsp;&nbsp;5.2、临时表</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor37"><span>&nbsp;&nbsp;5.3、临时表 + 排序</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor38"><span>&nbsp;&nbsp;5.5、直接排序</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor39"><span>&nbsp;&nbsp;5.4、group by 优化建议</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor40"><b>6、distinct<sup class="footnote-ref"><a href="https://www.cnblogs.com/arthinking/p/13205303.html#fn10" id="fnref10" class="box-anchor">[10]</a></sup></b></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor41"><span>&nbsp;&nbsp;6.1、Extra中的distinct</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor42"><b>7、子查询</b></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor43"><span>&nbsp;&nbsp;7.1、子查询的使用方法</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor44"><span>&nbsp;&nbsp;&nbsp;&nbsp;7.1.1、where中的子查询</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor45"><span>&nbsp;&nbsp;&nbsp;&nbsp;7.1.2、from子查询</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor46"><span>&nbsp;&nbsp;&nbsp;&nbsp;7.1.3、关联子查询</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor47"><span>&nbsp;&nbsp;&nbsp;&nbsp;7.1.3.1、exists和not exists</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor48"><span>&nbsp;&nbsp;7.2、子查询的优化</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor49"><span>&nbsp;&nbsp;&nbsp;&nbsp;7.2.1、Semijoin</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor50"><span>&nbsp;&nbsp;&nbsp;&nbsp;7.2.2、Materialization</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor51"><span>&nbsp;&nbsp;&nbsp;&nbsp;7.2.3、EXISTS策略</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor52"><span>&nbsp;&nbsp;&nbsp;&nbsp;7.2.4、总结</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor53"><b>8、limit offset, rows</b></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor54"><span>&nbsp;&nbsp;8.1、执行原理</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor55"><span>&nbsp;&nbsp;8.2、优化手段</span></a><a class="box-anchor" href="https://www.cnblogs.com/arthinking/p/13205303.html#anchor56"><b>References</b></a></div></body></html>
