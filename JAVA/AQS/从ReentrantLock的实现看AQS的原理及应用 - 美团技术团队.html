@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<!-- saved from url=(0061)https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html -->
+<html lang="en" dir="ltr" class=" theme-united"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="renderer" content="webkit"><meta http-equiv="x-ua-compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="author" content="soulteary@gmail.com"><script type="text/javascript" async="" src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/analytics.js.下载"></script><script src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/hm.js.下载"></script><script type="text/javascript" async="" src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/js"></script><script type="text/javascript" async="" src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/analytics.js.下载"></script><script async="" src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/js(1)"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());gtag('config','UA-158867676-1');</script><meta name="robots" content="index, follow"><meta property="og:title" content="从ReentrantLock的实现看AQS的原理及应用"><meta property="og:description" content="本文会从应用层逐渐深入到原理层，并通过ReentrantLock的基本特性和ReentrantLock与AQS的关联，来深入解读AQS相关独占锁的知识点，同时采取问答的模式来帮助大家理解AQS。"><meta property="og:type" content="article"><meta property="og:url" content="https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html"><meta property="article:published_time" content="2019-12-05T00:00:00+00:00"><meta property="article:modified_time" content="2019-12-05T00:00:00+00:00"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="从ReentrantLock的实现看AQS的原理及应用"><meta name="twitter:description" content="本文会从应用层逐渐深入到原理层，并通过ReentrantLock的基本特性和ReentrantLock与AQS的关联，来深入解读AQS相关独占锁的知识点，同时采取问答的模式来帮助大家理解AQS。"><meta name="description" content="本文会从应用层逐渐深入到原理层，并通过ReentrantLock的基本特性和ReentrantLock与AQS的关联，来深入解读AQS相关独占锁的知识点，同时采取问答的模式来帮助大家理解AQS。"><meta name="keywords" content="到店,java,AQS,ReentrantLock,"><link rel="canonical" href="https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html"><title>从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队</title><link rel="stylesheet" href="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/common.css"><link rel="stylesheet" href="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/post.css"><link rel="apple-touch-icon" sizes="180x180" href="https://awps-assets.meituan.net/mit/blog/v20190629/asset/icon/apple-icon-180x180.png?v=Whistle&amp;t=20181017-1r"><link rel="icon" type="image/png" sizes="192x192" href="https://awps-assets.meituan.net/mit/blog/v20190629/asset/icon/android-icon-192x192.png?v=Whistle&amp;t=20181017-1r"><link rel="shortcut icon" href="https://awps-assets.meituan.net/mit/blog/v20190629/asset/icon/favicon.ico?v=Whistle&amp;t=20181017-1r"><script>top!=self&&top.host!=self.host&&(top.location=self.location);(function(d){d.className=d.className.replace(/\bno-js/,'');})(document.documentElement);var $CONFIG={'data':{}};</script><link href="https://tech.meituan.com/feed/" rel="alternate" type="application/rss+xml" title="从ReentrantLock的实现看AQS的原理及应用"><script src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/zepto.min.js.下载"></script><script src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/common.js.下载"></script></head><body class="page page-type-post"><nav class="navbar navbar-default g-navbar-box hidden-print" id="Js_page-navbar"><div class="navbar-header"><button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+<span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+<a class="navbar-brand" href="https://tech.meituan.com/" title="美团技术团队" target="_self">美团技术团队</a></div><div class="collapse navbar-collapse"><ul class="nav navbar-nav navbar-right" id="JS_nav_list"><li class="menu-item menu-item-home"><a class="menu-item-link" href="https://tech.meituan.com/" target="_self" title="查看最新文章">最新文章</a></li><li class="menu-item menu-item-archive"><a class="menu-item-link" href="https://tech.meituan.com/archives" target="_self" title="查看文章存档内容">文章存档</a></li><li class="menu-item menu-item-salon"><a class="menu-item-link" href="https://tech.meituan.com/tech-salon" target="_self" title="了解技术沙龙">技术沙龙</a></li><li class="menu-item menu-item-about"><a class="menu-item-link" href="https://tech.meituan.com/about" target="_self" title="了解更多关于我们的事情">关于我们</a></li></ul></div><div class="navbar-bottom"><p class="copyright">© 2019 美团技术团队</p><p class="copyright">All rights reserved.</p></div></nav><div class="container-fluid main-container" id="J_main-container"><div class="row"><div class="col-md-12"><div class="post-container"><h1 class="post-title"><a href="https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html" rel="bookmark">从ReentrantLock的实现看AQS的原理及应用</a></h1><div class="meta-box"><span class="m-post-date"><i class="fa fa-calendar-o"></i>2019年12月05日</span>
+<span class="m-post-nick">作者: 李卓</span>
+<span class="m-post-permalink"><i class="fa fa-link-o"></i><a href="https://tech.meituan.com/2019/12/05/aqs-theory-and-apply.html" target="_blank">文章链接</a></span>
+<span class="m-post-count"><i class="fa fa-pencil"></i>7519字</span>
+<span class="m-post-reading"><i class="fa fa-hourglass-start"></i>16分钟阅读</span></div><div class="post-content"><div class="content"><h2 id="前言">前言</h2><p>Java中的大部分同步类（Lock、Semaphore、ReentrantLock等）都是基于AbstractQueuedSynchronizer（简称为AQS）实现的。AQS是一种提供了原子式管理同步状态、阻塞和唤醒线程功能以及队列模型的简单框架。本文会从应用层逐渐深入到原理层，并通过ReentrantLock的基本特性和ReentrantLock与AQS的关联，来深入解读AQS相关独占锁的知识点，同时采取问答的模式来帮助大家理解AQS。由于篇幅原因，本篇文章主要阐述AQS中独占锁的逻辑和Sync Queue，不讲述包含共享锁和Condition Queue的部分（本篇文章核心为AQS原理剖析，只是简单介绍了ReentrantLock，感兴趣同学可以阅读一下ReentrantLock的源码）。</p><p>下面列出本篇文章的大纲和思路，以便于大家更好地理解：</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/9d182d944e0889c304ef529ba50a4fcd205214.png" alt=""></p><h2 id="1-reentrantlock">1 ReentrantLock</h2><h3 id="1-1-reentrantlock特性概览">1.1 ReentrantLock特性概览</h3><p>ReentrantLock意思为可重入锁，指的是一个线程能够对一个临界资源重复加锁。为了帮助大家更好地理解ReentrantLock的特性，我们先将ReentrantLock跟常用的Synchronized进行比较，其特性如下（蓝色部分为本篇文章主要剖析的点）：</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/412d294ff5535bbcddc0d979b2a339e6102264.png" alt=""></p><p>下面通过伪代码，进行更加直观的比较：</p><pre><code class="hljs cs"><span class="hljs-comment"><span class="hljs-comment">// **************************Synchronized的使用方式**************************</span></span>
+<span class="hljs-comment"><span class="hljs-comment">// 1.用于代码块</span></span>
+synchronized (<span class="hljs-keyword"><span class="hljs-keyword">this</span></span>) {}
+<span class="hljs-comment"><span class="hljs-comment">// 2.用于对象</span></span>
+synchronized (<span class="hljs-keyword"><span class="hljs-keyword">object</span></span>) {}
+<span class="hljs-comment"><span class="hljs-comment">// 3.用于方法</span></span>
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> synchronized </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">test</span></span></span><span class="hljs-function"> (</span><span class="hljs-params"></span><span class="hljs-function"><span class="hljs-params"></span>)</span></span> {}
+<span class="hljs-comment"><span class="hljs-comment">// 4.可重入</span></span>
+<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">int</span></span> i = <span class="hljs-number"><span class="hljs-number">0</span></span>; i &lt; <span class="hljs-number"><span class="hljs-number">100</span></span>; i++) {
+	synchronized (<span class="hljs-keyword"><span class="hljs-keyword">this</span></span>) {}
+}
+<span class="hljs-comment"><span class="hljs-comment">// **************************ReentrantLock的使用方式**************************</span></span>
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">test</span></span></span><span class="hljs-function"> (</span><span class="hljs-params"></span><span class="hljs-function"><span class="hljs-params"></span>) throw Exception</span></span> {
+	<span class="hljs-comment"><span class="hljs-comment">// 1.初始化选择公平锁、非公平锁</span></span>
+	ReentrantLock <span class="hljs-keyword"><span class="hljs-keyword">lock</span></span> = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> ReentrantLock(<span class="hljs-literal"><span class="hljs-literal">true</span></span>);
+	<span class="hljs-comment"><span class="hljs-comment">// 2.可用于代码块</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">lock</span></span>.<span class="hljs-keyword"><span class="hljs-keyword">lock</span></span>();
+	<span class="hljs-keyword"><span class="hljs-keyword">try</span></span> {
+		<span class="hljs-keyword"><span class="hljs-keyword">try</span></span> {
+			<span class="hljs-comment"><span class="hljs-comment">// 3.支持多种加锁方式，比较灵活; 具有可重入特性</span></span>
+			<span class="hljs-keyword"><span class="hljs-keyword">if</span></span>(<span class="hljs-keyword"><span class="hljs-keyword">lock</span></span>.tryLock(<span class="hljs-number"><span class="hljs-number">100</span></span>, TimeUnit.MILLISECONDS)){ }
+		} <span class="hljs-keyword"><span class="hljs-keyword">finally</span></span> {
+			<span class="hljs-comment"><span class="hljs-comment">// 4.手动释放锁</span></span>
+			<span class="hljs-keyword"><span class="hljs-keyword">lock</span></span>.unlock()
+		}
+	} <span class="hljs-keyword"><span class="hljs-keyword">finally</span></span> {
+		<span class="hljs-keyword"><span class="hljs-keyword">lock</span></span>.unlock();
+	}
+}
+</code></pre><h3 id="1-2-reentrantlock与aqs的关联">1.2 ReentrantLock与AQS的关联</h3><p>通过上文我们已经了解，ReentrantLock支持公平锁和非公平锁（关于公平锁和非公平锁的原理分析，可参考《<a href="https://mp.weixin.qq.com/s?__biz=MjM5NjQ5MTI5OA==&amp;mid=2651749434&amp;idx=3&amp;sn=5ffa63ad47fe166f2f1a9f604ed10091&amp;chksm=bd12a5778a652c61509d9e718ab086ff27ad8768586ea9b38c3dcf9e017a8e49bcae3df9bcc8&amp;scene=38#wechat_redirect">不可不说的Java“锁”事<i class="fa fa-link" aria-hidden="true"></i></a>》），并且ReentrantLock的底层就是由AQS来实现的。那么ReentrantLock是如何通过公平锁和非公平锁与AQS关联起来呢？ 我们着重从这两者的加锁过程来理解一下它们与AQS之间的关系（加锁过程中与AQS的关联比较明显，解锁流程后续会介绍）。</p><p>非公平锁源码中的加锁流程如下：</p><pre><code class="hljs scala"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.ReentrantLock#NonfairSync</span></span>
+
+<span class="hljs-comment"><span class="hljs-comment">// 非公平锁</span></span>
+static <span class="hljs-keyword"><span class="hljs-keyword">final</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">NonfairSync</span></span></span><span class="hljs-class"> </span><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">extends</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">Sync</span></span></span><span class="hljs-class"> </span></span>{
+	...
+	<span class="hljs-keyword"><span class="hljs-keyword">final</span></span> void lock() {
+		<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (compareAndSetState(<span class="hljs-number"><span class="hljs-number">0</span></span>, <span class="hljs-number"><span class="hljs-number">1</span></span>))
+			setExclusiveOwnerThread(<span class="hljs-type"><span class="hljs-type">Thread</span></span>.currentThread());
+		<span class="hljs-keyword"><span class="hljs-keyword">else</span></span>
+			acquire(<span class="hljs-number"><span class="hljs-number">1</span></span>);
+		}
+  ...
+}
+</code></pre><p>这块代码的含义为：</p><ul><li><p>若通过CAS设置变量State（同步状态）成功，也就是获取锁成功，则将当前线程设置为独占线程。</p></li><li><p>若通过CAS设置变量State（同步状态）失败，也就是获取锁失败，则进入Acquire方法进行后续处理。</p></li></ul><p>第一步很好理解，但第二步获取锁失败后，后续的处理策略是怎么样的呢？这块可能会有以下思考：</p><ul><li>某个线程获取锁失败的后续流程是什么呢？有以下两种可能：</li></ul><p>(1) 将当前线程获锁结果设置为失败，获取锁流程结束。这种设计会极大降低系统的并发度，并不满足我们实际的需求。所以就需要下面这种流程，也就是AQS框架的处理流程。</p><p>(2) 存在某种排队等候机制，线程继续等待，仍然保留获取锁的可能，获取锁流程仍在继续。</p><ul><li><p>对于问题1的第二种情况，既然说到了排队等候机制，那么就一定会有某种队列形成，这样的队列是什么数据结构呢？</p></li><li><p>处于排队等候机制中的线程，什么时候可以有机会获取锁呢？</p></li><li><p>如果处于排队等候机制中的线程一直无法获取锁，还是需要一直等待吗，还是有别的策略来解决这一问题？</p></li></ul><p>带着非公平锁的这些问题，再看下公平锁源码中获锁的方式：</p><pre><code class="hljs scala"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.ReentrantLock#FairSync</span></span>
+
+static <span class="hljs-keyword"><span class="hljs-keyword">final</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">FairSync</span></span></span><span class="hljs-class"> </span><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">extends</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">Sync</span></span></span><span class="hljs-class"> </span></span>{
+  ...  
+	<span class="hljs-keyword"><span class="hljs-keyword">final</span></span> void lock() {
+		acquire(<span class="hljs-number"><span class="hljs-number">1</span></span>);
+	}
+  ...
+}
+</code></pre><p>看到这块代码，我们可能会存在这种疑问：Lock函数通过Acquire方法进行加锁，但是具体是如何加锁的呢？</p><p>结合公平锁和非公平锁的加锁流程，虽然流程上有一定的不同，但是都调用了Acquire方法，而Acquire方法是FairSync和UnfairSync的父类AQS中的核心方法。</p><p>对于上边提到的问题，其实在ReentrantLock类源码中都无法解答，而这些问题的答案，都是位于Acquire方法所在的类AbstractQueuedSynchronizer中，也就是本文的核心——AQS。下面我们会对AQS以及ReentrantLock和AQS的关联做详细介绍（相关问题答案会在2.3.5小节中解答）。</p><h2 id="2-aqs">2 AQS</h2><p>首先，我们通过下面的架构图来整体了解一下AQS框架：</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/82077ccf14127a87b77cefd1ccf562d3253591.png" alt=""></p><ul><li><p>上图中有颜色的为Method，无颜色的为Attribution。</p></li><li><p>总的来说，AQS框架共分为五层，自上而下由浅入深，从AQS对外暴露的API到底层基础数据。</p></li><li><p>当有自定义同步器接入时，只需重写第一层所需要的部分方法即可，不需要关注底层具体的实现流程。当自定义同步器进行加锁或者解锁操作时，先经过第一层的API进入AQS内部方法，然后经过第二层进行锁的获取，接着对于获取锁失败的流程，进入第三层和第四层的等待队列处理，而这些处理方式均依赖于第五层的基础数据提供层。</p></li></ul><p>下面我们会从整体到细节，从流程到方法逐一剖析AQS框架，主要分析过程如下：</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/d2f7f7fffdc30d85d17b44266c3ab05323338.png" alt=""></p><h3 id="2-1-原理概览">2.1 原理概览</h3><p>AQS核心思想是，如果被请求的共享资源空闲，那么就将当前请求资源的线程设置为有效的工作线程，将共享资源设置为锁定状态；如果共享资源被占用，就需要一定的阻塞等待唤醒机制来保证锁分配。这个机制主要用的是CLH队列的变体实现的，将暂时获取不到锁的线程加入到队列中。</p><p>CLH：Craig、Landin and Hagersten队列，是单向链表，AQS中的队列是CLH变体的虚拟双向队列（FIFO），AQS是通过将每条请求共享资源的线程封装成一个节点来实现锁的分配。</p><p>主要原理图如下：</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/7132e4cef44c26f62835b197b239147b18062.png" alt=""></p><p>AQS使用一个Volatile的int类型的成员变量来表示同步状态，通过内置的FIFO队列来完成资源获取的排队工作，通过CAS完成对State值的修改。</p><h4 id="2-1-1-aqs数据结构">2.1.1 AQS数据结构</h4><p>先来看下AQS中最基本的数据结构——Node，Node即为上面CLH变体队列中的节点。</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/960271cf2b5c8a185eed23e98b72c75538637.png" alt=""></p><p>解释一下几个方法和属性值的含义：</p><table><thead><tr><th>方法和属性值</th><th>含义</th></tr></thead><tbody><tr><td>waitStatus</td><td>当前节点在队列中的状态</td></tr><tr><td>thread</td><td>表示处于该节点的线程</td></tr><tr><td>prev</td><td>前驱指针</td></tr><tr><td>predecessor</td><td>返回前驱节点，没有的话抛出npe</td></tr><tr><td>nextWaiter</td><td>指向下一个处于CONDITION状态的节点（由于本篇文章不讲述Condition Queue队列，这个指针不多介绍）</td></tr><tr><td>next</td><td>后继指针</td></tr></tbody></table><p>线程两种锁的模式：</p><table><thead><tr><th>模式</th><th>含义</th></tr></thead><tbody><tr><td>SHARED</td><td>表示线程以共享的模式等待锁</td></tr><tr><td>EXCLUSIVE</td><td>表示线程正在以独占的方式等待锁</td></tr></tbody></table><p>waitStatus有下面几个枚举值：</p><table><thead><tr><th>枚举</th><th>含义</th></tr></thead><tbody><tr><td>0</td><td>当一个Node被初始化的时候的默认值</td></tr><tr><td>CANCELLED</td><td>为1，表示线程获取锁的请求已经取消了</td></tr><tr><td>CONDITION</td><td>为-2，表示节点在等待队列中，节点线程等待唤醒</td></tr><tr><td>PROPAGATE</td><td>为-3，当前线程处在SHARED情况下，该字段才会使用</td></tr><tr><td>SIGNAL</td><td>为-1，表示线程已经准备好了，就等资源释放了</td></tr></tbody></table><h4 id="2-1-2-同步状态state">2.1.2 同步状态State</h4><p>在了解数据结构后，接下来了解一下AQS的同步状态——State。AQS中维护了一个名为state的字段，意为同步状态，是由Volatile修饰的，用于展示当前临界资源的获锁情况。</p><pre><code class="hljs groovy"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">volatile</span></span> <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> state;
+</code></pre><p>下面提供了几个访问这个字段的方法：</p><table><thead><tr><th>方法名</th><th>描述</th></tr></thead><tbody><tr><td>protected final int getState()</td><td>获取State的值</td></tr><tr><td>protected final void setState(int newState)</td><td>设置State的值</td></tr><tr><td>protected final boolean compareAndSetState(int expect, int update)</td><td>使用CAS方式更新State</td></tr></tbody></table><p>这几个方法都是Final修饰的，说明子类中无法重写它们。我们可以通过修改State字段表示的同步状态来实现多线程的独占模式和共享模式（加锁过程）。</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/27605d483e8935da683a93be015713f331378.png" alt="">
+<img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/3f1e1a44f5b7d77000ba4f9476189b2e32806.png" alt=""></p><p>对于我们自定义的同步工具，需要自定义获取同步状态和释放状态的方式，也就是AQS架构图中的第一层：API层。</p><h2 id="2-2-aqs重要方法与reentrantlock的关联">2.2 AQS重要方法与ReentrantLock的关联</h2><p>从架构图中可以得知，AQS提供了大量用于自定义同步器实现的Protected方法。自定义同步器实现的相关方法也只是为了通过修改State字段来实现多线程的独占模式或者共享模式。自定义同步器需要实现以下方法（ReentrantLock需要实现的方法如下，并不是全部）：</p><table><thead><tr><th>方法名</th><th>描述</th></tr></thead><tbody><tr><td>protected boolean isHeldExclusively()</td><td>该线程是否正在独占资源。只有用到Condition才需要去实现它。</td></tr><tr><td>protected boolean tryAcquire(int arg)</td><td>独占方式。arg为获取锁的次数，尝试获取资源，成功则返回True，失败则返回False。</td></tr><tr><td>protected boolean tryRelease(int arg)</td><td>独占方式。arg为释放锁的次数，尝试释放资源，成功则返回True，失败则返回False。</td></tr><tr><td>protected int tryAcquireShared(int arg)</td><td>共享方式。arg为获取锁的次数，尝试获取资源。负数表示失败；0表示成功，但没有剩余可用资源；正数表示成功，且有剩余资源。</td></tr><tr><td>protected boolean tryReleaseShared(int arg)</td><td>共享方式。arg为释放锁的次数，尝试释放资源，如果释放后允许唤醒后续等待结点返回True，否则返回False。</td></tr></tbody></table><p>一般来说，自定义同步器要么是独占方式，要么是共享方式，它们也只需实现tryAcquire-tryRelease、tryAcquireShared-tryReleaseShared中的一种即可。AQS也支持自定义同步器同时实现独占和共享两种方式，如ReentrantReadWriteLock。ReentrantLock是独占锁，所以实现了tryAcquire-tryRelease。</p><p>以非公平锁为例，这里主要阐述一下非公平锁与AQS之间方法的关联之处，具体每一处核心方法的作用会在文章后面详细进行阐述。</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/b8b53a70984668bc68653efe9531573e78636.png" alt=""></p><p>为了帮助大家理解ReentrantLock和AQS之间方法的交互过程，以非公平锁为例，我们将加锁和解锁的交互流程单独拎出来强调一下，以便于对后续内容的理解。</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/7aadb272069d871bdee8bf3a218eed8136919.png" alt=""></p><p>加锁：</p><ul><li><p>通过ReentrantLock的加锁方法Lock进行加锁操作。</p></li><li><p>会调用到内部类Sync的Lock方法，由于Sync#lock是抽象方法，根据ReentrantLock初始化选择的公平锁和非公平锁，执行相关内部类的Lock方法，本质上都会执行AQS的Acquire方法。</p></li><li><p>AQS的Acquire方法会执行tryAcquire方法，但是由于tryAcquire需要自定义同步器实现，因此执行了ReentrantLock中的tryAcquire方法，由于ReentrantLock是通过公平锁和非公平锁内部类实现的tryAcquire方法，因此会根据锁类型不同，执行不同的tryAcquire。</p></li><li><p>tryAcquire是获取锁逻辑，获取失败后，会执行框架AQS的后续逻辑，跟ReentrantLock自定义同步器无关。</p></li></ul><p>解锁：</p><ul><li><p>通过ReentrantLock的解锁方法Unlock进行解锁。</p></li><li><p>Unlock会调用内部类Sync的Release方法，该方法继承于AQS。</p></li><li><p>Release中会调用tryRelease方法，tryRelease需要自定义同步器实现，tryRelease只在ReentrantLock中的Sync实现，因此可以看出，释放锁的过程，并不区分是否为公平锁。</p></li><li><p>释放成功后，所有处理由AQS框架完成，与自定义同步器无关。</p></li></ul><p>通过上面的描述，大概可以总结出ReentrantLock加锁解锁时API层核心方法的映射关系。</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/f30c631c8ebbf820d3e8fcb6eee3c0ef18748.png" alt=""></p><h2 id="2-3-通过reentrantlock理解aqs">2.3 通过ReentrantLock理解AQS</h2><p>ReentrantLock中公平锁和非公平锁在底层是相同的，这里以非公平锁为例进行分析。</p><p>在非公平锁中，有一段这样的代码：</p><pre><code class="hljs scala"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.ReentrantLock</span></span>
+
+static <span class="hljs-keyword"><span class="hljs-keyword">final</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">NonfairSync</span></span></span><span class="hljs-class"> </span><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">extends</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">Sync</span></span></span><span class="hljs-class"> </span></span>{
+	...
+	<span class="hljs-keyword"><span class="hljs-keyword">final</span></span> void lock() {
+		<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (compareAndSetState(<span class="hljs-number"><span class="hljs-number">0</span></span>, <span class="hljs-number"><span class="hljs-number">1</span></span>))
+			setExclusiveOwnerThread(<span class="hljs-type"><span class="hljs-type">Thread</span></span>.currentThread());
+		<span class="hljs-keyword"><span class="hljs-keyword">else</span></span>
+			acquire(<span class="hljs-number"><span class="hljs-number">1</span></span>);
+	}
+  ...
+}
+</code></pre><p>看一下这个Acquire是怎么写的：</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">final</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">acquire</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> arg)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (!tryAcquire(arg) &amp;&amp; acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+		selfInterrupt();
+}
+</code></pre><p>再看一下tryAcquire方法：</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">protected</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">tryAcquire</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> arg)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-keyword"><span class="hljs-keyword">throw</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> UnsupportedOperationException();
+}
+</code></pre><p>可以看出，这里只是AQS的简单实现，具体获取锁的实现方法是由各自的公平锁和非公平锁单独实现的（以ReentrantLock为例）。如果该方法返回了True，则说明当前线程获取锁成功，就不用往后执行了；如果获取失败，就需要加入到等待队列中。下面会详细解释线程是何时以及怎样被加入进等待队列中的。</p><h3 id="2-3-1-线程加入等待队列">2.3.1 线程加入等待队列</h3><h4 id="2-3-1-1-加入队列的时机">2.3.1.1 加入队列的时机</h4><p>当执行Acquire(1)时，会通过tryAcquire获取锁。在这种情况下，如果获取锁失败，就会调用addWaiter加入到等待队列中去。</p><h4 id="2-3-1-2-如何加入队列">2.3.1.2 如何加入队列</h4><p>获取锁失败后，会执行addWaiter(Node.EXCLUSIVE)加入等待队列，具体实现方法如下：</p><pre><code class="hljs kotlin"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">private</span></span> Node addWaiter(Node mode) {
+	Node node = new Node(Thread.currentThread(), mode);
+	<span class="hljs-comment"><span class="hljs-comment">// Try the fast path of enq; backup to full enq on failure</span></span>
+	Node pred = tail;
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (pred != <span class="hljs-literal"><span class="hljs-literal">null</span></span>) {
+		node.prev = pred;
+		<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (compareAndSetTail(pred, node)) {
+			pred.next = node;
+			<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> node;
+		}
+	}
+	enq(node);
+	<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> node;
+}
+<span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">final</span></span> boolean compareAndSetTail(Node <span class="hljs-keyword"><span class="hljs-keyword">expect</span></span>, Node update) {
+	<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> unsafe.compareAndSwapObject(<span class="hljs-keyword"><span class="hljs-keyword">this</span></span>, tailOffset, <span class="hljs-keyword"><span class="hljs-keyword">expect</span></span>, update);
+}
+</code></pre><p>主要的流程如下：</p><ul><li><p>通过当前的线程和锁模式新建一个节点。</p></li><li><p>Pred指针指向尾节点Tail。</p></li><li><p>将New中Node的Prev指针指向Pred。</p></li><li><p>通过compareAndSetTail方法，完成尾节点的设置。这个方法主要是对tailOffset和Expect进行比较，如果tailOffset的Node和Expect的Node地址是相同的，那么设置Tail的值为Update的值。</p></li></ul><pre><code class="hljs groovy"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">static</span></span> {
+	<span class="hljs-keyword"><span class="hljs-keyword">try</span></span> {
+		stateOffset = unsafe.objectFieldOffset(AbstractQueuedSynchronizer.<span class="hljs-keyword"><span class="hljs-keyword">class</span></span>.getDeclaredField(<span class="hljs-string"><span class="hljs-string">"state"</span></span>));
+		headOffset = unsafe.objectFieldOffset(AbstractQueuedSynchronizer.<span class="hljs-keyword"><span class="hljs-keyword">class</span></span>.getDeclaredField(<span class="hljs-string"><span class="hljs-string">"head"</span></span>));
+		tailOffset = unsafe.objectFieldOffset(AbstractQueuedSynchronizer.<span class="hljs-keyword"><span class="hljs-keyword">class</span></span>.getDeclaredField(<span class="hljs-string"><span class="hljs-string">"tail"</span></span>));
+		waitStatusOffset = unsafe.objectFieldOffset(Node.<span class="hljs-keyword"><span class="hljs-keyword">class</span></span>.getDeclaredField(<span class="hljs-string"><span class="hljs-string">"waitStatus"</span></span>));
+		nextOffset = unsafe.objectFieldOffset(Node.<span class="hljs-keyword"><span class="hljs-keyword">class</span></span>.getDeclaredField(<span class="hljs-string"><span class="hljs-string">"next"</span></span>));
+	} <span class="hljs-keyword"><span class="hljs-keyword">catch</span></span> (Exception ex) { 
+    <span class="hljs-keyword"><span class="hljs-keyword">throw</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Error(ex); 
+  }
+}
+</code></pre><p>从AQS的静态代码块可以看出，都是获取一个对象的属性相对于该对象在内存当中的偏移量，这样我们就可以根据这个偏移量在对象内存当中找到这个属性。tailOffset指的是tail对应的偏移量，所以这个时候会将new出来的Node置为当前队列的尾节点。同时，由于是双向链表，也需要将前一个节点指向尾节点。</p><ul><li>如果Pred指针是Null（说明等待队列中没有元素），或者当前Pred指针和Tail指向的位置不同（说明被别的线程已经修改），就需要看一下Enq的方法。</li></ul><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> Node </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">enq</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">final</span></span></span></span><span class="hljs-function"><span class="hljs-params"> Node node)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (;;) {
+		Node t = tail;
+		<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (t == <span class="hljs-keyword"><span class="hljs-keyword">null</span></span>) { <span class="hljs-comment"><span class="hljs-comment">// Must initialize</span></span>
+			<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (compareAndSetHead(<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Node()))
+				tail = head;
+		} <span class="hljs-keyword"><span class="hljs-keyword">else</span></span> {
+			node.prev = t;
+			<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (compareAndSetTail(t, node)) {
+				t.next = node;
+				<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> t;
+			}
+		}
+	}
+}
+</code></pre><p>如果没有被初始化，需要进行初始化一个头结点出来。但请注意，初始化的头结点并不是当前线程节点，而是调用了无参构造函数的节点。如果经历了初始化或者并发导致队列中有元素，则与之前的方法相同。其实，addWaiter就是一个在双端链表添加尾节点的操作，需要注意的是，双端链表的头结点是一个无参构造函数的头结点。</p><p>总结一下，线程获取锁的时候，过程大体如下：</p><ol><li><p>当没有线程获取到锁时，线程1获取锁成功。</p></li><li><p>线程2申请锁，但是锁被线程1占有。</p></li></ol><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/e9e385c3c68f62c67c8d62ab0adb613921117.png" alt=""></p><ol><li>如果再有线程要获取锁，依次在队列中往后排队即可。</li></ol><p>回到上边的代码，hasQueuedPredecessors是公平锁加锁时判断等待队列中是否存在有效节点的方法。如果返回False，说明当前线程可以争取共享资源；如果返回True，说明队列中存在有效节点，当前线程必须加入到等待队列中。</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.ReentrantLock</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">final</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">hasQueuedPredecessors</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">()</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-comment"><span class="hljs-comment">// The correctness of this depends on head being initialized</span></span>
+	<span class="hljs-comment"><span class="hljs-comment">// before tail and on head.next being accurate if the current</span></span>
+	<span class="hljs-comment"><span class="hljs-comment">// thread is first in queue.</span></span>
+	Node t = tail; <span class="hljs-comment"><span class="hljs-comment">// Read fields in reverse initialization order</span></span>
+	Node h = head;
+	Node s;
+	<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> h != t &amp;&amp; ((s = h.next) == <span class="hljs-keyword"><span class="hljs-keyword">null</span></span> || s.thread != Thread.currentThread());
+}
+</code></pre><p>看到这里，我们理解一下h != t &amp;&amp; ((s = h.next) == null || s.thread != Thread.currentThread());为什么要判断的头结点的下一个节点？第一个节点储存的数据是什么？</p><blockquote class="with-icon"><i class="fa fa-quote-left post-blockquote-icon"></i><i class="fa fa-quote-left post-blockquote-icon"></i><p>双向链表中，第一个节点为虚节点，其实并不存储任何信息，只是占位。真正的第一个有数据的节点，是在第二个节点开始的。当h != t时：
+如果(s = h.next) == null，等待队列正在有线程进行初始化，但只是进行到了Tail指向Head，没有将Head指向Tail，此时队列中有元素，需要返回True（这块具体见下边代码分析）。
+如果(s = h.next) != null，说明此时队列中至少有一个有效节点。如果此时s.thread == Thread.currentThread()，说明等待队列的第一个有效节点中的线程与当前线程相同，那么当前线程是可以获取资源的；如果s.thread != Thread.currentThread()，说明等待队列的第一个有效节点线程与当前线程不同，当前线程必须加入进等待队列。</p></blockquote><pre><code class="hljs typescript"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer#enq</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (t == <span class="hljs-literal"><span class="hljs-literal">null</span></span>) { <span class="hljs-comment"><span class="hljs-comment">// Must initialize</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (compareAndSetHead(<span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Node()))
+		tail = head;
+} <span class="hljs-keyword"><span class="hljs-keyword">else</span></span> {
+	node.prev = t;
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (compareAndSetTail(t, node)) {
+		t.next = node;
+		<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> t;
+	}
+}
+</code></pre><p>节点入队不是原子操作，所以会出现短暂的head != tail，此时Tail指向最后一个节点，而且Tail指向Head。如果Head没有指向Tail（可见5、6、7行），这种情况下也需要将相关线程加入队列中。所以这块代码是为了解决极端情况下的并发问题。</p><h4 id="2-3-1-3-等待队列中线程出队列时机">2.3.1.3 等待队列中线程出队列时机</h4><p>回到最初的源码：</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">final</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">acquire</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> arg)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (!tryAcquire(arg) &amp;&amp; acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+		selfInterrupt();
+}
+</code></pre><p>上文解释了addWaiter方法，这个方法其实就是把对应的线程以Node的数据结构形式加入到双端队列里，返回的是一个包含该线程的Node。而这个Node会作为参数，进入到acquireQueued方法中。acquireQueued方法可以对排队中的线程进行“获锁”操作。</p><p>总的来说，一个线程获取锁失败了，被放入等待队列，acquireQueued会把放入队列中的线程不断去获取锁，直到获取成功或者不再需要获取（中断）。</p><p>下面我们从“何时出队列？”和“如何出队列？”两个方向来分析一下acquireQueued源码：</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">final</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">acquireQueued</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">final</span></span></span></span><span class="hljs-function"><span class="hljs-params"> Node node, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> arg)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-comment"><span class="hljs-comment">// 标记是否成功拿到资源</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">boolean</span></span> failed = <span class="hljs-keyword"><span class="hljs-keyword">true</span></span>;
+	<span class="hljs-keyword"><span class="hljs-keyword">try</span></span> {
+		<span class="hljs-comment"><span class="hljs-comment">// 标记等待过程中是否中断过</span></span>
+		<span class="hljs-keyword"><span class="hljs-keyword">boolean</span></span> interrupted = <span class="hljs-keyword"><span class="hljs-keyword">false</span></span>;
+		<span class="hljs-comment"><span class="hljs-comment">// 开始自旋，要么获取锁，要么中断</span></span>
+		<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (;;) {
+			<span class="hljs-comment"><span class="hljs-comment">// 获取当前节点的前驱节点</span></span>
+			<span class="hljs-keyword"><span class="hljs-keyword">final</span></span> Node p = node.predecessor();
+			<span class="hljs-comment"><span class="hljs-comment">// 如果p是头结点，说明当前节点在真实数据队列的首部，就尝试获取锁（别忘了头结点是虚节点）</span></span>
+			<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (p == head &amp;&amp; tryAcquire(arg)) {
+				<span class="hljs-comment"><span class="hljs-comment">// 获取锁成功，头指针移动到当前node</span></span>
+				setHead(node);
+				p.next = <span class="hljs-keyword"><span class="hljs-keyword">null</span></span>; <span class="hljs-comment"><span class="hljs-comment">// help GC</span></span>
+				failed = <span class="hljs-keyword"><span class="hljs-keyword">false</span></span>;
+				<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> interrupted;
+			}
+			<span class="hljs-comment"><span class="hljs-comment">// 说明p为头节点且当前没有获取到锁（可能是非公平锁被抢占了）或者是p不为头结点，这个时候就要判断当前node是否要被阻塞（被阻塞条件：前驱节点的waitStatus为-1），防止无限循环浪费资源。具体两个方法下面细细分析</span></span>
+			<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (shouldParkAfterFailedAcquire(p, node) &amp;&amp; parkAndCheckInterrupt())
+				interrupted = <span class="hljs-keyword"><span class="hljs-keyword">true</span></span>;
+		}
+	} <span class="hljs-keyword"><span class="hljs-keyword">finally</span></span> {
+		<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (failed)
+			cancelAcquire(node);
+	}
+}
+</code></pre><p>注：setHead方法是把当前节点置为虚节点，但并没有修改waitStatus，因为它是一直需要用的数据。</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">setHead</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(Node node)</span></span></span><span class="hljs-function"> </span></span>{
+	head = node;
+	node.thread = <span class="hljs-keyword"><span class="hljs-keyword">null</span></span>;
+	node.prev = <span class="hljs-keyword"><span class="hljs-keyword">null</span></span>;
+}
+
+<span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-comment"><span class="hljs-comment">// 靠前驱节点判断当前线程是否应该被阻塞</span></span>
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">shouldParkAfterFailedAcquire</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(Node pred, Node node)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-comment"><span class="hljs-comment">// 获取头结点的节点状态</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">int</span></span> ws = pred.waitStatus;
+	<span class="hljs-comment"><span class="hljs-comment">// 说明头结点处于唤醒状态</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (ws == Node.SIGNAL)
+		<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">true</span></span>; 
+	<span class="hljs-comment"><span class="hljs-comment">// 通过枚举值我们知道waitStatus&gt;0是取消状态</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (ws &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>) {
+		<span class="hljs-keyword"><span class="hljs-keyword">do</span></span> {
+			<span class="hljs-comment"><span class="hljs-comment">// 循环向前查找取消节点，把取消节点从队列中剔除</span></span>
+			node.prev = pred = pred.prev;
+		} <span class="hljs-keyword"><span class="hljs-keyword">while</span></span> (pred.waitStatus &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>);
+		pred.next = node;
+	} <span class="hljs-keyword"><span class="hljs-keyword">else</span></span> {
+		<span class="hljs-comment"><span class="hljs-comment">// 设置前任节点等待状态为SIGNAL</span></span>
+		compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
+	}
+	<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">false</span></span>;
+}
+</code></pre><p>parkAndCheckInterrupt主要用于挂起当前线程，阻塞调用栈，返回当前线程的中断状态。</p><pre><code class="hljs kotlin"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">final</span></span> boolean parkAndCheckInterrupt() {
+    LockSupport.park(<span class="hljs-keyword"><span class="hljs-keyword">this</span></span>);
+    <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> Thread.interrupted();
+}
+</code></pre><p>上述方法的流程图如下：</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/c124b76dcbefb9bdc778458064703d1135485.png" alt=""></p><p>从上图可以看出，跳出当前循环的条件是当“前置节点是头结点，且当前线程获取锁成功”。为了防止因死循环导致CPU资源被浪费，我们会判断前置节点的状态来决定是否要将当前线程挂起，具体挂起流程用流程图表示如下（shouldParkAfterFailedAcquire流程）：</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/9af16e2481ad85f38ca322a225ae737535740.png" alt=""></p><p>从队列中释放节点的疑虑打消了，那么又有新问题了：</p><ul><li><p>shouldParkAfterFailedAcquire中取消节点是怎么生成的呢？什么时候会把一个节点的waitStatus设置为-1？</p></li><li><p>是在什么时间释放节点通知到被挂起的线程呢？</p></li></ul><h3 id="2-3-2-cancelled状态节点生成">2.3.2 CANCELLED状态节点生成</h3><p>acquireQueued方法中的Finally代码：</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">final</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">acquireQueued</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">final</span></span></span></span><span class="hljs-function"><span class="hljs-params"> Node node, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> arg)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-keyword"><span class="hljs-keyword">boolean</span></span> failed = <span class="hljs-keyword"><span class="hljs-keyword">true</span></span>;
+	<span class="hljs-keyword"><span class="hljs-keyword">try</span></span> {
+    ...
+		<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (;;) {
+			<span class="hljs-keyword"><span class="hljs-keyword">final</span></span> Node p = node.predecessor();
+			<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (p == head &amp;&amp; tryAcquire(arg)) {
+				...
+				failed = <span class="hljs-keyword"><span class="hljs-keyword">false</span></span>;
+        ...
+			}
+			...
+	} <span class="hljs-keyword"><span class="hljs-keyword">finally</span></span> {
+		<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (failed)
+			cancelAcquire(node);
+		}
+}
+</code></pre><p>通过cancelAcquire方法，将Node的状态标记为CANCELLED。接下来，我们逐行来分析这个方法的原理：</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">cancelAcquire</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(Node node)</span></span></span><span class="hljs-function"> </span></span>{
+  <span class="hljs-comment"><span class="hljs-comment">// 将无效节点过滤</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (node == <span class="hljs-keyword"><span class="hljs-keyword">null</span></span>)
+		<span class="hljs-keyword"><span class="hljs-keyword">return</span></span>;
+  <span class="hljs-comment"><span class="hljs-comment">// 设置该节点不关联任何线程，也就是虚节点</span></span>
+	node.thread = <span class="hljs-keyword"><span class="hljs-keyword">null</span></span>;
+	Node pred = node.prev;
+  <span class="hljs-comment"><span class="hljs-comment">// 通过前驱节点，跳过取消状态的node</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">while</span></span> (pred.waitStatus &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+		node.prev = pred = pred.prev;
+  <span class="hljs-comment"><span class="hljs-comment">// 获取过滤后的前驱节点的后继节点</span></span>
+	Node predNext = pred.next;
+  <span class="hljs-comment"><span class="hljs-comment">// 把当前node的状态设置为CANCELLED</span></span>
+	node.waitStatus = Node.CANCELLED;
+  <span class="hljs-comment"><span class="hljs-comment">// 如果当前节点是尾节点，将从后往前的第一个非取消状态的节点设置为尾节点</span></span>
+  <span class="hljs-comment"><span class="hljs-comment">// 更新失败的话，则进入else，如果更新成功，将tail的后继节点设置为null</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (node == tail &amp;&amp; compareAndSetTail(node, pred)) {
+		compareAndSetNext(pred, predNext, <span class="hljs-keyword"><span class="hljs-keyword">null</span></span>);
+	} <span class="hljs-keyword"><span class="hljs-keyword">else</span></span> {
+		<span class="hljs-keyword"><span class="hljs-keyword">int</span></span> ws;
+    <span class="hljs-comment"><span class="hljs-comment">// 如果当前节点不是head的后继节点，1:判断当前节点前驱节点的是否为SIGNAL，2:如果不是，则把前驱节点设置为SINGAL看是否成功</span></span>
+    <span class="hljs-comment"><span class="hljs-comment">// 如果1和2中有一个为true，再判断当前节点的线程是否为null</span></span>
+    <span class="hljs-comment"><span class="hljs-comment">// 如果上述条件都满足，把当前节点的前驱节点的后继指针指向当前节点的后继节点</span></span>
+		<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (pred != head &amp;&amp; ((ws = pred.waitStatus) == Node.SIGNAL || (ws &lt;= <span class="hljs-number"><span class="hljs-number">0</span></span> &amp;&amp; compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) &amp;&amp; pred.thread != <span class="hljs-keyword"><span class="hljs-keyword">null</span></span>) {
+			Node next = node.next;
+			<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (next != <span class="hljs-keyword"><span class="hljs-keyword">null</span></span> &amp;&amp; next.waitStatus &lt;= <span class="hljs-number"><span class="hljs-number">0</span></span>)
+				compareAndSetNext(pred, predNext, next);
+		} <span class="hljs-keyword"><span class="hljs-keyword">else</span></span> {
+      <span class="hljs-comment"><span class="hljs-comment">// 如果当前节点是head的后继节点，或者上述条件不满足，那就唤醒当前节点的后继节点</span></span>
+			unparkSuccessor(node);
+		}
+		node.next = node; <span class="hljs-comment"><span class="hljs-comment">// help GC</span></span>
+	}
+}
+</code></pre><p>当前的流程：</p><ul><li><p>获取当前节点的前驱节点，如果前驱节点的状态是CANCELLED，那就一直往前遍历，找到第一个waitStatus &lt;= 0的节点，将找到的Pred节点和当前Node关联，将当前Node设置为CANCELLED。</p></li><li><p>根据当前节点的位置，考虑以下三种情况：</p></li></ul><p>(1) 当前节点是尾节点。</p><p>(2) 当前节点是Head的后继节点。</p><p>(3) 当前节点不是Head的后继节点，也不是尾节点。</p><p>根据上述第二条，我们来分析每一种情况的流程。</p><p>当前节点是尾节点。</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/b845211ced57561c24f79d56194949e822049.png" alt=""></p><p>当前节点是Head的后继节点。</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/ab89bfec875846e5028a4f8fead32b7117975.png" alt=""></p><p>当前节点不是Head的后继节点，也不是尾节点。</p><p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/45d0d9e4a6897eddadc4397cf53d6cd522452.png" alt=""></p><p>通过上面的流程，我们对于CANCELLED节点状态的产生和变化已经有了大致的了解，但是为什么所有的变化都是对Next指针进行了操作，而没有对Prev指针进行操作呢？什么情况下会对Prev指针进行操作？</p><blockquote class="with-icon"><i class="fa fa-quote-left post-blockquote-icon"></i><i class="fa fa-quote-left post-blockquote-icon"></i><p>执行cancelAcquire的时候，当前节点的前置节点可能已经从队列中出去了（已经执行过Try代码块中的shouldParkAfterFailedAcquire方法了），如果此时修改Prev指针，有可能会导致Prev指向另一个已经移除队列的Node，因此这块变化Prev指针不安全。
+shouldParkAfterFailedAcquire方法中，会执行下面的代码，其实就是在处理Prev指针。shouldParkAfterFailedAcquire是获取锁失败的情况下才会执行，进入该方法后，说明共享资源已被获取，当前节点之前的节点都不会出现变化，因此这个时候变更Prev指针比较安全。</p><pre><code class="hljs coffeescript"><span class="hljs-keyword"><span class="hljs-keyword">do</span></span> {
+	node.prev = pred = pred.prev;
+} <span class="hljs-keyword"><span class="hljs-keyword">while</span></span> (pred.waitStatus &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>);
+</code></pre></blockquote><h3 id="2-3-3-如何解锁">2.3.3 如何解锁</h3><p>我们已经剖析了加锁过程中的基本流程，接下来再对解锁的基本流程进行分析。由于ReentrantLock在解锁的时候，并不区分公平锁和非公平锁，所以我们直接看解锁的源码：</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.ReentrantLock</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">unlock</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">()</span></span></span><span class="hljs-function"> </span></span>{
+	sync.release(<span class="hljs-number"><span class="hljs-number">1</span></span>);
+}
+</code></pre><p>可以看到，本质释放锁的地方，是通过框架来完成的。</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">final</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">release</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> arg)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (tryRelease(arg)) {
+		Node h = head;
+		<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (h != <span class="hljs-keyword"><span class="hljs-keyword">null</span></span> &amp;&amp; h.waitStatus != <span class="hljs-number"><span class="hljs-number">0</span></span>)
+			unparkSuccessor(h);
+		<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">true</span></span>;
+	}
+	<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">false</span></span>;
+}
+</code></pre><p>在ReentrantLock里面的公平锁和非公平锁的父类Sync定义了可重入锁的释放锁机制。</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.ReentrantLock.Sync</span></span>
+
+<span class="hljs-comment"><span class="hljs-comment">// 方法返回当前锁是不是没有被线程持有</span></span>
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">protected</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">final</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">tryRelease</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> releases)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-comment"><span class="hljs-comment">// 减少可重入次数</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">int</span></span> c = getState() - releases;
+	<span class="hljs-comment"><span class="hljs-comment">// 当前线程不是持有锁的线程，抛出异常</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (Thread.currentThread() != getExclusiveOwnerThread())
+		<span class="hljs-keyword"><span class="hljs-keyword">throw</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> IllegalMonitorStateException();
+	<span class="hljs-keyword"><span class="hljs-keyword">boolean</span></span> free = <span class="hljs-keyword"><span class="hljs-keyword">false</span></span>;
+	<span class="hljs-comment"><span class="hljs-comment">// 如果持有线程全部释放，将当前独占锁所有线程设置为null，并更新state</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (c == <span class="hljs-number"><span class="hljs-number">0</span></span>) {
+		free = <span class="hljs-keyword"><span class="hljs-keyword">true</span></span>;
+		setExclusiveOwnerThread(<span class="hljs-keyword"><span class="hljs-keyword">null</span></span>);
+	}
+	setState(c);
+	<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> free;
+}
+</code></pre><p>我们来解释下述源码：</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">final</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">release</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> arg)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-comment"><span class="hljs-comment">// 上边自定义的tryRelease如果返回true，说明该锁没有被任何线程持有</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (tryRelease(arg)) {
+		<span class="hljs-comment"><span class="hljs-comment">// 获取头结点</span></span>
+		Node h = head;
+		<span class="hljs-comment"><span class="hljs-comment">// 头结点不为空并且头结点的waitStatus不是初始化节点情况，解除线程挂起状态</span></span>
+		<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (h != <span class="hljs-keyword"><span class="hljs-keyword">null</span></span> &amp;&amp; h.waitStatus != <span class="hljs-number"><span class="hljs-number">0</span></span>)
+			unparkSuccessor(h);
+		<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">true</span></span>;
+	}
+	<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">false</span></span>;
+}
+</code></pre><p>这里的判断条件为什么是h != null &amp;&amp; h.waitStatus != 0？</p><blockquote class="with-icon"><i class="fa fa-quote-left post-blockquote-icon"></i><i class="fa fa-quote-left post-blockquote-icon"></i><p>h == null Head还没初始化。初始情况下，head == null，第一个节点入队，Head会被初始化一个虚拟节点。所以说，这里如果还没来得及入队，就会出现head == null 的情况。</p><p>h != null &amp;&amp; waitStatus == 0 表明后继节点对应的线程仍在运行中，不需要唤醒。</p><p>h != null &amp;&amp; waitStatus &lt; 0 表明后继节点可能被阻塞了，需要唤醒。</p></blockquote><p>再看一下unparkSuccessor方法：</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">private</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">unparkSuccessor</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(Node node)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-comment"><span class="hljs-comment">// 获取头结点waitStatus</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">int</span></span> ws = node.waitStatus;
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (ws &lt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+		compareAndSetWaitStatus(node, ws, <span class="hljs-number"><span class="hljs-number">0</span></span>);
+	<span class="hljs-comment"><span class="hljs-comment">// 获取当前节点的下一个节点</span></span>
+	Node s = node.next;
+	<span class="hljs-comment"><span class="hljs-comment">// 如果下个节点是null或者下个节点被cancelled，就找到队列最开始的非cancelled的节点</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (s == <span class="hljs-keyword"><span class="hljs-keyword">null</span></span> || s.waitStatus &gt; <span class="hljs-number"><span class="hljs-number">0</span></span>) {
+		s = <span class="hljs-keyword"><span class="hljs-keyword">null</span></span>;
+		<span class="hljs-comment"><span class="hljs-comment">// 就从尾部节点开始找，到队首，找到队列第一个waitStatus&lt;0的节点。</span></span>
+		<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (Node t = tail; t != <span class="hljs-keyword"><span class="hljs-keyword">null</span></span> &amp;&amp; t != node; t = t.prev)
+			<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (t.waitStatus &lt;= <span class="hljs-number"><span class="hljs-number">0</span></span>)
+				s = t;
+	}
+	<span class="hljs-comment"><span class="hljs-comment">// 如果当前节点的下个节点不为空，而且状态&lt;=0，就把当前节点unpark</span></span>
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (s != <span class="hljs-keyword"><span class="hljs-keyword">null</span></span>)
+		LockSupport.unpark(s.thread);
+}
+</code></pre><p>为什么要从后往前找第一个非Cancelled的节点呢？原因如下。</p><p>之前的addWaiter方法：</p><pre><code class="hljs kotlin"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">private</span></span> Node addWaiter(Node mode) {
+	Node node = new Node(Thread.currentThread(), mode);
+	<span class="hljs-comment"><span class="hljs-comment">// Try the fast path of enq; backup to full enq on failure</span></span>
+	Node pred = tail;
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (pred != <span class="hljs-literal"><span class="hljs-literal">null</span></span>) {
+		node.prev = pred;
+		<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (compareAndSetTail(pred, node)) {
+			pred.next = node;
+			<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> node;
+		}
+	}
+	enq(node);
+	<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> node;
+}
+</code></pre><p>我们从这里可以看到，节点入队并不是原子操作，也就是说，node.prev = pred; compareAndSetTail(pred, node) 这两个地方可以看作Tail入队的原子操作，但是此时pred.next = node;还没执行，如果这个时候执行了unparkSuccessor方法，就没办法从前往后找了，所以需要从后往前找。还有一点原因，在产生CANCELLED状态节点的时候，先断开的是Next指针，Prev指针并未断开，因此也是必须要从后往前遍历才能够遍历完全部的Node。</p><p>综上所述，如果是从前往后找，由于极端情况下入队的非原子操作和CANCELLED节点产生过程中断开Next指针的操作，可能会导致无法遍历所有的节点。所以，唤醒对应的线程后，对应的线程就会继续往下执行。继续执行acquireQueued方法以后，中断如何处理？</p><h3 id="2-3-4-中断恢复后的执行流程">2.3.4 中断恢复后的执行流程</h3><p>唤醒后，会执行return Thread.interrupted();，这个函数返回的是当前执行线程的中断状态，并清除。</p><pre><code class="hljs kotlin"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">final</span></span> boolean parkAndCheckInterrupt() {
+	LockSupport.park(<span class="hljs-keyword"><span class="hljs-keyword">this</span></span>);
+	<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> Thread.interrupted();
+}
+</code></pre><p>再回到acquireQueued代码，当parkAndCheckInterrupt返回True或者False的时候，interrupted的值不同，但都会执行下次循环。如果这个时候获取锁成功，就会把当前interrupted返回。</p><pre><code class="hljs java"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">final</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">acquireQueued</span></span></span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">final</span></span></span></span><span class="hljs-function"><span class="hljs-params"> Node node, </span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> arg)</span></span></span><span class="hljs-function"> </span></span>{
+	<span class="hljs-keyword"><span class="hljs-keyword">boolean</span></span> failed = <span class="hljs-keyword"><span class="hljs-keyword">true</span></span>;
+	<span class="hljs-keyword"><span class="hljs-keyword">try</span></span> {
+		<span class="hljs-keyword"><span class="hljs-keyword">boolean</span></span> interrupted = <span class="hljs-keyword"><span class="hljs-keyword">false</span></span>;
+		<span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (;;) {
+			<span class="hljs-keyword"><span class="hljs-keyword">final</span></span> Node p = node.predecessor();
+			<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (p == head &amp;&amp; tryAcquire(arg)) {
+				setHead(node);
+				p.next = <span class="hljs-keyword"><span class="hljs-keyword">null</span></span>; <span class="hljs-comment"><span class="hljs-comment">// help GC</span></span>
+				failed = <span class="hljs-keyword"><span class="hljs-keyword">false</span></span>;
+				<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> interrupted;
+			}
+			<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (shouldParkAfterFailedAcquire(p, node) &amp;&amp; parkAndCheckInterrupt())
+				interrupted = <span class="hljs-keyword"><span class="hljs-keyword">true</span></span>;
+			}
+	} <span class="hljs-keyword"><span class="hljs-keyword">finally</span></span> {
+		<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (failed)
+			cancelAcquire(node);
+	}
+}
+</code></pre><p>如果acquireQueued为True，就会执行selfInterrupt方法。</p><pre><code class="hljs less"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-selector-tag"><span class="hljs-selector-tag">static</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">void</span></span> <span class="hljs-selector-tag"><span class="hljs-selector-tag">selfInterrupt</span></span>() {
+	<span class="hljs-selector-tag"><span class="hljs-selector-tag">Thread</span></span><span class="hljs-selector-class"><span class="hljs-selector-class">.currentThread</span></span>()<span class="hljs-selector-class"><span class="hljs-selector-class">.interrupt</span></span>();
+}
+</code></pre><p>该方法其实是为了中断线程。但为什么获取了锁以后还要中断线程呢？这部分属于Java提供的协作式中断知识内容，感兴趣同学可以查阅一下。这里简单介绍一下：</p><ol><li><p>当中断线程被唤醒时，并不知道被唤醒的原因，可能是当前线程在等待中被中断，也可能是释放了锁以后被唤醒。因此我们通过Thread.interrupted()方法检查中断标记（该方法返回了当前线程的中断状态，并将当前线程的中断标识设置为False），并记录下来，如果发现该线程被中断过，就再中断一次。</p></li><li><p>线程在等待资源的过程中被唤醒，唤醒后还是会不断地去尝试获取锁，直到抢到锁为止。也就是说，在整个流程中，并不响应中断，只是记录中断记录。最后抢到锁返回了，那么如果被中断过的话，就需要补充一次中断。</p></li></ol><p>这里的处理方式主要是运用线程池中基本运作单元Worder中的runWorker，通过Thread.interrupted()进行额外的判断处理，感兴趣的同学可以看下ThreadPoolExecutor源码。</p><h3 id="2-3-5-小结">2.3.5 小结</h3><p>我们在1.3小节中提出了一些问题，现在来回答一下。</p><blockquote class="with-icon"><i class="fa fa-quote-left post-blockquote-icon"></i><i class="fa fa-quote-left post-blockquote-icon"></i><p>Q：某个线程获取锁失败的后续流程是什么呢？</p><p>A：存在某种排队等候机制，线程继续等待，仍然保留获取锁的可能，获取锁流程仍在继续。</p><p>Q：既然说到了排队等候机制，那么就一定会有某种队列形成，这样的队列是什么数据结构呢？</p><p>A：是CLH变体的FIFO双端队列。</p><p>Q：处于排队等候机制中的线程，什么时候可以有机会获取锁呢？</p><p>A：可以详细看下2.3.1.3小节。</p><p>Q：如果处于排队等候机制中的线程一直无法获取锁，需要一直等待么？还是有别的策略来解决这一问题？</p><p>A：线程所在节点的状态会变成取消状态，取消状态的节点会从队列中释放，具体可见2.3.2小节。</p><p>Q：Lock函数通过Acquire方法进行加锁，但是具体是如何加锁的呢？</p><p>A：AQS的Acquire会调用tryAcquire方法，tryAcquire由各个自定义同步器实现，通过tryAcquire完成加锁过程。</p></blockquote><h2 id="3-aqs应用">3 AQS应用</h2><h3 id="3-1-reentrantlock的可重入应用">3.1 ReentrantLock的可重入应用</h3><p>ReentrantLock的可重入性是AQS很好的应用之一，在了解完上述知识点以后，我们很容易得知ReentrantLock实现可重入的方法。在ReentrantLock里面，不管是公平锁还是非公平锁，都有一段逻辑。</p><p>公平锁：</p><pre><code class="hljs typescript"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.ReentrantLock.FairSync#tryAcquire</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (c == <span class="hljs-number"><span class="hljs-number">0</span></span>) {
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (!hasQueuedPredecessors() &amp;&amp; compareAndSetState(<span class="hljs-number"><span class="hljs-number">0</span></span>, acquires)) {
+		setExclusiveOwnerThread(current);
+		<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-literal"><span class="hljs-literal">true</span></span>;
+	}
+}
+<span class="hljs-keyword"><span class="hljs-keyword">else</span></span> <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (current == getExclusiveOwnerThread()) {
+	int nextc = c + acquires;
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (nextc &lt; <span class="hljs-number"><span class="hljs-number">0</span></span>)
+		<span class="hljs-keyword"><span class="hljs-keyword">throw</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> <span class="hljs-built_in"><span class="hljs-built_in">Error</span></span>(<span class="hljs-string"><span class="hljs-string">"Maximum lock count exceeded"</span></span>);
+	setState(nextc);
+	<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-literal"><span class="hljs-literal">true</span></span>;
+}
+</code></pre><p>非公平锁：</p><pre><code class="hljs typescript"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.ReentrantLock.Sync#nonfairTryAcquire</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (c == <span class="hljs-number"><span class="hljs-number">0</span></span>) {
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (compareAndSetState(<span class="hljs-number"><span class="hljs-number">0</span></span>, acquires)){
+		setExclusiveOwnerThread(current);
+		<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-literal"><span class="hljs-literal">true</span></span>;
+	}
+}
+<span class="hljs-keyword"><span class="hljs-keyword">else</span></span> <span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (current == getExclusiveOwnerThread()) {
+	int nextc = c + acquires;
+	<span class="hljs-keyword"><span class="hljs-keyword">if</span></span> (nextc &lt; <span class="hljs-number"><span class="hljs-number">0</span></span>) <span class="hljs-comment"><span class="hljs-comment">// overflow</span></span>
+		<span class="hljs-keyword"><span class="hljs-keyword">throw</span></span> <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> <span class="hljs-built_in"><span class="hljs-built_in">Error</span></span>(<span class="hljs-string"><span class="hljs-string">"Maximum lock count exceeded"</span></span>);
+	setState(nextc);
+	<span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-literal"><span class="hljs-literal">true</span></span>;
+}
+</code></pre><p>从上面这两段都可以看到，有一个同步状态State来控制整体可重入的情况。State是Volatile修饰的，用于保证一定的可见性和有序性。</p><pre><code class="hljs groovy"><span class="hljs-comment"><span class="hljs-comment">// java.util.concurrent.locks.AbstractQueuedSynchronizer</span></span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">volatile</span></span> <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> state;
+</code></pre><p>接下来看State这个字段主要的过程：</p><ol><li><p>State初始化的时候为0，表示没有任何线程持有锁。</p></li><li><p>当有线程持有该锁时，值就会在原来的基础上+1，同一个线程多次获得锁是，就会多次+1，这里就是可重入的概念。</p></li><li><p>解锁也是对这个字段-1，一直到0，此线程对锁释放。</p></li></ol><h3 id="3-2-juc中的应用场景">3.2 JUC中的应用场景</h3><p>除了上边ReentrantLock的可重入性的应用，AQS作为并发编程的框架，为很多其他同步工具提供了良好的解决方案。下面列出了JUC中的几种同步工具，大体介绍一下AQS的应用场景：</p><table><thead><tr><th>同步工具</th><th>同步工具与AQS的关联</th></tr></thead><tbody><tr><td>ReentrantLock</td><td>使用AQS保存锁重复持有的次数。当一个线程获取锁时，ReentrantLock记录当前获得锁的线程标识，用于检测是否重复获取，以及错误线程试图解锁操作时异常情况的处理。</td></tr><tr><td>Semaphore</td><td>使用AQS同步状态来保存信号量的当前计数。tryRelease会增加计数，acquireShared会减少计数。</td></tr><tr><td>CountDownLatch</td><td>使用AQS同步状态来表示计数。计数为0时，所有的Acquire操作（CountDownLatch的await方法）才可以通过。</td></tr><tr><td>ReentrantReadWriteLock</td><td>使用AQS同步状态中的16位保存写锁持有的次数，剩下的16位用于保存读锁的持有次数。</td></tr><tr><td>ThreadPoolExecutor</td><td>Worker利用AQS同步状态实现对独占线程变量的设置（tryAcquire和tryRelease）。</td></tr></tbody></table><h3 id="3-3-自定义同步工具">3.3 自定义同步工具</h3><p>了解AQS基本原理以后，按照上面所说的AQS知识点，自己实现一个同步工具。</p><pre><code class="hljs java"><span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">LeeLock</span></span></span><span class="hljs-class">  </span></span>{
+
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-class"><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">class</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">Sync</span></span></span><span class="hljs-class"> </span><span class="hljs-keyword"><span class="hljs-class"><span class="hljs-keyword">extends</span></span></span><span class="hljs-class"> </span><span class="hljs-title"><span class="hljs-class"><span class="hljs-title">AbstractQueuedSynchronizer</span></span></span><span class="hljs-class"> </span></span>{
+        <span class="hljs-meta"><span class="hljs-meta">@Override</span></span>
+        <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">protected</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">tryAcquire</span></span></span><span class="hljs-function"> </span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> arg)</span></span></span><span class="hljs-function"> </span></span>{
+            <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> compareAndSetState(<span class="hljs-number"><span class="hljs-number">0</span></span>, <span class="hljs-number"><span class="hljs-number">1</span></span>);
+        }
+
+        <span class="hljs-meta"><span class="hljs-meta">@Override</span></span>
+        <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">protected</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">tryRelease</span></span></span><span class="hljs-function"> </span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">(</span></span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-params"><span class="hljs-keyword">int</span></span></span></span><span class="hljs-function"><span class="hljs-params"> arg)</span></span></span><span class="hljs-function"> </span></span>{
+            setState(<span class="hljs-number"><span class="hljs-number">0</span></span>);
+            <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> <span class="hljs-keyword"><span class="hljs-keyword">true</span></span>;
+        }
+
+        <span class="hljs-meta"><span class="hljs-meta">@Override</span></span>
+        <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">protected</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">boolean</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">isHeldExclusively</span></span></span><span class="hljs-function"> </span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">()</span></span></span><span class="hljs-function"> </span></span>{
+            <span class="hljs-keyword"><span class="hljs-keyword">return</span></span> getState() == <span class="hljs-number"><span class="hljs-number">1</span></span>;
+        }
+    }
+    
+    <span class="hljs-keyword"><span class="hljs-keyword">private</span></span> Sync sync = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Sync();
+    
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">lock</span></span></span><span class="hljs-function"> </span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">()</span></span></span><span class="hljs-function"> </span></span>{
+        sync.acquire(<span class="hljs-number"><span class="hljs-number">1</span></span>);
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">unlock</span></span></span><span class="hljs-function"> </span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">()</span></span></span><span class="hljs-function"> </span></span>{
+        sync.release(<span class="hljs-number"><span class="hljs-number">1</span></span>);
+    }
+}
+</code></pre><p>通过我们自己定义的Lock完成一定的同步功能。</p><pre><code class="hljs cs"><span class="hljs-keyword"><span class="hljs-keyword">public</span></span> <span class="hljs-keyword"><span class="hljs-keyword">class</span></span> <span class="hljs-title"><span class="hljs-title">LeeMain</span></span> {
+
+    <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> <span class="hljs-keyword"><span class="hljs-keyword">int</span></span> count = <span class="hljs-number"><span class="hljs-number">0</span></span>;
+    <span class="hljs-keyword"><span class="hljs-keyword">static</span></span> LeeLock leeLock = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> LeeLock();
+
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">static</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">main</span></span></span><span class="hljs-function"> (</span><span class="hljs-params"><span class="hljs-function"><span class="hljs-params">String[] args</span></span></span><span class="hljs-function">) throws InterruptedException</span></span> {
+
+        Runnable runnable = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Runnable() {
+            @<span class="hljs-function"><span class="hljs-function">Override
+            </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">public</span></span></span><span class="hljs-function"> </span><span class="hljs-keyword"><span class="hljs-function"><span class="hljs-keyword">void</span></span></span><span class="hljs-function"> </span><span class="hljs-title"><span class="hljs-function"><span class="hljs-title">run</span></span></span><span class="hljs-function"> (</span><span class="hljs-params"></span><span class="hljs-function"><span class="hljs-params"></span>)</span></span> {
+                <span class="hljs-keyword"><span class="hljs-keyword">try</span></span> {
+                    leeLock.<span class="hljs-keyword"><span class="hljs-keyword">lock</span></span>();
+                    <span class="hljs-keyword"><span class="hljs-keyword">for</span></span> (<span class="hljs-keyword"><span class="hljs-keyword">int</span></span> i = <span class="hljs-number"><span class="hljs-number">0</span></span>; i &lt; <span class="hljs-number"><span class="hljs-number">10000</span></span>; i++) {
+                        count++;
+                    }
+                } <span class="hljs-keyword"><span class="hljs-keyword">catch</span></span> (Exception e) {
+                    e.printStackTrace();
+                } <span class="hljs-keyword"><span class="hljs-keyword">finally</span></span> {
+                    leeLock.unlock();
+                }
+
+            }
+        };
+        Thread thread1 = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Thread(runnable);
+        Thread thread2 = <span class="hljs-keyword"><span class="hljs-keyword">new</span></span> Thread(runnable);
+        thread1.start();
+        thread2.start();
+        thread1.<span class="hljs-keyword"><span class="hljs-keyword">join</span></span>();
+        thread2.<span class="hljs-keyword"><span class="hljs-keyword">join</span></span>();
+        System.<span class="hljs-keyword"><span class="hljs-keyword">out</span></span>.println(count);
+    }
+}
+</code></pre><p>上述代码每次运行结果都会是20000。通过简单的几行代码就能实现同步功能，这就是AQS的强大之处。</p><h2 id="总结">总结</h2><p>我们日常开发中使用并发的场景太多，但是对并发内部的基本框架原理了解的人却不多。由于篇幅原因，本文仅介绍了可重入锁ReentrantLock的原理和AQS原理，希望能够成为大家了解AQS和ReentrantLock等同步器的“敲门砖”。</p><h2 id="参考资料">参考资料</h2><ul><li><p>Lea D. The java. util. concurrent synchronizer framework[J]. Science of Computer Programming, 2005, 58(3): 293-309.</p></li><li><p>《Java并发编程实战》</p></li><li><p><a href="https://tech.meituan.com/2018/11/15/java-lock.html">不可不说的Java“锁”事<i class="fa fa-link" aria-hidden="true"></i></a></p></li></ul><h2 id="作者简介">作者简介</h2><p>李卓，美团点评住宿度假研发中心Java研发工程师，2018年加入美团点评。</p><h2 id="招聘信息">招聘信息</h2><p>美团到店住宿门票业务研发团队负责美团酒店和门票核心业务系统建设。</p><ul><li><p>美团酒店屡次刷新行业记录，最近12个月酒店预订间夜量达到3个亿，单日入住间夜量峰值突破300万，单季度间夜突破1亿间。</p></li><li><p>美团门票2018年出票量达到一亿张，成为国内门票预订规模顶尖的平台。技术团队的愿景是：建设打造旅游住宿行业一流的技术架构，从质量、安全、效率、性能多角度保障系统高速发展。</p></li></ul><p>美团到店住宿门票业务研发团队期待优秀的技术伙伴加入，欢迎投简历至：tech@meituan.com（邮件标题注明：美团到店住宿门票业务研发团队）</p></div></div><div class="meta-box post-bottom-meta-box hidden-print"><span class="tag-links"><i class="fa fa-tags" aria-hidden="true"></i><a href="https://tech.meituan.com/tags/%E5%88%B0%E5%BA%97.html" rel="tag">到店</a>, <a href="https://tech.meituan.com/tags/java.html" rel="tag">java</a>, <a href="https://tech.meituan.com/tags/aqs.html" rel="tag">AQS</a>, <a href="https://tech.meituan.com/tags/reentrantlock.html" rel="tag">ReentrantLock</a></span></div><div class="row page-navigation-container hidden-print"><div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><div class="navigation-wrapper"><div class="pager"><div class="title-box"><i class="fa fa-paperclip"></i>#看看其他</div><a href="https://tech.meituan.com/2019/11/28/meituan-front-end-containerization-evolution.html" title="美团外卖前端容器化演进实践" class="previous"><span aria-hidden="true">前一篇: 美团外卖前端容器化演进实践</span></a>
+<a href="https://tech.meituan.com/2019/12/12/meituan-octo.html" title="美团下一代服务治理系统 OCTO 2.0 的探索与实践" class="next"><span aria-hidden="true">后一篇: 美团下一代服务治理系统 OCTO 2.0 的探索与实践</span></a></div></div></div></div><div class="row page-comments-container hidden-print"><div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"><div class="comments-wrapper hidden-print"><div id="comments" class="comments-disabled"><div class="title-box"><i class="fa fa-comments-o"></i>#一起聊聊</div><div class="post-feedback-box hidden-print"><p>如发现文章有错误、对内容有疑问，都可以关注美团技术团队微信公众号（meituantech），在后台给我们留言。</p><img class="qrcode" src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/dc8a757b42b2f6bd12fe8402cc372f041050382.png@1875w_834h_80q" alt="美团技术团队微信二维码"><p class="follow-us">我们每周会挑选出一位热心小伙伴，送上一份精美的小礼品。快来扫码关注我们吧！</p></div></div></div></div></div></div></div></div></div><div class="container-fluid main-container" id="J_footer-container"><script>$CONFIG['data']['footerLink']=[{"name":"网站首页","link":"/"},{"name":"文章存档","link":"/archives"},{"name":"关于我们","link":"/about"}];</script><div class="row"><div class="col-md-12 footer-links-container"><div class="footer-divider"></div></div><div class="col-md-4"><p>一行代码，亿万生活。</p></div><div class="col-md-8"><ul class="nav nav-pills navbar-right"><li class="menu-item"><a href="https://tech.meituan.com/" title="">网站首页</a></li><li class="menu-item"><a href="https://tech.meituan.com/archives" title="">文章存档</a></li><li class="menu-item"><a href="https://tech.meituan.com/about" title="">关于我们</a></li></ul></div></div><div class="m-fixed-button" style="top: 0px; opacity: 0; display: none;"><div class="m-wrapper"><div class="m-qrcode"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAAsSAAALEgHS3X78AAAAjklEQVRIx81V2xHAIAjTnruyhmuwbb96Z6kYOJWaTx6SKGBm5poMIKJXnDXvsgTNoGgMrUxR3nYFnwLMXHusNTvyx73BA+1ONTvyb1eQvXNgjQ9T4EbbLaizQhQsKTBSsVyBvLbi7YoWaDZS6gzaDPNeUfM2lXOgHSjz4ncRYub92c7Zpgjnb1ON8e9vcAOBkF++GF/4vQAAAABJRU5ErkJggg=="></div><div class="m-go-top"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAAsSAAALEgHS3X78AAAB/ElEQVR42u3bX0rcUBiG8cc/o+5CwW5CL0rpJirY+2zDbZzbti6klXYhCm7B0Ssv7AfqJAMz7zk5n/A+VzMhTL78IOSQITullCvc1u32HuCjZ0AxA4oZUMyAYgYUM6CYAcUMKGZAMQOKGVDMgGIGFDOgmAHFDChmQDEDihlQzIBiBhQzoJgBxQwoZkAxA4rt9x5gTQ/Ab2AP+Awc9h5orKyAD8DPYRjuAUopt8AlcNR7sPdlvITf4AEMw3AHXAPL3sO9LxvgCl6UFTET4ApeKeVTKeUkvmdEzAI4igdcAJeZETMALpnG2wcWJEbsDbgEfozgfePtCiEtYk/AdXiLkf1TIvYC3BQvWof42ONEegBuixdNIf6iA+LcgCpelAZxTsAxvFM2x4tSIM4FOIV3wXZ4USAex4a5EecAbIUXLYDvvRBbA7bGi7ohtgScCy/qgtgKcG68aAqx2TqxBWAvvGgM8ZZGiLUBe+NFY3fnJog1AbPgRQdMIz7VOkhNwD+J8KIpxJtaB2hyE0mCF60g1myn4iv/j8BfXp7jnZED73VPwL//n895gZWr+bfmIfB1ZpRNOgC+1P7R3k+kP3wGFDOgmAHFDChmQDEDihlQzIBiBhQzoJgBxQwoZkAxA4oZUMyAYgYUM6CYAcUMKGZAMQOKGVDMgGIGFDOg2DOEU/uBJ0Ro/gAAAABJRU5ErkJggg=="></div></div><div class="qrcode-container"><div class="qr_code"><p class="desktop_qr_tittle">扫码关注技术博客</p><img src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/7d0f734bcd029f452d415ce7d521a0d9632811.gif" class="qr_img"></div></div></div></div><script src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/post.js.下载"></script><script async="" src="./从ReentrantLock的实现看AQS的原理及应用 - 美团技术团队_files/js(2)"></script><script>try{window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());gtag('config','UA-55279261-1');}catch(e){}</script><script>try{var _hmt=_hmt||[];var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?7158c55a533ed0cf57dede022b1e6aed";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);}catch(e){}</script></body></html>
