@@ -2,10 +2,11 @@ package 数据结构.栈.单调栈;
 
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.function.Predicate;
 
 public class No402移掉K位数字 {
     public static void main(String[] args) {
-        new No402移掉K位数字().removeKdigits("9", 1);
+        boolean b = ((Predicate<Object>) o -> false).negate().test(1);
     }
 
     public String removeKdigits(String num, int k) {
