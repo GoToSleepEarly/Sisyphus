@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<!-- saved from url=(0051)https://www.cnblogs.com/jay-huaxiao/p/12950484.html -->
+<html lang="zh-cn"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="never">
+    <meta name="description" content="前言 100道MySQL数据库经典面试题解析，已经上传github啦 https://github.com/whx123/JavaHome/tree/master/Java%E9%9D%A2%E8%A">
+    <meta property="og:description" content="前言 100道MySQL数据库经典面试题解析，已经上传github啦 https://github.com/whx123/JavaHome/tree/master/Java%E9%9D%A2%E8%A">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园</title>
+    <link id="favicon" rel="shortcut icon" href="https://common.cnblogs.com/favicon.svg" type="image/svg+xml">
+    
+    <link rel="stylesheet" href="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/blog-common.min.css">
+    <link id="MainCss" rel="stylesheet" href="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/bundle-anothereon001.min.css">
+    <link type="text/css" rel="stylesheet" href="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/custom.css">
+    <link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/bundle-anothereon001-mobile.min.css">
+    
+    <link type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/jay-huaxiao/rss">
+    <link type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/jay-huaxiao/rsd.xml">
+    <link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/jay-huaxiao/wlwmanifest.xml">
+    <script src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/osd.js.下载"></script><script async="" src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/analytics.js.下载"></script><script>
+        var currentBlogId = 449831;
+        var currentBlogApp = 'jay-huaxiao';
+        var cb_enable_mathjax = false;
+        var isLogined = false;
+        var isBlogOwner = false;
+        var skinName = 'AnotherEon001';
+        var visitorUserId = '';
+    </script>
+        <script>
+            var currentPostDateAdded = '2020-05-24 12:03';
+        </script>
+    <script src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/jquery-2.2.0.min.js.下载"></script>
+    <script src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/blog-common.min.js.下载"></script><style type="text/css">.medium-zoom-overlay{position:fixed;top:0;right:0;bottom:0;left:0;opacity:0;transition:opacity .3s;will-change:opacity}.medium-zoom--opened .medium-zoom-overlay{cursor:pointer;cursor:zoom-out;opacity:1}.medium-zoom-image{cursor:pointer;cursor:zoom-in;transition:transform .3s cubic-bezier(.2,0,.2,1)!important}.medium-zoom-image--hidden{visibility:hidden}.medium-zoom-image--opened{position:relative;cursor:pointer;cursor:zoom-out;will-change:transform}</style>
+    
+    
+    
+<meta http-equiv="origin-trial" content="A+b/H0b8RPXNaJgaNFpO0YOFuGK6myDQXlwnJB3SwzvNMfcndat4DZYMrP4ClJIzYWo3/yP2S+8FTZ/lpqbPAAEAAABueyJvcmlnaW4iOiJodHRwczovL2ltYXNkay5nb29nbGVhcGlzLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzVGhpcmRQYXJ0eSI6dHJ1ZX0="><meta http-equiv="origin-trial" content="A9ZgbRtm4pU3oZiuNzOsKcC8ppFSZdcjP2qYcdQrFKVzkmiWH1kdYY1Mi9x7G8+PS8HV9Ha9Cz0gaMdKsiVZIgMAAAB7eyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="AxL6oBxcpn5rQDPKSAs+d0oxNyJYq2/4esBUh3Yx5z8QfcLu+AU8iFCXYRcr/CEEfDnkxxLTsvXPJFQBxHfvkgMAAACBeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A9KPtG5kl3oLTk21xqynDPGQ5t18bSOpwt0w6kGa6dEWbuwjpffmdUpR3W+faZDubGT+KIk2do0BX2ca16x8qAcAAACBeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A3HucHUo1oW9s+9kIKz8mLkbcmdaj5lxt3eiIMp1Nh49dkkBlg1Fhg4Fd/r0vL69mRRA36YutI9P/lJUfL8csQoAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A0OysezhLoCRYomumeYlubLurZTCmsjTb087OvtCy95jNM65cfEsbajrJnhaGwiTxhz38ZZbm+UhUwQuXfVPTg0AAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="AxoOxdZQmIoA1WeAPDixRAeWDdgs7ZtVFfH2y19ziTgD1iaHE5ZGz2UdSjubkWvob9C5PrjUfkWi4ZSLgWk3Xg8AAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A7+rMYR5onPnACrz+niKSeFdH3xw1IyHo2AZSHmxrofRk9w4HcQPMYcpBUKu6OQ6zsdxf4m/vqa6tG6Na4OLpAQAAAB4eyJvcmlnaW4iOiJodHRwczovL2ltYXNkay5nb29nbGVhcGlzLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="AwfG8hAcHnPa/kJ1Co0EvG/K0F9l1s2JZGiDLt2mhC3QI5Fh4qmsmSwrWObZFbRC9ieDaSLU6lHRxhGUF/i9sgoAAACBeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiSW50ZXJlc3RDb2hvcnRBUEkiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="AwQ7dCmHkvR6FuOFxAuNnktYSQrGbL4dF+eBkrwNLALc69Wr//PnO1yzns3pjUoCaYbKHtVcnng2hU+8OUm0PAYAAACHeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiSW50ZXJlc3RDb2hvcnRBUEkiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="AysVDPGQTLD/Scn78x4mLwB1tMfje5jwUpAAzGRpWsr1NzoN7MTFhT3ClmImi2svDZA7V6nWGIV8YTPsSRTe0wYAAACHeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiSW50ZXJlc3RDb2hvcnRBUEkiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><script src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/pubads_impl_2021050601.js.下载" async=""></script><link rel="preload" href="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/f.txt" as="script"><script type="text/javascript" src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/f.txt"></script><link rel="prefetch" href="https://c5c402461b9507c76c5e86a9660a1a9c.safeframe.googlesyndication.com/safeframe/1-0-38/html/container.html"><link rel="prefetch" href="https://tpc.googlesyndication.com/safeframe/1-0-38/html/container.html"></head>
+<body class="no-navbar">
+    <a name="top"></a>
+        <div id="bannerbar" class="bannerbar-mobile formobile">
+            <a href="https://developer.aliyun.com/learning/trainingcamp/realtime/1?utm_content=g_1000268661" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;aliyun-realtime-blog-bannerbar-mobile&#39;)">
+                <img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/35695-20210509221214222-438425324.png" alt="">
+            </a>
+        </div>
+    <div id="top_nav" class="navbar forpc navbar-custom">
+        <nav id="nav_main" class="navbar-main">
+            <ul id="nav_left" class="navbar-list navbar-left">
+                <li class="navbar-branding"><a href="https://www.cnblogs.com/" title="开发者的网上家园"><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/logo.svg" alt="博客园Logo"></a></li>
+                <li><a href="https://www.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-sitehome&#39;)">首页</a></li>
+                <li><a href="https://news.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-news&#39;)">新闻</a></li>
+                <li><a href="https://q.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-q&#39;)">博问</a></li>
+                <li><a id="nav_brandzone" href="https://brands.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-brands&#39;)">专区</a></li>
+                <li><a href="https://ing.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-ing&#39;)">闪存</a></li>
+                <li><a href="https://edu.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-edu&#39;)">班级</a></li>
+            </ul>
+            <ul id="nav_right" class="navbar-list navbar-right">
+                <li>
+                    <form id="zzk_search" class="navbar-search" action="https://zzk.cnblogs.com/s" method="get">
+                        <input name="w" id="zzk_search_input" placeholder="代码改变世界" type="text" tabindex="3">
+                        <button type="submit" id="zzk_search_button">
+                            <img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/search.svg" alt="搜索">
+                        </button>
+                    </form>
+                </li>
+                <li id="navbar_login_status" class="navbar-list">
+                    <a class="navbar-user-info navbar-blog" href="https://i.cnblogs.com/EditPosts.aspx?opt=1" alt="写随笔" title="写随笔" style="display: none;">
+                        <img id="new_post_icon" class="navbar-icon" src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/newpost.svg" alt="写随笔">
+                    </a>
+                    <a id="navblog-myblog-icon" class="navbar-user-info navbar-blog" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx" alt="我的博客" title="我的博客" style="display: none;">
+                        <img id="myblog_icon" class="navbar-icon" src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/myblog.svg" alt="我的博客">
+                    </a>
+                    <a class="navbar-user-info navbar-message navbar-icon-wrapper" href="https://msg.cnblogs.com/" alt="短消息" title="短消息" style="display: none;">
+                        <img id="msg_icon" class="navbar-icon" src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/message.svg" alt="短消息">
+                        <span id="msg_count" style="display: none"></span>
+                    </a>
+                    <div id="user_info" class="navbar-user-info dropdown" style="display: none;">
+                        <a class="dropdown-button" href="https://home.cnblogs.com/">
+                            <img id="user_icon" class="navbar-avatar" src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/avatar-default.svg" alt="用户头像">
+                        </a>
+                        <div class="dropdown-menu">
+                            <a id="navblog-myblog-text" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx">我的博客</a>
+                            <a href="https://home.cnblogs.com/">我的园子</a>
+                            <a href="https://account.cnblogs.com/settings/account">账号设置</a>
+                            <a href="javascript:void(0)" id="navbar_lite_mode_toggle" title="简洁模式会使用简洁款皮肤显示所有博客">
+    简洁模式 <img id="navbar_lite_mode_on" src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/lite-mode-check.svg" class="hide"><span id="navbar_lite_mode_spinner" class="hide">...</span>
+</a>
+                            <a href="javascript:void(0)" onclick="account.logout();">退出登录</a>
+                        </div>
+                    </div>
+                    <a class="navbar-anonymous" href="https://account.cnblogs.com/signup/" style="display: inline;">注册</a>
+                    <a class="navbar-anonymous" href="javascript:void(0);" onclick="account.login()" style="display: inline;">登录</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    
+    <div id="wrapper">
+<div id="header">
+
+<div id="top">
+<h1><a id="Header1_HeaderTitle" class="headermaintitle HeaderMainTitle" href="https://www.cnblogs.com/jay-huaxiao/">huaxiao</a>
+</h1>
+<div id="subtitle"></div>
+</div>
+<div id="sub"><div class="BlogStats">随笔 - 46, 文章 - 0, 评论 - 96, 阅读 - 
+<span title="总阅读数: 76743">
+76743</span></div>
+
+</div>
+
+
+
+
+</div>
+<div id="main_container">
+<div id="main_content">
+<div id="content">
+	<div id="post_detail">
+    <div class="post">
+        <h2>
+            
+<a id="cb_post_title_url" class="postTitle2 vertical-middle" href="https://www.cnblogs.com/jay-huaxiao/p/12950484.html">
+    <span>100道MySQL数据库经典面试题解析（收藏版）</span>
+    
+
+
+
+</a>
+
+        </h2>
+        <div class="postbody">
+            <div id="cnblogs_post_body" class="blogpost-body cnblogs-markdown">
+<h2 id="前言">前言</h2>
+<p>100道MySQL数据库经典面试题解析，已经上传github啦</p>
+<blockquote>
+<p><a href="https://github.com/whx123/JavaHome/tree/master/Java%E9%9D%A2%E8%AF%95%E9%A2%98%E9%9B%86%E7%BB%93%E5%8F%B7" target="_blank">https://github.com/whx123/JavaHome/tree/master/Java面试题集结号</a></p>
+</blockquote>
+<p><strong>公众号：捡田螺的小男孩</strong></p>
+<h2 id="数据库">数据库</h2>
+<h3 id="1-mysql-索引使用有哪些注意事项呢？">1. MySQL 索引使用有哪些注意事项呢？</h3>
+<p>可以从三个维度回答这个问题：索引哪些情况会失效，索引不适合哪些场景，索引规则</p>
+<h4 id="索引哪些情况会失效">索引哪些情况会失效</h4>
+<ul>
+<li>查询条件包含or，可能导致索引失效</li>
+<li>如何字段类型是字符串，where时一定用引号括起来，否则索引失效</li>
+<li>like通配符可能导致索引失效。</li>
+<li>联合索引，查询时的条件列不是联合索引中的第一个列，索引失效。</li>
+<li>在索引列上使用mysql的内置函数，索引失效。</li>
+<li>对索引列运算（如，+、-、*、/），索引失效。</li>
+<li>索引字段上使用（！= 或者 &lt; &gt;，not in）时，可能会导致索引失效。</li>
+<li>索引字段上使用is null， is not null，可能导致索引失效。</li>
+<li>左连接查询或者右连接查询查询关联的字段编码格式不一样，可能导致索引失效。</li>
+<li>mysql估计使用全表扫描要比使用索引快,则不使用索引。</li>
+</ul>
+<p><a href="https://juejin.im/post/5de99dd2518825125e1ba49d" target="_blank">后端程序员必备：索引失效的十大杂症</a></p>
+<h4 id="索引不适合哪些场景">索引不适合哪些场景</h4>
+<ul>
+<li>数据量少的不适合加索引</li>
+<li>更新比较频繁的也不适合加索引</li>
+<li>区分度低的字段不适合加索引（如性别）</li>
+</ul>
+<h4 id="索引的一些潜规则">索引的一些潜规则</h4>
+<ul>
+<li>覆盖索引</li>
+<li>回表</li>
+<li>索引数据结构（B+树）</li>
+<li>最左前缀原则</li>
+<li>索引下推</li>
+</ul>
+<h3 id="2-mysql-遇到过死锁问题吗，你是如何解决的？">2. MySQL 遇到过死锁问题吗，你是如何解决的？</h3>
+<p>我排查死锁的一般步骤是酱紫的：</p>
+<ul>
+<li>查看死锁日志show engine innodb status;</li>
+<li>找出死锁Sql</li>
+<li>分析sql加锁情况</li>
+<li>模拟死锁案发</li>
+<li>分析死锁日志</li>
+<li>分析死锁结果</li>
+</ul>
+<p>可以看我这两篇文章哈：</p>
+<ul>
+<li><a href="https://juejin.im/post/5e8b269f518825739379e82c" target="_blank">手把手教你分析Mysql死锁问题</a></li>
+<li><a href="https://juejin.im/post/5d483e66518825052734b15a#heading-4" target="_blank">Mysql死锁如何排查：insert on duplicate死锁一次排查分析过程</a></li>
+</ul>
+<h3 id="3-日常工作中你是怎么优化sql的？">3. 日常工作中你是怎么优化SQL的？</h3>
+<p>可以从这几个维度回答这个问题：</p>
+<ul>
+<li>加索引</li>
+<li>避免返回不必要的数据</li>
+<li>适当分批量进行</li>
+<li>优化sql结构</li>
+<li>分库分表</li>
+<li>读写分离</li>
+</ul>
+<p>可以看我这篇文章哈：<br>
+<a href="https://juejin.im/post/5e624d156fb9a07ca80ab6f2" target="_blank">后端程序员必备：书写高质量SQL的30条建议</a></p>
+<h3 id="4-说说分库与分表的设计">4. 说说分库与分表的设计</h3>
+<p>分库分表方案，分库分表中间件，分库分表可能遇到的问题</p>
+<p><strong>分库分表方案:</strong></p>
+<ul>
+<li>水平分库：以字段为依据，按照一定策略（hash、range等），将一个库中的数据拆分到多个库中。</li>
+<li>水平分表：以字段为依据，按照一定策略（hash、range等），将一个表中的数据拆分到多个表中。</li>
+<li>垂直分库：以表为依据，按照业务归属不同，将不同的表拆分到不同的库中。</li>
+<li>垂直分表：以字段为依据，按照字段的活跃性，将表中字段拆到不同的表（主表和扩展表）中。</li>
+</ul>
+<p><strong>常用的分库分表中间件：</strong></p>
+<ul>
+<li>sharding-jdbc（当当）</li>
+<li>Mycat</li>
+<li>TDDL（淘宝）</li>
+<li>Oceanus(58同城数据库中间件)</li>
+<li>vitess（谷歌开发的数据库中间件）</li>
+<li>Atlas(Qihoo 360)</li>
+</ul>
+<p><strong>分库分表可能遇到的问题</strong></p>
+<ul>
+<li>事务问题：需要用分布式事务啦</li>
+<li>跨节点Join的问题：解决这一问题可以分两次查询实现</li>
+<li>跨节点的count,order by,group by以及聚合函数问题：分别在各个节点上得到结果后在应用程序端进行合并。</li>
+<li>数据迁移，容量规划，扩容等问题</li>
+<li>ID问题：数据库被切分后，不能再依赖数据库自身的主键生成机制啦，最简单可以考虑UUID</li>
+<li>跨分片的排序分页问题（后台加大pagesize处理？）</li>
+</ul>
+<p>个人觉得网上这两篇文章不错，小伙伴们可以去看一下哈：</p>
+<ul>
+<li><a href="https://www.cnblogs.com/littlecharacter/p/9342129.html" target="_blank">MySQL数据库之互联网常用分库分表方案</a></li>
+<li><a href="https://www.jianshu.com/p/32b3e91aa22c" target="_blank">分库分表需要考虑的问题及方案</a></li>
+</ul>
+<h3 id="5-innodb与myisam的区别">5. InnoDB与MyISAM的区别</h3>
+<ul>
+<li>InnoDB支持事务，MyISAM不支持事务</li>
+<li>InnoDB支持外键，MyISAM不支持外键</li>
+<li>InnoDB 支持 MVCC(多版本并发控制)，MyISAM 不支持</li>
+<li>select count(*) from table时，MyISAM更快，因为它有一个变量保存了整个表的总行数，可以直接读取，InnoDB就需要全表扫描。</li>
+<li>Innodb不支持全文索引，而MyISAM支持全文索引（5.7以后的InnoDB也支持全文索引）</li>
+<li>InnoDB支持表、行级锁，而MyISAM支持表级锁。</li>
+<li>InnoDB表必须有主键，而MyISAM可以没有主键</li>
+<li>Innodb表需要更多的内存和存储，而MyISAM可被压缩，存储空间较小，。</li>
+<li>Innodb按主键大小有序插入，MyISAM记录插入顺序是，按记录插入顺序保存。</li>
+<li>InnoDB 存储引擎提供了具有提交、回滚、崩溃恢复能力的事务安全，与 MyISAM 比 InnoDB 写的效率差一些，并且会占用更多的磁盘空间以保留数据和索引</li>
+</ul>
+<h3 id="6-数据库索引的原理，为什么要用-b树，为什么不用二叉树？">6. 数据库索引的原理，为什么要用 B+树，为什么不用二叉树？</h3>
+<p>可以从几个维度去看这个问题，查询是否够快，效率是否稳定，存储数据多少，以及查找磁盘次数，为什么不是二叉树，为什么不是平衡二叉树，为什么不是B树，而偏偏是B+树呢？</p>
+<p><strong>为什么不是一般二叉树？</strong></p>
+<p>如果二叉树特殊化为一个链表，相当于全表扫描。平衡二叉树相比于二叉查找树来说，查找效率更稳定，总体的查找速度也更快。</p>
+<p><strong>为什么不是平衡二叉树呢？</strong></p>
+<p>我们知道，在内存比在磁盘的数据，查询效率快得多。如果树这种数据结构作为索引，那我们每查找一次数据就需要从磁盘中读取一个节点，也就是我们说的一个磁盘块，但是平衡二叉树可是每个节点只存储一个键值和数据的，如果是B树，可以存储更多的节点数据，树的高度也会降低，因此读取磁盘的次数就降下来啦，查询效率就快啦。</p>
+<p><strong>那为什么不是B树而是B+树呢？</strong></p>
+<p>1）B+树非叶子节点上是不存储数据的，仅存储键值，而B树节点中不仅存储键值，也会存储数据。innodb中页的默认大小是16KB，如果不存储数据，那么就会存储更多的键值，相应的树的阶数（节点的子节点树）就会更大，树就会更矮更胖，如此一来我们查找数据进行磁盘的IO次数有会再次减少，数据查询的效率也会更快。</p>
+<p>2）B+树索引的所有数据均存储在叶子节点，而且数据是按照顺序排列的，链表连着的。那么B+树使得范围查找，排序查找，分组查找以及去重查找变得异常简单。</p>
+<p>可以看这篇文章哈：<br>
+<a href="https://mp.weixin.qq.com/s?__biz=MzIwOTE2MzU4NA==&amp;mid=2247484085&amp;idx=1&amp;sn=92639430ac7ef3e412b550a09bde0115&amp;chksm=9779469aa00ecf8c157e899fe0d5c5b060b282a4e5f2f2f63c187eb3c04d04ef6fad7a1e09e3&amp;token=472896045&amp;lang=zh_CN#rd" target="_blank">再有人问你为什么MySQL用B+树做索引，就把这篇文章发给她</a></p>
+<h3 id="7-聚集索引与非聚集索引的区别">7. 聚集索引与非聚集索引的区别</h3>
+<ul>
+<li>一个表中只能拥有一个聚集索引，而非聚集索引一个表可以存在多个。</li>
+<li>聚集索引，索引中键值的逻辑顺序决定了表中相应行的物理顺序；非聚集索引，索引中索引的逻辑顺序与磁盘上行的物理存储顺序不同。</li>
+<li>索引是通过二叉树的数据结构来描述的，我们可以这么理解聚簇索引：索引的叶节点就是数据节点。而非聚簇索引的叶节点仍然是索引节点，只不过有一个指针指向对应的数据块。</li>
+<li>聚集索引：物理存储按照索引排序；非聚集索引：物理存储不按照索引排序；</li>
+</ul>
+<p><strong>何时使用聚集索引或非聚集索引？</strong><br>
+<img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/172346f5e5f0ffab" alt="" loading="lazy" class="medium-zoom-image"></p>
+<h3 id="8-limit-1000000-加载很慢的话，你是怎么解决的呢？">8. limit 1000000 加载很慢的话，你是怎么解决的呢？</h3>
+<h4 id="方案一：如果id是连续的，可以这样，返回上次查询的最大记录偏移量，再往下limit">方案一：如果id是连续的，可以这样，返回上次查询的最大记录(偏移量)，再往下limit</h4>
+<pre><code class="hljs sql"><span class="hljs-keyword">select</span> <span class="hljs-keyword">id</span>，<span class="hljs-keyword">name</span> <span class="hljs-keyword">from</span> employee <span class="hljs-keyword">where</span> <span class="hljs-keyword">id</span>&gt;<span class="hljs-number">1000000</span> <span class="hljs-keyword">limit</span> <span class="hljs-number">10.</span>
+</code></pre>
+<h4 id="方案二：在业务允许的情况下限制页数：">方案二：在业务允许的情况下限制页数：</h4>
+<p>建议跟业务讨论，有没有必要查这么后的分页啦。因为绝大多数用户都不会往后翻太多页。</p>
+<h4 id="方案三：order-by--索引（id为索引）">方案三：order by + 索引（id为索引）</h4>
+<pre><code class="hljs sql"><span class="hljs-keyword">select</span> <span class="hljs-keyword">id</span>，<span class="hljs-keyword">name</span> <span class="hljs-keyword">from</span> employee <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> <span class="hljs-keyword">id</span>  <span class="hljs-keyword">limit</span> <span class="hljs-number">1000000</span>，<span class="hljs-number">10</span>
+</code></pre>
+<h4 id="方案四：利用延迟关联或者子查询优化超多分页场景。（先快速定位需要获取的id段，然后再关联）">方案四：利用延迟关联或者子查询优化超多分页场景。（先快速定位需要获取的id段，然后再关联）</h4>
+<pre><code class="hljs sql"><span class="hljs-keyword">SELECT</span> a.* <span class="hljs-keyword">FROM</span> employee a, (<span class="hljs-keyword">select</span> <span class="hljs-keyword">id</span> <span class="hljs-keyword">from</span> employee <span class="hljs-keyword">where</span> 条件 <span class="hljs-keyword">LIMIT</span> <span class="hljs-number">1000000</span>,<span class="hljs-number">10</span> ) b <span class="hljs-keyword">where</span> a.id=b.id
+</code></pre>
+<h3 id="9-如何选择合适的分布式主键方案呢？">9. 如何选择合适的分布式主键方案呢？</h3>
+<ul>
+<li>数据库自增长序列或字段。</li>
+<li>UUID。</li>
+<li>Redis生成ID</li>
+<li>Twitter的snowflake算法</li>
+<li>利用zookeeper生成唯一ID</li>
+<li>MongoDB的ObjectId</li>
+</ul>
+<h3 id="10-事务的隔离级别有哪些？mysql的默认隔离级别是什么？">10. 事务的隔离级别有哪些？MySQL的默认隔离级别是什么？</h3>
+<ul>
+<li>读未提交（Read Uncommitted）</li>
+<li>读已提交（Read Committed）</li>
+<li>可重复读（Repeatable Read）</li>
+<li>串行化（Serializable）</li>
+</ul>
+<p>Mysql默认的事务隔离级别是可重复读(Repeatable Read)</p>
+<p>可以看我这篇文章哈：<a href="https://juejin.im/post/5e800a1d6fb9a03c6568d06f#heading-8" target="_blank">一文彻底读懂MySQL事务的四大隔离级别</a></p>
+<h3 id="11-什么是幻读，脏读，不可重复读呢？">11. 什么是幻读，脏读，不可重复读呢？</h3>
+<ul>
+<li>事务A、B交替执行，事务A被事务B干扰到了，因为事务A读取到事务B未提交的数据,这就是<strong>脏读</strong></li>
+<li>在一个事务范围内，两个相同的查询，读取同一条记录，却返回了不同的数据，这就是<strong>不可重复读</strong>。</li>
+<li>事务A查询一个范围的结果集，另一个并发事务B往这个范围中插入/删除了数据，并静悄悄地提交，然后事务A再次查询相同的范围，两次读取得到的结果集不一样了，这就是<strong>幻读</strong>。</li>
+</ul>
+<p>可以看我这篇文章哈：<a href="https://juejin.im/post/5e800a1d6fb9a03c6568d06f#heading-8" target="_blank">一文彻底读懂MySQL事务的四大隔离级别</a></p>
+<h3 id="12-在高并发情况下，如何做到安全的修改同一行数据？">12. 在高并发情况下，如何做到安全的修改同一行数据？</h3>
+<p>要安全的修改同一行数据，就要保证一个线程在修改时其它线程无法更新这行记录。一般有悲观锁和乐观锁两种方案~</p>
+<h4 id="使用悲观锁">使用悲观锁</h4>
+<p>悲观锁思想就是，当前线程要进来修改数据时，别的线程都得拒之门外~<br>
+比如，可以使用select…for update ~</p>
+<pre><code class="hljs sql"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">User</span> <span class="hljs-keyword">where</span> <span class="hljs-keyword">name</span>=‘jay’ <span class="hljs-keyword">for</span> <span class="hljs-keyword">update</span>
+</code></pre>
+<p>以上这条sql语句会锁定了User表中所有符合检索条件（name=‘jay’）的记录。本次事务提交之前，别的线程都无法修改这些记录。</p>
+<h4 id="使用乐观锁">使用乐观锁</h4>
+<p>乐观锁思想就是，有线程过来，先放过去修改，如果看到别的线程没修改过，就可以修改成功，如果别的线程修改过，就修改失败或者重试。实现方式：乐观锁一般会使用版本号机制或CAS算法实现。</p>
+<p>可以看一下我这篇文章，主要是思路哈~<br>
+<a href="https://juejin.im/post/5d0616ade51d457756536791" target="_blank">CAS乐观锁解决并发问题的一次实践</a></p>
+<h3 id="13-数据库的乐观锁和悲观锁。">13. 数据库的乐观锁和悲观锁。</h3>
+<h4 id="悲观锁：">悲观锁：</h4>
+<p>悲观锁她专一且缺乏安全感了，她的心只属于当前事务，每时每刻都担心着它心爱的数据可能被别的事务修改，所以一个事务拥有（获得）悲观锁后，其他任何事务都不能对数据进行修改啦，只能等待锁被释放才可以执行。</p>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/1723d313056fce6a" alt="" loading="lazy" class="medium-zoom-image"></p>
+<h4 id="乐观锁：">乐观锁：</h4>
+<p>乐观锁的“乐观情绪”体现在，它认为数据的变动不会太频繁。因此，它允许多个事务同时对数据进行变动。实现方式：乐观锁一般会使用版本号机制或CAS算法实现。</p>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/1723e7d3872c9406" alt="" loading="lazy" class="medium-zoom-image"></p>
+<p>之前转载了的这篇文章，觉得作者写得挺详细的~</p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzIwOTE2MzU4NA==&amp;mid=2247484293&amp;idx=1&amp;sn=21378368e5e723cda5a4792bb882672c&amp;chksm=977947aaa00ecebc225c18d813d6537337b95fa79055b20e1835546a17738b0f3d16bb30b9df&amp;token=893517802&amp;lang=zh_CN#rd" target="_blank">图文并茂的带你彻底理解悲观锁与乐观锁</a></p>
+<h4 id="14-sql优化的一般步骤是什么，怎么看执行计划（explain），如何理解其中各个字段的含义。">14. SQL优化的一般步骤是什么，怎么看执行计划（explain），如何理解其中各个字段的含义。</h4>
+<ul>
+<li>show status 命令了解各种 sql 的执行频率</li>
+<li>通过慢查询日志定位那些执行效率较低的 sql 语句</li>
+<li>explain 分析低效 sql 的执行计划（这点非常重要，日常开发中用它分析Sql，会大大降低Sql导致的线上事故）</li>
+</ul>
+<p>看过这篇文章，觉得很不错：<br>
+<a href="https://juejin.im/entry/59a7b22651882524491361eb" target="_blank">优化sql 语句的一般步骤</a></p>
+<h3 id="15-select-for-update有什么含义，会锁表还是锁行还是其他。">15. select for update有什么含义，会锁表还是锁行还是其他。</h3>
+<h4 id="select-for-update-含义">select for update 含义</h4>
+<p>select查询语句是不会加锁的，但是select for update除了有查询的作用外，还会加锁呢，而且它是悲观锁哦。至于加了是行锁还是表锁，这就要看是不是用了索引/主键啦。</p>
+<p>没用索引/主键的话就是表锁，否则就是是行锁。</p>
+<h4 id="select-for-update-加锁验证">select for update 加锁验证</h4>
+<p>表结构：</p>
+<pre><code class="hljs sql">//id 为主键，name为唯一索引
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> <span class="hljs-string">`account`</span> (
+  <span class="hljs-string">`id`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span> AUTO_INCREMENT,
+  <span class="hljs-string">`name`</span> <span class="hljs-built_in">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`balance`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  PRIMARY <span class="hljs-keyword">KEY</span> (<span class="hljs-string">`id`</span>),
+  <span class="hljs-keyword">KEY</span> <span class="hljs-string">`idx_name`</span> (<span class="hljs-string">`name`</span>) <span class="hljs-keyword">USING</span> BTREE
+) <span class="hljs-keyword">ENGINE</span>=<span class="hljs-keyword">InnoDB</span> AUTO_INCREMENT=<span class="hljs-number">1570068</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-keyword">CHARSET</span>=utf8
+</code></pre>
+<p>id为主键，select for update 1270070这条记录时，再开一个事务对该记录更新，发现更新阻塞啦，其实是加锁了。如下图：</p>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/1723f1df3f7cd93d" alt="" loading="lazy" class="medium-zoom-image"><br>
+我们再开一个事务对另外一条记录1270071更新，发现更新成功，因此，如果查询条件用了索引/主键，<strong>会加行锁</strong>~<br>
+<img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/1723f21ad2567560" alt="" loading="lazy" class="medium-zoom-image"></p>
+<p>我们继续一路向北吧，换普通字段balance吧，发现又阻塞了。因此，没用索引/主键的话，<strong>select for update加的就是表锁</strong></p>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/1723f297aeeb95d5" alt="" loading="lazy" class="medium-zoom-image"></p>
+<h3 id="16-mysql事务得四大特性以及实现原理">16. MySQL事务得四大特性以及实现原理</h3>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/17237f45a661cbb7" alt="" loading="lazy"></p>
+<ul>
+<li>原子性： 事务作为一个整体被执行，包含在其中的对数据库的操作要么全部被执行，要么都不执行。</li>
+<li>一致性： 指在事务开始之前和事务结束以后，数据不会被破坏，假如A账户给B账户转10块钱，不管成功与否，A和B的总金额是不变的。</li>
+<li>隔离性： 多个事务并发访问时，事务之间是相互隔离的，即一个事务不影响其它事务运行效果。简言之，就是事务之间是进水不犯河水的。</li>
+<li>持久性： 表示事务完成以后，该事务对数据库所作的操作更改，将持久地保存在数据库之中。</li>
+</ul>
+<p><strong>事务ACID特性的实现思想</strong></p>
+<ul>
+<li>原子性：是使用 undo log来实现的，如果事务执行过程中出错或者用户执行了rollback，系统通过undo log日志返回事务开始的状态。</li>
+<li>持久性：使用 redo log来实现，只要redo log日志持久化了，当系统崩溃，即可通过redo log把数据恢复。</li>
+<li>隔离性：通过锁以及MVCC,使事务相互隔离开。</li>
+<li>一致性：通过回滚、恢复，以及并发情况下的隔离性，从而实现一致性。</li>
+</ul>
+<h3 id="17-如果某个表有近千万数据，crud比较慢，如何优化。">17. 如果某个表有近千万数据，CRUD比较慢，如何优化。</h3>
+<h4 id="分库分表">分库分表</h4>
+<p>某个表有近千万数据，可以考虑优化表结构，分表（水平分表，垂直分表），当然，你这样回答，需要准备好面试官问你的分库分表相关问题呀，如</p>
+<ul>
+<li>分表方案（水平分表，垂直分表，切分规则hash等）</li>
+<li>分库分表中间件（Mycat，sharding-jdbc等）</li>
+<li>分库分表一些问题（事务问题？跨节点Join的问题）</li>
+<li>解决方案（分布式事务等）</li>
+</ul>
+<h4 id="索引优化">索引优化</h4>
+<p>除了分库分表，优化表结构，当然还有所以索引优化等方案~</p>
+<p>有兴趣可以看我这篇文章哈~<br>
+<a href="https://juejin.im/post/5e624d156fb9a07ca80ab6f2" target="_blank">后端程序员必备：书写高质量SQL的30条建议</a></p>
+<h3 id="18-如何写sql能够有效的使用到复合索引。">18. 如何写sql能够有效的使用到复合索引。</h3>
+<p>复合索引，也叫组合索引，用户可以在多个列上建立索引,这种索引叫做复合索引。</p>
+<p>当我们创建一个组合索引的时候，如(k1,k2,k3)，相当于创建了（k1）、(k1,k2)和(k1,k2,k3)三个索引，这就是最左匹配原则。</p>
+<pre><code class="hljs sql"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">table</span> <span class="hljs-keyword">where</span> k1=A <span class="hljs-keyword">AND</span> k2=B <span class="hljs-keyword">AND</span> k3=D 
+</code></pre>
+<p>有关于复合索引，我们需要关注查询Sql条件的顺序，确保最左匹配原则有效，同时可以删除不必要的冗余索引。</p>
+<h3 id="19-mysql中in-和exists的区别。">19. mysql中in 和exists的区别。</h3>
+<p>这个，跟一下demo来看更刺激吧，啊哈哈</p>
+<p>假设表A表示某企业的员工表，表B表示部门表，查询所有部门的所有员工，很容易有以下SQL:</p>
+<pre><code class="hljs csharp"><span class="hljs-keyword">select</span> * <span class="hljs-function"><span class="hljs-keyword">from</span> A <span class="hljs-keyword">where</span> deptId <span class="hljs-title">in</span> (<span class="hljs-params"><span class="hljs-keyword">select</span> deptId <span class="hljs-keyword">from</span> B</span>)</span>;
+</code></pre>
+<p>这样写等价于：</p>
+<blockquote>
+<p>先查询部门表B</p>
+<p>select deptId from B</p>
+<p>再由部门deptId，查询A的员工</p>
+<p>select * from A where A.deptId = B.deptId</p>
+</blockquote>
+<p>可以抽象成这样的一个循环：</p>
+<pre><code class="hljs matlab">   List&lt;&gt; resultSet ;
+    <span class="hljs-keyword">for</span>(int <span class="hljs-built_in">i</span>=<span class="hljs-number">0</span>;<span class="hljs-built_in">i</span>&lt;B.<span class="hljs-built_in">length</span>;<span class="hljs-built_in">i</span>++) {
+          <span class="hljs-keyword">for</span>(int <span class="hljs-built_in">j</span>=<span class="hljs-number">0</span>;<span class="hljs-built_in">j</span>&lt;A.<span class="hljs-built_in">length</span>;<span class="hljs-built_in">j</span>++) {
+          <span class="hljs-keyword">if</span>(A[<span class="hljs-built_in">i</span>].id==B[<span class="hljs-built_in">j</span>].id) {
+             resultSet.add(A[<span class="hljs-built_in">i</span>]);
+             <span class="hljs-keyword">break</span>;
+          }
+       }
+    }
+</code></pre>
+<p>显然，除了使用in，我们也可以用exists实现一样的查询功能，如下：</p>
+<pre><code class="hljs sql"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> A <span class="hljs-keyword">where</span> <span class="hljs-keyword">exists</span> (<span class="hljs-keyword">select</span> <span class="hljs-number">1</span> <span class="hljs-keyword">from</span> B <span class="hljs-keyword">where</span> A.deptId = B.deptId); 
+</code></pre>
+<p>因为exists查询的理解就是，先执行主查询，获得数据后，再放到子查询中做条件验证，根据验证结果（true或者false），来决定主查询的数据结果是否得意保留。</p>
+<p>那么，这样写就等价于：</p>
+<blockquote>
+<p>select * from A,先从A表做循环</p>
+<p>select * from B where A.deptId = B.deptId,再从B表做循环.</p>
+</blockquote>
+<p>同理，可以抽象成这样一个循环：</p>
+<pre><code class="hljs matlab">   List&lt;&gt; resultSet ;
+    <span class="hljs-keyword">for</span>(int <span class="hljs-built_in">i</span>=<span class="hljs-number">0</span>;<span class="hljs-built_in">i</span>&lt;A.<span class="hljs-built_in">length</span>;<span class="hljs-built_in">i</span>++) {
+          <span class="hljs-keyword">for</span>(int <span class="hljs-built_in">j</span>=<span class="hljs-number">0</span>;<span class="hljs-built_in">j</span>&lt;B.<span class="hljs-built_in">length</span>;<span class="hljs-built_in">j</span>++) {
+          <span class="hljs-keyword">if</span>(A[<span class="hljs-built_in">i</span>].deptId==B[<span class="hljs-built_in">j</span>].deptId) {
+             resultSet.add(A[<span class="hljs-built_in">i</span>]);
+             <span class="hljs-keyword">break</span>;
+          }
+       }
+    }
+</code></pre>
+<p>数据库最费劲的就是跟程序链接释放。假设链接了两次，每次做上百万次的数据集查询，查完就走，这样就只做了两次；相反建立了上百万次链接，申请链接释放反复重复，这样系统就受不了了。即mysql优化原则，就是小表驱动大表，小的数据集驱动大的数据集，从而让性能更优。</p>
+<p>因此，我们要选择最外层循环小的，也就是，如果<strong>B的数据量小于A，适合使用in，如果B的数据量大于A，即适合选择exists</strong>，这就是in和exists的区别。</p>
+<h3 id="20-数据库自增主键可能遇到什么问题。">20. 数据库自增主键可能遇到什么问题。</h3>
+<ul>
+<li>使用自增主键对数据库做分库分表，可能出现诸如主键重复等的问题。解决方案的话，简单点的话可以考虑使用UUID哈</li>
+<li>自增主键会产生表锁，从而引发问题</li>
+<li>自增主键可能用完问题。</li>
+</ul>
+<h3 id="21-mvcc熟悉吗，它的底层原理？">21. MVCC熟悉吗，它的底层原理？</h3>
+<p>MVCC,多版本并发控制,它是通过读取历史版本的数据，来降低并发事务冲突，从而提高并发性能的一种机制。</p>
+<p><strong>MVCC需要关注这几个知识点：</strong></p>
+<ul>
+<li>事务版本号</li>
+<li>表的隐藏列</li>
+<li>undo log</li>
+<li>read view</li>
+</ul>
+<p>可以看我这篇文章哈：<a href="https://juejin.im/post/5e800a1d6fb9a03c6568d06f#heading-8" target="_blank">一文彻底读懂MySQL事务的四大隔离级别</a></p>
+<h3 id="22-数据库中间件了解过吗，sharding-jdbc，mycat？">22. 数据库中间件了解过吗，sharding jdbc，mycat？</h3>
+<ul>
+<li>sharding-jdbc目前是基于jdbc驱动，无需额外的proxy，因此也无需关注proxy本身的高可用。</li>
+<li>Mycat 是基于 Proxy，它复写了 MySQL 协议，将 Mycat Server 伪装成一个 MySQL 数据库，而 Sharding-JDBC 是基于 JDBC 接口的扩展，是以 jar 包的形式提供轻量级服务的。</li>
+</ul>
+<p>有网友推荐这篇文章：</p>
+<p><a href="http://www.lupaworld.com/article-263375-1.html" target="_blank">深度认识Sharding-JDBC：做最轻量级的数据库中间层</a></p>
+<h3 id="23-mysql的主从延迟，你怎么解决？">23. MYSQL的主从延迟，你怎么解决？</h3>
+<p>嘻嘻，先复习一下主从复制原理吧，如图：<br>
+<img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/1723fa894b85ed73" alt="" loading="lazy" class="medium-zoom-image"><br>
+主从复制分了五个步骤进行：</p>
+<ul>
+<li>步骤一：主库的更新事件(update、insert、delete)被写到binlog</li>
+<li>步骤二：从库发起连接，连接到主库。</li>
+<li>步骤三：此时主库创建一个binlog dump thread，把binlog的内容发送到从库。</li>
+<li>步骤四：从库启动之后，创建一个I/O线程，读取主库传过来的binlog内容并写入到relay log</li>
+<li>步骤五：还会创建一个SQL线程，从relay log里面读取内容，从Exec_Master_Log_Pos位置开始执行读取到的更新事件，将更新内容写入到slave的db</li>
+</ul>
+<p>有兴趣的小伙伴也可以看看我这篇文章：<br>
+<a href="https://juejin.im/post/5d42f48cf265da03ab422e08" target="_blank">后端程序员必备：mysql数据库相关流程图/原理图</a></p>
+<h4 id="主从同步延迟的原因">主从同步延迟的原因</h4>
+<p>一个服务器开放Ｎ个链接给客户端来连接的，这样有会有大并发的更新操作, 但是从服务器的里面读取binlog的线程仅有一个，当某个SQL在从服务器上执行的时间稍长 或者由于某个SQL要进行锁表就会导致，主服务器的SQL大量积压，未被同步到从服务器里。这就导致了主从不一致， 也就是主从延迟。</p>
+<h4 id="主从同步延迟的解决办法">主从同步延迟的解决办法</h4>
+<ul>
+<li>主服务器要负责更新操作，对安全性的要求比从服务器要高，所以有些设置参数可以修改，比如sync_binlog=1，innodb_flush_log_at_trx_commit = 1 之类的设置等。</li>
+<li>选择更好的硬件设备作为slave。</li>
+<li>把一台从服务器当度作为备份使用， 而不提供查询， 那边他的负载下来了， 执行relay log 里面的SQL效率自然就高了。</li>
+<li>增加从服务器喽，这个目的还是分散读的压力，从而降低服务器负载。</li>
+</ul>
+<p>可以看这篇文章哈~<br>
+<a href="https://blog.csdn.net/soar_away/article/details/72615012" target="_blank">MySQL 主从同步延迟的原因及解决办法</a></p>
+<h3 id="24-说一下大表查询的优化方案">24. 说一下大表查询的优化方案</h3>
+<ul>
+<li>优化shema、sql语句+索引；</li>
+<li>可以考虑加缓存，memcached, redis，或者JVM本地缓存；</li>
+<li>主从复制，读写分离；</li>
+<li>分库分表；</li>
+</ul>
+<h3 id="25-什么是数据库连接池为什么需要数据库连接池呢">25. 什么是数据库连接池?为什么需要数据库连接池呢?</h3>
+<p><strong>连接池基本原理：</strong><br>
+数据库连接池原理：在内部对象池中，维护一定数量的数据库连接，并对外暴露数据库连接的获取和返回方法。</p>
+<p><strong>应用程序和数据库建立连接的过程：</strong></p>
+<ul>
+<li>通过TCP协议的三次握手和数据库服务器建立连接</li>
+<li>发送数据库用户账号密码，等待数据库验证用户身份</li>
+<li>完成身份验证后，系统可以提交SQL语句到数据库执行</li>
+<li>把连接关闭，TCP四次挥手告别。</li>
+</ul>
+<p><strong>数据库连接池好处：</strong></p>
+<ul>
+<li>资源重用 (连接复用)</li>
+<li>更快的系统响应速度</li>
+<li>新的资源分配手段</li>
+<li>统一的连接管理，避免数据库连接泄漏</li>
+</ul>
+<p>有兴趣的伙伴可以看看我这篇文章哈~<br>
+<a href="https://juejin.im/post/5e9c22ca6fb9a03c8c0422bb" target="_blank">数据库连接池内存泄漏问题的分析和解决方案</a></p>
+<h3 id="26-一条sql语句在mysql中如何执行的？">26. 一条SQL语句在MySQL中如何执行的？</h3>
+<p>先看一下Mysql的逻辑架构图吧~<br>
+<img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/1724037179201fe9" alt="" loading="lazy"></p>
+<p><strong>查询语句：</strong></p>
+<ul>
+<li>先检查该语句是否有权限</li>
+<li>如果没有权限，直接返回错误信息</li>
+<li>如果有权限，在 MySQL8.0 版本以前，会先查询缓存。</li>
+<li>如果没有缓存，分析器进行词法分析，提取 sql 语句select等的关键元素。然后判断sql 语句是否有语法错误，比如关键词是否正确等等。</li>
+<li>优化器进行确定执行方案</li>
+<li>进行权限校验，如果没有权限就直接返回错误信息，如果有权限就会调用数据库引擎接口，返回执行结果。</li>
+</ul>
+<p>这篇文章非常不错，大家去看一下吧：<br>
+<a href="https://mp.weixin.qq.com/s?__biz=Mzg2OTA0Njk0OA==&amp;mid=2247485097&amp;idx=1&amp;sn=84c89da477b1338bdf3e9fcd65514ac1&amp;chksm=cea24962f9d5c074d8d3ff1ab04ee8f0d6486e3d015cfd783503685986485c11738ccb542ba7&amp;token=79317275&amp;lang=zh_CN#rd" target="_blank">一条SQL语句在MySQL中如何执行的</a></p>
+<h3 id="27-innodb引擎中的索引策略，了解过吗？">27. InnoDB引擎中的索引策略，了解过吗？</h3>
+<ul>
+<li>覆盖索引</li>
+<li>最左前缀原则</li>
+<li>索引下推</li>
+</ul>
+<p>索引下推优化是 MySQL 5.6 引入的， 可以在索引遍历过程中，对索引中包含的字段先做判断，直接过滤掉不满足条件的记录，减少回表次数。</p>
+<p>这篇文章非常不错，大家去看一下吧：<br>
+<a href="https://www.cnblogs.com/jamaler/p/12239558.html" target="_blank">聊一聊 InnoDB 引擎中的这些索引策略</a></p>
+<h3 id="28-数据库存储日期格式时，如何考虑时区转换问题？">28. 数据库存储日期格式时，如何考虑时区转换问题？</h3>
+<ul>
+<li>datetime类型适合用来记录数据的原始的创建时间，修改记录中其他字段的值，datetime字段的值不会改变，除非手动修改它。</li>
+<li>timestamp类型适合用来记录数据的最后修改时间，只要修改了记录中其他字段的值，timestamp字段的值都会被自动更新。</li>
+</ul>
+<p>如何考虑时区转换问题/看一下这个吧：<br>
+<a href="https://blog.csdn.net/shshaashsh/article/details/99312533" target="_blank">数据库存储日期格式时，如何考虑时区转换问题？</a></p>
+<h3 id="29-一条sql执行过长的时间，你如何优化，从哪些方面入手？">29. 一条sql执行过长的时间，你如何优化，从哪些方面入手？</h3>
+<ul>
+<li>查看是否涉及多表和子查询，优化Sql结构，如去除冗余字段，是否可拆表等</li>
+<li>优化索引结构，看是否可以适当添加索引</li>
+<li>数量大的表，可以考虑进行分离/分表（如交易流水表）</li>
+<li>数据库主从分离，读写分离</li>
+<li>explain分析sql语句，查看执行计划，优化sql</li>
+<li>查看mysql执行日志，分析是否有其他方面的问题</li>
+</ul>
+<h3 id="30-mysql数据库服务器性能分析的方法命令有哪些">30. MYSQL数据库服务器性能分析的方法命令有哪些?</h3>
+<ul>
+<li>Show status, 一些值得监控的变量值：</li>
+</ul>
+<blockquote>
+<ul>
+<li>Bytes_received和Bytes_sent 和服务器之间来往的流量。</li>
+<li>Com_*服务器正在执行的命令。</li>
+<li>Created_*在查询执行期限间创建的临时表和文件。</li>
+<li>Handler_*存储引擎操作。</li>
+<li>Select_*不同类型的联接执行计划。</li>
+<li>Sort_*几种排序信息。</li>
+</ul>
+</blockquote>
+<ul>
+<li>Show profiles 是MySql用来分析当前会话SQL语句执行的资源消耗情况</li>
+</ul>
+<h3 id="31-blob和text有什么区别？">31. Blob和text有什么区别？</h3>
+<ul>
+<li>Blob用于存储二进制数据，而Text用于存储大字符串。</li>
+<li>Blob值被视为二进制字符串（字节字符串）,它们没有字符集，并且排序和比较基于列值中的字节的数值。</li>
+<li>text值被视为非二进制字符串（字符字符串）。它们有一个字符集，并根据字符集的排序规则对值进行排序和比较。</li>
+</ul>
+<h3 id="32--mysql里记录货币用什么字段类型比较好？">32.  mysql里记录货币用什么字段类型比较好？</h3>
+<ul>
+<li>货币在数据库中MySQL常用Decimal和Numric类型表示，这两种类型被MySQL实现为同样的类型。他们被用于保存与金钱有关的数据。</li>
+<li>salary DECIMAL(9,2)，9(precision)代表将被用于存储值的总的小数位数，而2(scale)代表将被用于存储小数点后的位数。存储在salary列中的值的范围是从-9999999.99到9999999.99。</li>
+<li>DECIMAL和NUMERIC值作为字符串存储，而不是作为二进制浮点数，以便保存那些值的小数精度。</li>
+</ul>
+<h3 id="33--mysql中有哪几种锁，列举一下？">33.  Mysql中有哪几种锁，列举一下？</h3>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/17240a13fa147bea" alt="" loading="lazy" class="medium-zoom-image"></p>
+<p>如果按锁粒度划分，有以下3种：</p>
+<ul>
+<li>表锁： 开销小，加锁快；锁定力度大，发生锁冲突概率高，并发度最低;不会出现死锁。</li>
+<li>行锁： 开销大，加锁慢；会出现死锁；锁定粒度小，发生锁冲突的概率低，并发度高。</li>
+<li>页锁： 开销和加锁速度介于表锁和行锁之间；会出现死锁；锁定粒度介于表锁和行锁之间，并发度一般</li>
+</ul>
+<p>有兴趣的小伙伴可以看我这篇文章，有介绍到各种锁哈：</p>
+<p><a href="https://juejin.im/post/5d42f48cf265da03ab422e08" target="_blank">后端程序员必备：mysql数据库相关流程图/原理图</a></p>
+<h3 id="34--hash索引和b树区别是什么？你在设计索引是怎么抉择的？">34.  Hash索引和B+树区别是什么？你在设计索引是怎么抉择的？</h3>
+<ul>
+<li>B+树可以进行范围查询，Hash索引不能。</li>
+<li>B+树支持联合索引的最左侧原则，Hash索引不支持。</li>
+<li>B+树支持order by排序，Hash索引不支持。</li>
+<li>Hash索引在等值查询上比B+树效率更高。</li>
+<li>B+树使用like 进行模糊查询的时候，like后面（比如%开头）的话可以起到优化的作用，Hash索引根本无法进行模糊查询。</li>
+</ul>
+<h3 id="35--mysql-的内连接、左连接、右连接有什么区别？">35.  mysql 的内连接、左连接、右连接有什么区别？</h3>
+<ul>
+<li>Inner join 内连接，在两张表进行连接查询时，只保留两张表中完全匹配的结果集</li>
+<li>left join 在两张表进行连接查询时，会返回左表所有的行，即使在右表中没有匹配的记录。</li>
+<li>right join 在两张表进行连接查询时，会返回右表所有的行，即使在左表中没有匹配的记录。</li>
+</ul>
+<h3 id="36--说说mysql-的基础架构图">36.  说说MySQL 的基础架构图</h3>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/17240afafdc289e5" alt="" loading="lazy"><br>
+Mysql逻辑架构图主要分三层：</p>
+<ul>
+<li>第一层负责连接处理，授权认证，安全等等</li>
+<li>第二层负责编译并优化SQL</li>
+<li>第三层是存储引擎。</li>
+</ul>
+<h3 id="37--什么是内连接、外连接、交叉连接、笛卡尔积呢？">37.  什么是内连接、外连接、交叉连接、笛卡尔积呢？</h3>
+<ul>
+<li>内连接（inner join）：取得两张表中满足存在连接匹配关系的记录。</li>
+<li>外连接（outer join）：取得两张表中满足存在连接匹配关系的记录，以及某张表（或两张表）中不满足匹配关系的记录。</li>
+<li>交叉连接（cross join）：显示两张表所有记录一一对应，没有匹配关系进行筛选，也被称为：笛卡尔积。</li>
+</ul>
+<h3 id="38--说一下数据库的三大范式">38.  说一下数据库的三大范式</h3>
+<ul>
+<li>第一范式：数据表中的每一列（每个字段）都不可以再拆分。</li>
+<li>第二范式：在第一范式的基础上，分主键列完全依赖于主键，而不能是依赖于主键的一部分。</li>
+<li>第三范式：在满足第二范式的基础上，表中的非主键只依赖于主键，而不依赖于其他非主键。</li>
+</ul>
+<h3 id="39--mysql有关权限的表有哪几个呢？">39.  mysql有关权限的表有哪几个呢？</h3>
+<p>MySQL服务器通过权限表来控制用户对数据库的访问，权限表存放在mysql数据库里，由mysql_install_db脚本初始化。这些权限表分别user，db，table_priv，columns_priv和host。</p>
+<ul>
+<li>user权限表：记录允许连接到服务器的用户帐号信息，里面的权限是全局级的。</li>
+<li>db权限表：记录各个帐号在各个数据库上的操作权限。</li>
+<li>table_priv权限表：记录数据表级的操作权限。</li>
+<li>columns_priv权限表：记录数据列级的操作权限。</li>
+<li>host权限表：配合db权限表对给定主机上数据库级操作权限作更细致的控制。这个权限表不受GRANT和REVOKE语句的影响。</li>
+</ul>
+<h3 id="40--mysql的binlog有几种录入格式？分别有什么区别？">40.  Mysql的binlog有几种录入格式？分别有什么区别？</h3>
+<blockquote>
+<p>有三种格式哈，statement，row和mixed。</p>
+<ul>
+<li>statement，每一条会修改数据的sql都会记录在binlog中。不需要记录每一行的变化，减少了binlog日志量，节约了IO，提高性能。由于sql的执行是有上下文的，因此在保存的时候需要保存相关的信息，同时还有一些使用了函数之类的语句无法被记录复制。</li>
+<li>row，不记录sql语句上下文相关信息，仅保存哪条记录被修改。记录单元为每一行的改动，基本是可以全部记下来但是由于很多操作，会导致大量行的改动(比如alter table)，因此这种模式的文件保存的信息太多，日志量太大。</li>
+<li>mixed，一种折中的方案，普通操作使用statement记录，当无法使用statement的时候使用row。</li>
+</ul>
+</blockquote>
+<h3 id="41--innodb引擎的4大特性，了解过吗">41.  InnoDB引擎的4大特性，了解过吗</h3>
+<ul>
+<li>插入缓冲（insert buffer)</li>
+<li>二次写(double write)</li>
+<li>自适应哈希索引(ahi)</li>
+<li>预读(read ahead)</li>
+</ul>
+<h3 id="42--索引有哪些优缺点？">42.  索引有哪些优缺点？</h3>
+<p><strong>优点：</strong></p>
+<ul>
+<li>唯一索引可以保证数据库表中每一行的数据的唯一性</li>
+<li>索引可以加快数据查询速度，减少查询时间</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>创建索引和维护索引要耗费时间</li>
+<li>索引需要占物理空间，除了数据表占用数据空间之外，每一个索引还要占用一定的物理空间</li>
+<li>以表中的数据进行增、删、改的时候，索引也要动态的维护。</li>
+</ul>
+<h3 id="43--索引有哪几种类型？">43.  索引有哪几种类型？</h3>
+<ul>
+<li>主键索引: 数据列不允许重复，不允许为NULL，一个表只能有一个主键。</li>
+<li>唯一索引: 数据列不允许重复，允许为NULL值，一个表允许多个列创建唯一索引。</li>
+<li>普通索引: 基本的索引类型，没有唯一性的限制，允许为NULL值。</li>
+<li>全文索引：是目前搜索引擎使用的一种关键技术，对文本的内容进行分词、搜索。</li>
+<li>覆盖索引：查询列要被所建的索引覆盖，不必读取数据行</li>
+<li>组合索引：多列值组成一个索引，用于组合搜索，效率大于索引合并</li>
+</ul>
+<h3 id="44--创建索引有什么原则呢？">44.  创建索引有什么原则呢？</h3>
+<ul>
+<li>最左前缀匹配原则</li>
+<li>频繁作为查询条件的字段才去创建索引</li>
+<li>频繁更新的字段不适合创建索引</li>
+<li>索引列不能参与计算，不能有函数操作</li>
+<li>优先考虑扩展索引，而不是新建索引，避免不必要的索引</li>
+<li>在order by或者group by子句中，创建索引需要注意顺序</li>
+<li>区分度低的数据列不适合做索引列(如性别）</li>
+<li>定义有外键的数据列一定要建立索引。</li>
+<li>对于定义为text、image数据类型的列不要建立索引。</li>
+<li>删除不再使用或者很少使用的索引</li>
+</ul>
+<h3 id="45--创建索引的三种方式">45.  创建索引的三种方式</h3>
+<ul>
+<li>在执行CREATE TABLE时创建索引</li>
+</ul>
+<pre><code class="hljs sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> <span class="hljs-string">`employee`</span> (
+  <span class="hljs-string">`id`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`name`</span> <span class="hljs-built_in">varchar</span>(<span class="hljs-number">255</span>) <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`age`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">11</span>) <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`date`</span> datetime <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  <span class="hljs-string">`sex`</span> <span class="hljs-built_in">int</span>(<span class="hljs-number">1</span>) <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">NULL</span>,
+  PRIMARY <span class="hljs-keyword">KEY</span> (<span class="hljs-string">`id`</span>),
+  <span class="hljs-keyword">KEY</span> <span class="hljs-string">`idx_name`</span> (<span class="hljs-string">`name`</span>) <span class="hljs-keyword">USING</span> BTREE
+) <span class="hljs-keyword">ENGINE</span>=<span class="hljs-keyword">InnoDB</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-keyword">CHARSET</span>=utf8;
+</code></pre>
+<ul>
+<li>使用ALTER TABLE命令添加索引</li>
+</ul>
+<pre><code class="hljs sql"><span class="hljs-keyword">ALTER</span> <span class="hljs-keyword">TABLE</span> table_name <span class="hljs-keyword">ADD</span> <span class="hljs-keyword">INDEX</span> index_name (<span class="hljs-keyword">column</span>);
+</code></pre>
+<ul>
+<li>使用CREATE INDEX命令创建</li>
+</ul>
+<pre><code class="hljs sql"><span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> index_name <span class="hljs-keyword">ON</span> table_name (<span class="hljs-keyword">column</span>);
+</code></pre>
+<h3 id="46--百万级别或以上的数据，你是如何删除的？">46.  百万级别或以上的数据，你是如何删除的？</h3>
+<ul>
+<li>我们想要删除百万数据的时候可以先删除索引</li>
+<li>然后批量删除其中无用数据</li>
+<li>删除完成后重新创建索引。</li>
+</ul>
+<h3 id="47--什么是最左前缀原则？什么是最左匹配原则？">47.  什么是最左前缀原则？什么是最左匹配原则？</h3>
+<blockquote>
+<ul>
+<li>最左前缀原则，就是最左优先，在创建多列索引时，要根据业务需求，where子句中使用最频繁的一列放在最左边。</li>
+<li>当我们创建一个组合索引的时候，如(k1,k2,k3)，相当于创建了（k1）、(k1,k2)和(k1,k2,k3)三个索引，这就是最左匹配原则。。</li>
+</ul>
+</blockquote>
+<h3 id="48--b树和b树的区别，数据库为什么使用b树而不是b树？">48.  B树和B+树的区别，数据库为什么使用B+树而不是B树？</h3>
+<ul>
+<li>在B树中，键和值即存放在内部节点又存放在叶子节点；在B+树中，内部节点只存键，叶子节点则同时存放键和值。</li>
+<li>B+树的叶子节点有一条链相连，而B树的叶子节点各自独立的。</li>
+</ul>
+<blockquote>
+<ul>
+<li>B+树索引的所有数据均存储在叶子节点，而且数据是按照顺序排列的，链表连着的。那么B+树使得范围查找，排序查找，分组查找以及去重查找变得异常简单。.</li>
+<li>B+树非叶子节点上是不存储数据的，仅存储键值，而B树节点中不仅存储键值，也会存储数据。innodb中页的默认大小是16KB，如果不存储数据，那么就会存储更多的键值，相应的树的阶数（节点的子节点树）就会更大，树就会更矮更胖，如此一来我们查找数据进行磁盘的IO次数有会再次减少，数据查询的效率也会更快.</li>
+</ul>
+</blockquote>
+<h3 id="49--覆盖索引、回表等这些，了解过吗？">49.  覆盖索引、回表等这些，了解过吗？</h3>
+<ul>
+<li>覆盖索引： 查询列要被所建的索引覆盖，不必从数据表中读取，换句话说查询列要被所使用的索引覆盖。</li>
+<li>回表：二级索引无法直接查询所有列的数据，所以通过二级索引查询到聚簇索引后，再查询到想要的数据，这种通过二级索引查询出来的过程，就叫做回表。</li>
+</ul>
+<p>网上这篇文章讲得很清晰：<br>
+<a href="https://www.jianshu.com/p/8991cbca3854" target="_blank">mysql覆盖索引与回表</a></p>
+<h3 id="50--b树在满足聚簇索引和覆盖索引的时候不需要回表查询数据？">50.  B+树在满足聚簇索引和覆盖索引的时候不需要回表查询数据？</h3>
+<blockquote>
+<ul>
+<li>在B+树的索引中，叶子节点可能存储了当前的key值，也可能存储了当前的key值以及整行的数据，这就是聚簇索引和非聚簇索引。 在InnoDB中，只有主键索引是聚簇索引，如果没有主键，则挑选一个唯一键建立聚簇索引。如果没有唯一键，则隐式的生成一个键来建立聚簇索引。</li>
+<li>当查询使用聚簇索引时，在对应的叶子节点，可以获取到整行数据，因此不用再次进行回表查询。</li>
+</ul>
+</blockquote>
+<h3 id="51--何时使用聚簇索引与非聚簇索引">51.  何时使用聚簇索引与非聚簇索引</h3>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/1724114378044d25" alt="" loading="lazy" class="medium-zoom-image"></p>
+<h3 id="52--非聚簇索引一定会回表查询吗？">52.  非聚簇索引一定会回表查询吗？</h3>
+<p>不一定，如果查询语句的字段全部命中了索引，那么就不必再进行回表查询（哈哈，覆盖索引就是这么回事）。</p>
+<blockquote>
+<p>举个简单的例子，假设我们在学生表的上建立了索引，那么当进行select age from student where age &lt; 20的查询时，在索引的叶子节点上，已经包含了age信息，不会再次进行回表查询。</p>
+</blockquote>
+<h3 id="53-组合索引是什么？为什么需要注意组合索引中的顺序？">53. 组合索引是什么？为什么需要注意组合索引中的顺序？</h3>
+<p>组合索引，用户可以在多个列上建立索引,这种索引叫做组合索引。</p>
+<p>因为InnoDB引擎中的索引策略的最左原则，所以需要注意组合索引中的顺序。</p>
+<h3 id="54--什么是数据库事务？">54.  什么是数据库事务？</h3>
+<p>数据库事务（简称：事务），是数据库管理系统执行过程中的一个逻辑单位，由一个有限的数据库操作序列构成，这些操作要么全部执行,要么全部不执行，是一个不可分割的工作单位。</p>
+<h3 id="55--隔离级别与锁的关系">55.  隔离级别与锁的关系</h3>
+<p>回答这个问题，可以先阐述四种隔离级别，再阐述它们的实现原理。隔离级别就是依赖锁和MVCC实现的。</p>
+<p>可以看我这篇文章哈：<a href="https://juejin.im/post/5e800a1d6fb9a03c6568d06f#heading-8" target="_blank">一文彻底读懂MySQL事务的四大隔离级别</a></p>
+<h3 id="56--按照锁的粒度分，数据库锁有哪些呢？锁机制与innodb锁算法">56.  按照锁的粒度分，数据库锁有哪些呢？锁机制与InnoDB锁算法</h3>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/1724129062f57007" alt="" loading="lazy" class="medium-zoom-image"></p>
+<ul>
+<li>按锁粒度分有：表锁，页锁，行锁</li>
+<li>按锁机制分有：乐观锁，悲观锁</li>
+</ul>
+<h3 id="57--从锁的类别角度讲，mysql都有哪些锁呢？">57.  从锁的类别角度讲，MySQL都有哪些锁呢？</h3>
+<p>从锁的类别上来讲，有共享锁和排他锁。</p>
+<ul>
+<li>共享锁: 又叫做读锁。当用户要进行数据的读取时，对数据加上共享锁。共享锁可以同时加上多个。</li>
+<li>排他锁: 又叫做写锁。当用户要进行数据的写入时，对数据加上排他锁。排他锁只可以加一个，他和其他的排他锁，共享锁都相斥。</li>
+</ul>
+<p>锁兼容性如下：<br>
+<img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/172412db1d202759" alt="" loading="lazy" class="medium-zoom-image"></p>
+<h3 id="58--mysql中innodb引擎的行锁是怎么实现的？">58.  MySQL中InnoDB引擎的行锁是怎么实现的？</h3>
+<p>基于索引来完成行锁的。</p>
+<pre><code class="hljs sql"><span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> t <span class="hljs-keyword">where</span> <span class="hljs-keyword">id</span> = <span class="hljs-number">666</span> <span class="hljs-keyword">for</span> <span class="hljs-keyword">update</span>;
+</code></pre>
+<p>for update 可以根据条件来完成行锁锁定，并且 id 是有索引键的列，如果 id 不是索引键那么InnoDB将实行表锁。</p>
+<h3 id="59--什么是死锁？怎么解决？">59.  什么是死锁？怎么解决？</h3>
+<p>死锁是指两个或多个事务在同一资源上相互占用，并请求锁定对方的资源，从而导致恶性循环的现象。看图形象一点，如下：<br>
+<img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/17241317342078b9" alt="" loading="lazy"><br>
+死锁有四个必要条件：互斥条件，请求和保持条件，环路等待条件，不剥夺条件。</p>
+<p>解决死锁思路，一般就是切断环路，尽量避免并发形成环路。</p>
+<blockquote>
+<ul>
+<li>如果不同程序会并发存取多个表，尽量约定以相同的顺序访问表，可以大大降低死锁机会。</li>
+<li>在同一个事务中，尽可能做到一次锁定所需要的所有资源，减少死锁产生概率；</li>
+<li>对于非常容易产生死锁的业务部分，可以尝试使用升级锁定颗粒度，通过表级锁定来减少死锁产生的概率；</li>
+<li>如果业务处理不好可以用分布式事务锁或者使用乐观锁</li>
+<li>死锁与索引密不可分，解决索引问题，需要合理优化你的索引，</li>
+</ul>
+</blockquote>
+<p>有兴趣的朋友，可以看我的这篇死锁分析：<br>
+<a href="https://juejin.im/post/5e8b269f518825739379e82c#heading-16" target="_blank">手把手教你分析Mysql死锁问题</a></p>
+<h3 id="60--为什么要使用视图？什么是视图？">60.  为什么要使用视图？什么是视图？</h3>
+<p><strong>为什么要使用视图？</strong></p>
+<p>为了提高复杂SQL语句的复用性和表操作的安全性，MySQL数据库管理系统提供了视图特性。</p>
+<p><strong>什么是视图？</strong></p>
+<blockquote>
+<p>视图是一个虚拟的表，是一个表中的数据经过某种筛选后的显示方式，视图由一个预定义的查询select语句组成。</p>
+</blockquote>
+<h3 id="61--视图有哪些特点？哪些使用场景？">61.  视图有哪些特点？哪些使用场景？</h3>
+<p><strong>视图特点：</strong></p>
+<ul>
+<li>视图的列可以来自不同的表，是表的抽象和在逻辑意义上建立的新关系。</li>
+<li>视图是由基本表(实表)产生的表(虚表)。</li>
+<li>视图的建立和删除不影响基本表。</li>
+<li>对视图内容的更新(添加，删除和修改)直接影响基本表。</li>
+<li>当视图来自多个基本表时，不允许添加和删除数据。</li>
+</ul>
+<p><strong>视图用途：</strong> 简化sql查询，提高开发效率，兼容老的表结构。</p>
+<p><strong>视图的常见使用场景：</strong></p>
+<ul>
+<li>重用SQL语句；</li>
+<li>简化复杂的SQL操作。</li>
+<li>使用表的组成部分而不是整个表；</li>
+<li>保护数据</li>
+<li>更改数据格式和表示。视图可返回与底层表的表示和格式不同的数据。</li>
+</ul>
+<h3 id="62--视图的优点，缺点，讲一下？">62.  视图的优点，缺点，讲一下？</h3>
+<ul>
+<li>查询简单化。视图能简化用户的操作</li>
+<li>数据安全性。视图使用户能以多种角度看待同一数据，能够对机密数据提供安全保护</li>
+<li>逻辑数据独立性。视图对重构数据库提供了一定程度的逻辑独立性</li>
+</ul>
+<h3 id="63--count1、count-与-count列名-的区别？">63.  count(1)、count(*) 与 count(列名) 的区别？</h3>
+<ul>
+<li>count(*)包括了所有的列，相当于行数，在统计结果的时候，不会忽略列值为NULL</li>
+<li>count(1)包括了忽略所有列，用1代表代码行，在统计结果的时候，不会忽略列值为NULL</li>
+<li>count(列名)只包括列名那一列，在统计结果的时候，会忽略列值为空（这里的空不是只空字符串或者0，而是表示null）的计数，即某个字段值为NULL时，不统计。</li>
+</ul>
+<h3 id="64--什么是游标？">64.  什么是游标？</h3>
+<p>游标提供了一种对从表中检索出的数据进行操作的灵活手段，就本质而言，游标实际上是一种能从包括多条数据记录的结果集中每次提取一条记录的机制。</p>
+<h3 id="65--什么是存储过程？有哪些优缺点？">65.  什么是存储过程？有哪些优缺点？</h3>
+<p><strong>存储过程</strong>，就是一些编译好了的SQL语句，这些SQL语句代码像一个方法一样实现一些功能（对单表或多表的增删改查），然后给这些代码块取一个名字，在用到这个功能的时候调用即可。</p>
+<p><strong>优点：</strong></p>
+<ul>
+<li>存储过程是一个预编译的代码块，执行效率比较高</li>
+<li>存储过程在服务器端运行，减少客户端的压力</li>
+<li>允许模块化程序设计，只需要创建一次过程，以后在程序中就可以调用该过程任意次，类似方法的复用</li>
+<li>一个存储过程替代大量T_SQL语句 ，可以降低网络通信量，提高通信速率</li>
+<li>可以一定程度上确保数据安全</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>调试麻烦</li>
+<li>可移植性不灵活</li>
+<li>重新编译问题</li>
+</ul>
+<h3 id="66--什么是触发器？触发器的使用场景有哪些？">66.  什么是触发器？触发器的使用场景有哪些？</h3>
+<p><strong>触发器</strong>，指一段代码，当触发某个事件时，自动执行这些代码。</p>
+<p><strong>使用场景：</strong></p>
+<ul>
+<li>可以通过数据库中的相关表实现级联更改。</li>
+<li>实时监控某张表中的某个字段的更改而需要做出相应的处理。</li>
+<li>例如可以生成某些业务的编号。</li>
+<li>注意不要滥用，否则会造成数据库及应用程序的维护困难。</li>
+</ul>
+<h3 id="67---mysql中都有哪些触发器？">67.   MySQL中都有哪些触发器？</h3>
+<p>MySQL 数据库中有六种触发器：</p>
+<ul>
+<li>Before Insert</li>
+<li>After Insert</li>
+<li>Before Update</li>
+<li>After Update</li>
+<li>Before Delete</li>
+<li>After Delete</li>
+</ul>
+<h3 id="68---超键、候选键、主键、外键分别是什么？">68.   超键、候选键、主键、外键分别是什么？</h3>
+<ul>
+<li>超键：在关系模式中，能唯一知标识元组的属性集称为超键。</li>
+<li>候选键：是最小超键，即没有冗余元素的超键。</li>
+<li>主键：数据库表中对储存数据对象予以唯一和完整标识的数据列或属性的组合。一个数据列只能有一个主键，且主键的取值不能缺失，即不能为空值（Null）。</li>
+<li>外键：在一个表中存在的另一个表的主键称此表的外键。。</li>
+</ul>
+<h3 id="69---sql-约束有哪几种呢？">69.   SQL 约束有哪几种呢？</h3>
+<ul>
+<li>NOT NULL: 约束字段的内容一定不能为NULL。</li>
+<li>UNIQUE: 约束字段唯一性，一个表允许有多个 Unique 约束。</li>
+<li>PRIMARY KEY: 约束字段唯一，不可重复，一个表只允许存在一个。</li>
+<li>FOREIGN KEY: 用于预防破坏表之间连接的动作，也能防止非法数据插入外键。</li>
+<li>CHECK: 用于控制字段的值范围。</li>
+</ul>
+<h3 id="70---谈谈六种关联查询，使用场景。">70.   谈谈六种关联查询，使用场景。</h3>
+<ul>
+<li>交叉连接</li>
+<li>内连接</li>
+<li>外连接</li>
+<li>联合查询</li>
+<li>全连接</li>
+<li>交叉连接</li>
+</ul>
+<h3 id="71--varchar50中50的涵义">71.  varchar(50)中50的涵义</h3>
+<ul>
+<li>字段最多存放 50 个字符</li>
+<li>如 varchar(50) 和 varchar(200) 存储 "jay" 字符串所占空间是一样的，后者在排序时会消耗更多内存</li>
+</ul>
+<h3 id="72---mysql中int20和char20以及varchar20的区别">72.   mysql中int(20)和char(20)以及varchar(20)的区别</h3>
+<ul>
+<li>int(20) 表示字段是int类型，显示长度是 20</li>
+<li>char(20)表示字段是固定长度字符串，长度为 20</li>
+<li>varchar(20) 表示字段是可变长度字符串，长度为 20</li>
+</ul>
+<h3 id="73---drop、delete与truncate的区别">73.   drop、delete与truncate的区别</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th></th>
+<th>delete</th>
+<th>truncate</th>
+<th>drop</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>类型</td>
+<td>DML</td>
+<td>DDL</td>
+<td>DDL</td>
+</tr>
+<tr>
+<td>回滚</td>
+<td>可回滚</td>
+<td>不可回滚</td>
+<td>不可回滚</td>
+</tr>
+<tr>
+<td>删除内容</td>
+<td>表结构还在，删除表的全部或者一部分数据行</td>
+<td>表结构还在，删除表中的所有数据</td>
+<td>从数据库中删除表，所有的数据行，索引和权限也会被删除</td>
+</tr>
+<tr>
+<td>删除速度</td>
+<td>删除速度慢，逐行删除</td>
+<td>删除速度快</td>
+<td>删除速度最快</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="74---union与union-all的区别？">74.   UNION与UNION ALL的区别？</h3>
+<ul>
+<li>Union：对两个结果集进行并集操作，不包括重复行，同时进行默认规则的排序；</li>
+<li>Union All：对两个结果集进行并集操作，包括重复行，不进行排序；</li>
+<li>UNION的效率高于 UNION ALL</li>
+</ul>
+<h3 id="75--sql的生命周期？">75.  SQL的生命周期？</h3>
+<blockquote>
+<ul>
+<li>服务器与数据库建立连接</li>
+<li>数据库进程拿到请求sql</li>
+<li>解析并生成执行计划，执行</li>
+<li>读取数据到内存，并进行逻辑处理</li>
+<li>通过步骤一的连接，发送结果到客户端</li>
+<li>关掉连接，释放资源</li>
+</ul>
+</blockquote>
+<h3 id="76--一条sql的执行顺序？">76.  一条Sql的执行顺序？</h3>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/17243f19b75d3514" alt="" loading="lazy"></p>
+<h3 id="77--列值为null时，查询是否会用到索引？">77.  列值为NULL时，查询是否会用到索引？</h3>
+<p>列值为NULL也是可以走索引的</p>
+<p>计划对列进行索引，应尽量避免把它设置为可空，因为这会让 MySQL 难以优化引用了可空列的查询，同时增加了引擎的复杂度</p>
+<h3 id="78---关心过业务系统里面的sql耗时吗？统计过慢查询吗？对慢查询都怎么优化过？">78.   关心过业务系统里面的sql耗时吗？统计过慢查询吗？对慢查询都怎么优化过？</h3>
+<ul>
+<li>我们平时写Sql时，都要养成用explain分析的习惯。</li>
+<li>慢查询的统计，运维会定期统计给我们</li>
+</ul>
+<p><strong>优化慢查询：</strong></p>
+<ul>
+<li>分析语句，是否加载了不必要的字段/数据。</li>
+<li>分析SQl执行句话，是否命中索引等。</li>
+<li>如果SQL很复杂，优化SQL结构</li>
+<li>如果表数据量太大，考虑分表</li>
+</ul>
+<p>可以看我这篇文章哈：<br>
+<a href="https://juejin.im/post/5e624d156fb9a07ca80ab6f2" target="_blank">后端程序员必备：书写高质量SQL的30条建议</a></p>
+<h3 id="79--主键使用自增id还是uuid，为什么？">79.  主键使用自增ID还是UUID，为什么？</h3>
+<p>如果是单机的话，选择自增ID；如果是分布式系统，优先考虑UUID吧，但还是最好自己公司有一套分布式唯一ID生产方案吧。</p>
+<ul>
+<li>自增ID：数据存储空间小，查询效率高。但是如果数据量过大,会超出自增长的值范围，多库合并，也有可能有问题。</li>
+<li>uuid：适合大量数据的插入和更新操作，但是它无序的，插入数据效率慢，占用空间大。</li>
+</ul>
+<h3 id="80-mysql自增主键用完了怎么办？">80. mysql自增主键用完了怎么办？</h3>
+<p>自增主键一般用int类型，一般达不到最大值，可以考虑提前分库分表的。</p>
+<h3 id="81-字段为什么要求定义为not-null？">81. 字段为什么要求定义为not null？</h3>
+<p>null值会占用更多的字节，并且null有很多坑的。</p>
+<h3 id="82--如果要存储用户的密码散列，应该使用什么字段进行存储？">82.  如果要存储用户的密码散列，应该使用什么字段进行存储？</h3>
+<blockquote>
+<p>密码散列，盐，用户身份证号等固定长度的字符串，应该使用char而不是varchar来存储，这样可以节省空间且提高检索效率。</p>
+</blockquote>
+<h3 id="83-mysql驱动程序是什么？">83. Mysql驱动程序是什么？</h3>
+<p>这个jar包： mysql-connector-java-5.1.18.jar</p>
+<p>Mysql驱动程序主要帮助编程语言与 MySQL服务端进行通信，如连接、传输数据、关闭等。</p>
+<h3 id="84---如何优化长难的查询语句？有实战过吗？">84.   如何优化长难的查询语句？有实战过吗？</h3>
+<ul>
+<li>将一个大的查询分为多个小的相同的查询</li>
+<li>减少冗余记录的查询。</li>
+<li>一个复杂查询可以考虑拆成多个简单查询</li>
+<li>分解关联查询，让缓存的效率更高。</li>
+</ul>
+<h3 id="85--优化特定类型的查询语句">85.  优化特定类型的查询语句</h3>
+<p>平时积累吧：</p>
+<ul>
+<li>比如使用select 具体字段代替 select *</li>
+<li>使用count(*) 而不是count(列名)</li>
+<li>在不影响业务的情况，使用缓存</li>
+<li>explain 分析你的SQL</li>
+</ul>
+<p>可以看我这篇文章哈：<br>
+<a href="https://juejin.im/post/5e624d156fb9a07ca80ab6f2" target="_blank">后端程序员必备：书写高质量SQL的30条建议</a></p>
+<h3 id="86-mysql数据库cpu飙升的话，要怎么处理呢？">86. MySQL数据库cpu飙升的话，要怎么处理呢？</h3>
+<p><strong>排查过程：</strong></p>
+<ul>
+<li>使用top 命令观察，确定是mysqld导致还是其他原因。</li>
+<li>如果是mysqld导致的，show processlist，查看session情况，确定是不是有消耗资源的sql在运行。</li>
+<li>找出消耗高的 sql，看看执行计划是否准确， 索引是否缺失，数据量是否太大。</li>
+</ul>
+<p><strong>处理：</strong></p>
+<ul>
+<li>kill 掉这些线程(同时观察 cpu 使用率是否下降)，</li>
+<li>进行相应的调整(比如说加索引、改 sql、改内存参数)</li>
+<li>重新跑这些 SQL。</li>
+</ul>
+<p><strong>其他情况：</strong></p>
+<p>也有可能是每个 sql 消耗资源并不多，但是突然之间，有大量的 session 连进来导致 cpu 飙升，这种情况就需要跟应用一起来分析为何连接数会激增，再做出相应的调整，比如说限制连接数等</p>
+<h3 id="87---读写分离常见方案？">87.   读写分离常见方案？</h3>
+<ul>
+<li>应用程序根据业务逻辑来判断，增删改等写操作命令发给主库，查询命令发给备库。</li>
+<li>利用中间件来做代理，负责对数据库的请求识别出读还是写，并分发到不同的数据库中。（如：amoeba，mysql-proxy）</li>
+</ul>
+<h3 id="88-mysql的复制原理以及流程">88. MySQL的复制原理以及流程</h3>
+<p><strong>主从复制原理，简言之，就三步曲，如下：</strong></p>
+<ul>
+<li>主数据库有个bin-log二进制文件，纪录了所有增删改Sql语句。（binlog线程）</li>
+<li>从数据库把主数据库的bin-log文件的sql语句复制过来。（io线程）</li>
+<li>从数据库的relay-log重做日志文件中再执行一次这些sql语句。（Sql执行线程）</li>
+</ul>
+<p><strong>如下图所示：</strong></p>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/16c4d9dd1b8235c3" alt="" loading="lazy" class="medium-zoom-image"></p>
+<p>上图主从复制分了五个步骤进行：</p>
+<p>步骤一：主库的更新事件(update、insert、delete)被写到binlog</p>
+<p>步骤二：从库发起连接，连接到主库。</p>
+<p>步骤三：此时主库创建一个binlog dump thread，把binlog的内容发送到从库。</p>
+<p>步骤四：从库启动之后，创建一个I/O线程，读取主库传过来的binlog内容并写入到relay log</p>
+<p>步骤五：还会创建一个SQL线程，从relay log里面读取内容，从Exec_Master_Log_Pos位置开始执行读取到的更新事件，将更新内容写入到slave的db</p>
+<h3 id="89--mysql中datetime和timestamp的区别">89.  MySQL中DATETIME和TIMESTAMP的区别</h3>
+<p>存储精度都为秒</p>
+<p>区别：</p>
+<ul>
+<li>DATETIME 的日期范围是 1001——9999 年；TIMESTAMP 的时间范围是 1970——2038 年</li>
+<li>DATETIME 存储时间与时区无关；TIMESTAMP 存储时间与时区有关，显示的值也依赖于时区</li>
+<li>DATETIME 的存储空间为 8 字节；TIMESTAMP 的存储空间为 4 字节</li>
+<li>DATETIME 的默认值为 null；TIMESTAMP 的字段默认不为空(not null)，默认值为当前时间(CURRENT_TIMESTAMP)</li>
+</ul>
+<h3 id="90---innodb的事务实现原理？">90.   Innodb的事务实现原理？</h3>
+<ul>
+<li>原子性：是使用 undo log来实现的，如果事务执行过程中出错或者用户执行了rollback，系统通过undo log日志返回事务开始的状态。</li>
+<li>持久性：使用 redo log来实现，只要redo log日志持久化了，当系统崩溃，即可通过redo log把数据恢复。</li>
+<li>隔离性：通过锁以及MVCC,使事务相互隔离开。</li>
+<li>一致性：通过回滚、恢复，以及并发情况下的隔离性，从而实现一致性。</li>
+</ul>
+<h3 id="91-谈谈mysql的explain">91. 谈谈MySQL的Explain</h3>
+<p>Explain 执行计划包含字段信息如下：分别是 id、select_type、table、partitions、type、possible_keys、key、key_len、ref、rows、filtered、Extra 等12个字段。</p>
+<p>我们重点关注的是type，它的属性排序如下：</p>
+<pre><code class="hljs perl"><span class="hljs-keyword">system</span>  &gt; const &gt; eq_ref &gt; <span class="hljs-keyword">ref</span>  &gt; ref_or_null &gt;
+index_merge &gt; unique_subquery &gt; index_subquery &gt; 
+range &gt; <span class="hljs-keyword">index</span> &gt; ALL
+</code></pre>
+<p>推荐大家看这篇文章哈：<br>
+<a href="https://mp.weixin.qq.com/s?__biz=MzIwOTE2MzU4NA==&amp;mid=2247484319&amp;idx=1&amp;sn=17c98e757c24a853374cb7e06c9c9302&amp;chksm=977947b0a00ecea66f3971c723cd844158a24c6c602c22c562223f6932b5b7ad1eee8b700255&amp;token=1596384379&amp;lang=zh_CN#rd" target="_blank">面试官：不会看 Explain执行计划，简历敢写 SQL 优化？</a></p>
+<h3 id="92-innodb的事务与日志的实现方式">92. Innodb的事务与日志的实现方式</h3>
+<h4 id="有多少种日志">有多少种日志</h4>
+<p>innodb两种日志redo和undo。</p>
+<h4 id="日志的存放形式">日志的存放形式</h4>
+<ul>
+<li>redo：在页修改的时候，先写到 redo log buffer 里面， 然后写到 redo log 的文件系统缓存里面(fwrite)，然后再同步到磁盘文件（ fsync）。</li>
+<li>Undo：在 MySQL5.5 之前， undo 只能存放在 ibdata文件里面， 5.6 之后，可以通过设置 innodb_undo_tablespaces 参数把 undo log 存放在 ibdata之外。</li>
+</ul>
+<h4 id="事务是如何通过日志来实现的">事务是如何通过日志来实现的</h4>
+<ul>
+<li>因为事务在修改页时，要先记 undo，在记 undo 之前要记 undo 的 redo， 然后修改数据页，再记数据页修改的 redo。 Redo（里面包括 undo 的修改） 一定要比数据页先持久化到磁盘。</li>
+<li>当事务需要回滚时，因为有 undo，可以把数据页回滚到前镜像的 状态，崩溃恢复时，如果 redo log 中事务没有对应的 commit 记录，那么需要用 undo把该事务的修改回滚到事务开始之前。</li>
+<li>如果有 commit 记录，就用 redo 前滚到该事务完成时并提交掉。</li>
+</ul>
+<h3 id="93--mysql中text数据类型的最大长度">93.  MySQL中TEXT数据类型的最大长度</h3>
+<ul>
+<li>TINYTEXT：256 bytes</li>
+<li>TEXT：65,535 bytes(64kb)</li>
+<li>MEDIUMTEXT：16,777,215 bytes(16MB)</li>
+<li>LONGTEXT：4,294,967,295 bytes(4GB)</li>
+</ul>
+<h3 id="94--500台db，在最快时间之内重启。">94.  500台db，在最快时间之内重启。</h3>
+<ul>
+<li>可以使用批量 ssh 工具 pssh 来对需要重启的机器执行重启命令。</li>
+<li>也可以使用 salt（前提是客户端有安装 salt）或者 ansible（ ansible 只需要 ssh 免登通了就行）等多线程工具同时操作多台服务</li>
+</ul>
+<h3 id="95-你是如何监控你们的数据库的？你们的慢日志都是怎么查询的？">95. 你是如何监控你们的数据库的？你们的慢日志都是怎么查询的？</h3>
+<p>监控的工具有很多，例如zabbix，lepus，我这里用的是lepus</p>
+<h3 id="96-你是否做过主从一致性校验，如果有，怎么做的，如果没有，你打算怎么做？">96. 你是否做过主从一致性校验，如果有，怎么做的，如果没有，你打算怎么做？</h3>
+<p>主从一致性校验有多种工具 例如checksum、mysqldiff、pt-table-checksum等</p>
+<h3 id="97-你们数据库是否支持emoji表情存储，如果不支持，如何操作？">97. 你们数据库是否支持emoji表情存储，如果不支持，如何操作？</h3>
+<p>更换字符集utf8--&gt;utf8mb4</p>
+<h3 id="98--mysql如何获取当前日期？">98.  MySQL如何获取当前日期？</h3>
+<p>SELECT CURRENT_DATE();</p>
+<h3 id="99-一个6亿的表a，一个3亿的表b，通过外间tid关联，你如何最快的查询出满足条件的第50000到第50200中的这200条数据记录。">99. 一个6亿的表a，一个3亿的表b，通过外间tid关联，你如何最快的查询出满足条件的第50000到第50200中的这200条数据记录。</h3>
+<p>1、如果A表TID是自增长,并且是连续的,B表的ID为索引<br>
+select * from a,b where a.tid = b.id and a.tid&gt;500000 limit 200;</p>
+<p>2、如果A表的TID不是连续的,那么就需要使用覆盖索引.TID要么是主键,要么是辅助索引,B表ID也需要有索引。<br>
+select * from b , (select tid from a limit 50000,200) a where b.id = a .tid;</p>
+<h3 id="100-mysql一条sql加锁分析">100. Mysql一条SQL加锁分析</h3>
+<p>一条SQL加锁，可以分9种情况进行：</p>
+<ul>
+<li>组合一：id列是主键，RC隔离级别</li>
+<li>组合二：id列是二级唯一索引，RC隔离级别</li>
+<li>组合三：id列是二级非唯一索引，RC隔离级别</li>
+<li>组合四：id列上没有索引，RC隔离级别</li>
+<li>组合五：id列是主键，RR隔离级别</li>
+<li>组合六：id列是二级唯一索引，RR隔离级别</li>
+<li>组合七：id列是二级非唯一索引，RR隔离级别</li>
+<li>组合八：id列上没有索引，RR隔离级别</li>
+<li>组合九：Serializable隔离级别</li>
+</ul>
+<h2 id="公众号">公众号</h2>
+<p><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/1721b50d00331393" alt="" loading="lazy" class="medium-zoom-image"></p>
+<ul>
+<li>欢迎关注我个人公众号，交个朋友，一起学习哈~</li>
+<li>如果答案整理有错，欢迎指出哈，感激不尽~</li>
+</ul>
+
+</div>
+<div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block">
+
+
+    <div id="blog_post_info">
+<div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(12950484,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+        <a id="green_channel_follow" onclick="follow(&#39;932b17be-b8a5-48ea-318e-08d5f84d9736&#39;);" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/jay-huaxiao/" target="_blank"><img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/20190904131113.png" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/jay-huaxiao/">Jay_huaxiao</a><br>
+            <a href="https://home.cnblogs.com/u/jay-huaxiao/followees/">关注 - 0</a><br>
+            <a href="https://home.cnblogs.com/u/jay-huaxiao/followers/">粉丝 - 47</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow(&#39;932b17be-b8a5-48ea-318e-08d5f84d9736&#39;);return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(12950484,&#39;Digg&#39;)">
+        <span class="diggnum" id="digg_count">4</span>
+    </div>
+    <div class="buryit" onclick="votePost(12950484,&#39;Bury&#39;)">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+
+<script type="text/javascript">
+    currentDiggType = 0;
+</script></div>
+    <div class="clear"></div>
+    <div id="post_next_prev">
+
+    <a href="https://www.cnblogs.com/jay-huaxiao/p/12899737.html" class="p_n_p_prefix">« </a> 上一篇：    <a href="https://www.cnblogs.com/jay-huaxiao/p/12899737.html" title="发布于 2020-05-16 11:50">800+Java后端经典面试题，希望你找到自己理想的Offer呀~</a>
+    <br>
+    <a href="https://www.cnblogs.com/jay-huaxiao/p/12995510.html" class="p_n_p_prefix">» </a> 下一篇：    <a href="https://www.cnblogs.com/jay-huaxiao/p/12995510.html" title="发布于 2020-05-30 22:57">记一次接口性能优化实践总结：优化接口性能的八个建议</a>
+
+</div>
+</div>
+        </div>
+        <p class="postfoot">
+            posted on 
+<span id="post-date">2020-05-24 12:03</span>&nbsp;
+<a href="https://www.cnblogs.com/jay-huaxiao/">Jay_huaxiao</a>&nbsp;
+阅读(<span id="post_view_count">1966</span>)&nbsp;
+评论(<span id="post_comment_count">0</span>)&nbsp;
+<a href="https://i.cnblogs.com/EditPosts.aspx?postid=12950484" rel="nofollow">编辑</a>&nbsp;
+<a href="javascript:void(0)" onclick="AddToWz(12950484);return false;">收藏</a>
+        </p>
+    </div>
+</div>
+
+<script src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/highlight.min.js.下载"></script>
+<script>markdown_highlight();</script>
+<script>
+    var allowComments = true, cb_blogId = 449831, cb_blogApp = 'jay-huaxiao', cb_blogUserGuid = '932b17be-b8a5-48ea-318e-08d5f84d9736';
+    var cb_entryId = 12950484, cb_entryCreatedDate = '2020-05-24 12:03', cb_postType = 1;
+    updatePostStats(
+        [cb_entryId],
+        function(id, count) { $("#post_view_count").text(count) },
+        function(id, count) { $("#post_comment_count").text(count) })
+    zoomManager.apply("#cnblogs_post_body img:not(.code_img_closed):not(.code_img_opened)");
+</script>
+<a name="!comments"></a>
+<div id="blog-comments-placeholder"></div>
+<div id="comment_form" class="commentform">
+    <a name="commentform"></a>
+    <div id="divCommentShow"></div>
+    <div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="https://www.cnblogs.com/jay-huaxiao/p/12950484.html#" onclick="return RefreshPage();">刷新页面</a><a href="https://www.cnblogs.com/jay-huaxiao/p/12950484.html#top">返回顶部</a></div>
+    <div id="comment_form_container" style="visibility: visible;"><div class="login_tips">
+    登录后才能查看或发表评论，立即 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return account.login(&#39;!comments&#39;);">登录</a> 或者
+    <a href="https://www.cnblogs.com/">逛逛</a> 博客园首页
+</div>
+</div>
+    <div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+    <div id="ad_t2"><a href="https://developer.aliyun.com/learning/trainingcamp/realtime/1?utm_content=g_1000268661" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-阿里云-实时数仓&#39;)">【推荐】阿里云专家倾力打造，实时计算Flink版+Hologres实时数仓“王炸组合”</a><br><a href="http://www.uccpsoft.com/index.htm" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-ucancode&#39;)">【推荐】大型组态、工控、仿真、CAD\GIS 50万行VC++源码免费下载!</a><br><a href="https://brands.cnblogs.com/huawei" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-华为专区&#39;)">【推荐】玩转开发板：旧键盘+OpenHarmony 变身蓝牙键盘 v0.1</a><br><a href="https://www.aliyun.com/activity/daily/bestoffer?userCode=swh7dvlt" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-阿里云-cps&#39;)">【推荐】阿里云爆品销量榜单，精选爆款产品低至0.55折</a><br><a href="http://www.moojnn.com/?source=bokeyuan" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-魔镜&#39;)">【推荐】限时秒杀！国云大数据魔镜，企业级云分析平台</a><br></div>
+    <div id="opt_under_post"></div>
+    <div id="cnblogs_c1" class="under-post-card">
+        <div id="div-gpt-ad-1592365906576-0" style="width: 300px; height: 250px;" data-google-query-id="CJq68Ib_wfACFU5BiwodzCQGLg"><div id="google_ads_iframe_/1090369/C1_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C1_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C1_0" width="300" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" data-google-container-id="1" style="border: 0px; vertical-align: bottom;" data-load-complete="true" src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/saved_resource.html"></iframe></div></div>
+    </div>
+    <div id="under_post_card1"><div class="under-post-card"><b>园子动态</b>：<br>· <a href="https://www.cnblogs.com/cmt/p/14585828.html" target="_blank">致园友们的一封检讨书：都是我们的错</a><br>· <a href="https://www.cnblogs.com/cmt/p/14595262.html" target="_blank">数据库实例 CPU 100% 引发全站故障</a><br>· <a href="https://www.cnblogs.com/cmt/p/14217355.html" target="_blank">发起一个开源项目：博客引擎 fluss</a><br></div></div>
+    <div id="cnblogs_c2" class="under-post-card">
+        <div id="div-gpt-ad-1592366332455-0" style="width: 468px; height: 60px;" data-google-query-id="CJu68Ib_wfACFU5BiwodzCQGLg"><div id="google_ads_iframe_/1090369/C2_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C2_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C2_0" width="468" height="60" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" data-google-container-id="2" style="border: 0px; vertical-align: bottom;" data-load-complete="true" src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/saved_resource(1).html"></iframe></div></div>
+    </div>
+    <div id="under_post_card2"><div class="itnews under-post-card">
+    <b>最新新闻</b>：
+    <br>
+ ·          <a href="https://news.cnblogs.com/n/693641/" target="_blank">四月新能源车销量出炉：五个新造车加起来顶个特斯拉</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/693640/" target="_blank">老艺术家，别碰直播带货</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/693639/" target="_blank">微软如何走出反垄断？</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/693638/" target="_blank">芒格、李录与段永平“battle”比亚迪</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/693636/" target="_blank">中科驭数宣布与中移物联网达成战略合作</a>
+        <br>
+    » <a href="https://news.cnblogs.com/" title="IT 新闻" target="_blank">更多新闻...</a>
+</div></div>
+    <div id="HistoryToday" class="under-post-card"></div>
+    <script type="text/javascript">
+       var commentManager = new blogCommentManager();
+       commentManager.renderComments(0);
+       fixPostBody();
+       deliverBigBanner();
+setTimeout(function() { incrementViewCount(cb_entryId); }, 50);       deliverT2();
+       deliverC1C2();
+       loadNewsAndKb();
+       loadBlogSignature();
+LoadPostCategoriesTags(cb_blogId, cb_entryId);       LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+       GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+       loadOptUnderPost();
+       GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);
+    </script>
+</div>
+
+
+
+</div>
+</div>
+<div id="leftmenu">
+
+
+<h3>导航</h3>
+<ul>
+    <li>
+        <a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">
+博客园</a>
+
+    </li>
+    <li>
+        
+<a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/jay-huaxiao/">
+首页</a>
+
+    </li>
+    <li>
+        
+
+<a id="blog_nav_newpost" class="menu" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">
+新随笔</a>
+
+    </li>
+    <li>
+        
+<a id="blog_nav_contact" class="menu" href="https://msg.cnblogs.com/send/Jay_huaxiao">
+联系</a>
+    </li>
+    <li>
+        
+<a id="blog_nav_rss" class="menu" href="javascript:void(0)" data-rss="https://www.cnblogs.com/jay-huaxiao/rss/">
+订阅</a>
+        
+<a id="blog_nav_rss_image" href="https://www.cnblogs.com/jay-huaxiao/rss/">
+    <img src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/xml.gif" alt="订阅">
+</a>
+    </li>
+    <li>
+        
+<a id="blog_nav_admin" class="menu" href="https://i.cnblogs.com/">
+管理</a>
+
+    </li>
+</ul>
+
+
+<div id="blog-calendar" style="">
+
+<table id="blogCalendar" class="Cal" cellspacing="0" cellpadding="0" title="Calendar" border="0">
+    <tbody>
+        <tr>
+            <td colspan="7">
+                <table class="CalTitle" cellspacing="0" border="0">
+                    <tbody>
+                        <tr>
+                            <td class="CalNextPrev">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2021/04/11&#39;); return false;">&lt;</a>
+                            </td>
+                            <td align="center">2021年5月</td>
+                            <td align="right" class="CalNextPrev">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2021/06/11&#39;); return false;">&gt;</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    <tr>
+        <th class="CalDayHeader" align="center" abbr="日" scope="col">日</th>
+        <th class="CalDayHeader" align="center" abbr="一" scope="col">一</th>
+        <th class="CalDayHeader" align="center" abbr="二" scope="col">二</th>
+        <th class="CalDayHeader" align="center" abbr="三" scope="col">三</th>
+        <th class="CalDayHeader" align="center" abbr="四" scope="col">四</th>
+        <th class="CalDayHeader" align="center" abbr="五" scope="col">五</th>
+        <th class="CalDayHeader" align="center" abbr="六" scope="col">六</th>
+    </tr>
+            <tr>
+                            <td class="CalOtherMonthDay" align="center">25</td>
+                            <td class="CalOtherMonthDay" align="center">26</td>
+                            <td class="CalOtherMonthDay" align="center">27</td>
+                            <td class="CalOtherMonthDay" align="center">28</td>
+                            <td class="CalOtherMonthDay" align="center">29</td>
+                            <td class="CalOtherMonthDay" align="center">30</td>
+                    <td class="CalWeekendDay" align="center">
+                        1
+                    </td>
+            </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            2
+                        </td>
+                            <td class="" align="center">
+                                3
+                            </td>
+                            <td class="" align="center">
+                                4
+                            </td>
+                            <td class="" align="center">
+                                5
+                            </td>
+                            <td class="" align="center">
+                                6
+                            </td>
+                            <td class="" align="center">
+                                7
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            8
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            9
+                        </td>
+                            <td class="" align="center">
+                                10
+                            </td>
+                            <td class="CalTodayDay" align="center">
+                                11
+                            </td>
+                            <td class="" align="center">
+                                12
+                            </td>
+                            <td class="" align="center">
+                                13
+                            </td>
+                            <td class="" align="center">
+                                14
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            15
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            16
+                        </td>
+                            <td class="" align="center">
+                                17
+                            </td>
+                            <td class="" align="center">
+                                18
+                            </td>
+                            <td class="" align="center">
+                                19
+                            </td>
+                            <td class="" align="center">
+                                20
+                            </td>
+                            <td class="" align="center">
+                                21
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            22
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            23
+                        </td>
+                            <td class="" align="center">
+                                24
+                            </td>
+                            <td class="" align="center">
+                                25
+                            </td>
+                            <td class="" align="center">
+                                26
+                            </td>
+                            <td class="" align="center">
+                                27
+                            </td>
+                            <td class="" align="center">
+                                28
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            29
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            30
+                        </td>
+                            <td class="" align="center">
+                                31
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                1
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                2
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                3
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                4
+                            </td>
+                        <td class="CalOtherMonthDay" align="center">
+                            5
+                        </td>
+                </tr>
+    </tbody>
+</table></div><script>loadBlogDefaultCalendar();</script>
+<div id="sidebar_news" class="newsItem"><meta name="vs_showGrid" content="False">
+<h3>公告</h3>
+
+<div id="blog-news">
+    
+    <div id="profile_block">
+        昵称：
+        <a href="https://home.cnblogs.com/u/jay-huaxiao/">
+            Jay_huaxiao
+        </a>
+        <br>
+        园龄：
+        <a href="https://home.cnblogs.com/u/jay-huaxiao/" title="入园时间：2018-08-06">
+            2年9个月
+        </a>
+        <br>
+        粉丝：
+        <a href="https://home.cnblogs.com/u/jay-huaxiao/followers/">
+            47
+        </a>
+        <br>
+        关注：
+        <a href="https://home.cnblogs.com/u/jay-huaxiao/followees/">
+            0
+        </a>
+        <div id="p_b_follow">
+<a href="javascript:void(0)" onclick="follow(&#39;932b17be-b8a5-48ea-318e-08d5f84d9736&#39;)">+加关注</a></div>
+        <script>getFollowStatus('932b17be-b8a5-48ea-318e-08d5f84d9736');</script>
+    </div>
+</div>
+
+</div>
+<div id="sidebar_c3"></div>
+<div id="blog-sidecolumn"><!-- 搜索 -->
+<div id="sidebar_search" class="sidebar-block">
+    <div id="sidebar_search" class="mySearch">
+        <h3 class="catListTitle">搜索</h3>
+        <div id="sidebar_search_box">
+            <div id="widget_my_zzk" class="div_my_zzk">
+                <input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk">
+            </div>
+            <div id="widget_my_google" class="div_my_zzk">
+                <input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 常用链接 -->
+<div id="sidebar_shortcut" class="sidebar-block">
+<h3 class="catListTitle">
+常用链接
+</h3>
+<ul>
+    
+<li><a href="https://www.cnblogs.com/jay-huaxiao/p/" title="我的博客的随笔列表">我的随笔</a></li>
+<li><a href="https://www.cnblogs.com/jay-huaxiao/MyComments.html" title="我的发表过的评论列表">我的评论</a></li>
+<li><a href="https://www.cnblogs.com/jay-huaxiao/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li>
+<li><a href="https://www.cnblogs.com/jay-huaxiao/RecentComments.html" title="我的博客的评论列表">最新评论</a></li>
+<li><a href="https://www.cnblogs.com/jay-huaxiao/tag/" title="我的博客的标签列表">我的标签</a></li>
+
+</ul>
+</div>
+
+<!-- 最新随笔 -->
+
+
+<!-- 我的标签 -->
+<div id="sidebar_toptags" class="sidebar-block">
+<h3>我的标签</h3>
+<div id="MyTag">
+    <ul>
+                <li>
+            <a href="https://www.cnblogs.com/jay-huaxiao/tag/%E9%9D%A2%E8%AF%95/">面试<span class="tag-count">(3)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/jay-huaxiao/tag/java/">java<span class="tag-count">(2)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/jay-huaxiao/tag/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">数据结构<span class="tag-count">(1)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/jay-huaxiao/tag/%E7%AE%97%E6%B3%95/">算法<span class="tag-count">(1)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/jay-huaxiao/tag/%E5%BC%82%E5%B8%B8/">异常<span class="tag-count">(1)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/jay-huaxiao/tag/%E6%95%B0%E6%8D%AE%E5%BA%93%20%E7%B4%A2%E5%BC%95%20%E9%9D%A2%E8%AF%95/">数据库 索引 面试<span class="tag-count">(1)</span></a>
+        </li>
+        <li>
+            <a href="https://www.cnblogs.com/jay-huaxiao/tag/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">线程池<span class="tag-count">(1)</span></a>
+        </li>
+    
+
+    </ul>
+</div>
+</div>
+
+<!-- 积分与排名 -->
+
+
+<!-- 随笔分类、随笔档案、文章分类、新闻分类、相册、链接 -->
+<div id="sidebar_categories">
+
+    <h3>
+        
+随笔档案
+
+
+
+    </h3>
+    <ul>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2021/03.html" rel="" target="">
+    2021年3月(1)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2021/01.html" rel="" target="">
+    2021年1月(2)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/12.html" rel="" target="">
+    2020年12月(1)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/11.html" rel="" target="">
+    2020年11月(1)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/10.html" rel="" target="">
+    2020年10月(4)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/09.html" rel="" target="">
+    2020年9月(4)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/08.html" rel="" target="">
+    2020年8月(2)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/07.html" rel="" target="">
+    2020年7月(2)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/06.html" rel="" target="">
+    2020年6月(3)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/05.html" rel="" target="">
+    2020年5月(6)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/04.html" rel="" target="">
+    2020年4月(4)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/03.html" rel="" target="">
+    2020年3月(3)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/02.html" rel="" target="">
+    2020年2月(2)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2020/01.html" rel="" target="">
+    2020年1月(4)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="true" style="display: block">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2019/12.html" rel="" target="">
+    2019年12月(3)
+</a>
+
+
+            </li>
+            <li data-category-list-item-visible="false" style="display: none">
+                
+<a href="https://www.cnblogs.com/jay-huaxiao/archive/2019/09.html" rel="" target="">
+    2019年9月(4)
+</a>
+
+
+            </li>
+        <li><a href="javascript:void(0)" onclick="sideColumnManager.loadMore(this)">更多</a></li>
+    </ul>
+</div>
+
+<!-- 最新评论 -->
+<div id="sidebar_recentcomments" class="sidebar-block"><div id="recent_comments_wrap" class="RecentComment">
+    <h3 class="catListTitle">最新评论</h3>
+    <div class="RecentCommentBlock">
+        <ul>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/jay-huaxiao/p/11454416.html">1. Re:面试必备：Java线程池解析</a></li>
+                    <li class="recent_comment_body"><p>非常棒，可以转载到自己的csdn博客吗（方便复习），会标明出处</p>
+</li>
+                    <li class="recent_comment_author">--想明白</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/jay-huaxiao/p/12286133.html">2. Re:看一遍就理解，图解单链表反转</a></li>
+                    <li class="recent_comment_body"><p>哎呀，我的个乖乖，我就是需要这样细致入微的讲解，博主牛皮，疯狂打电话</p>
+</li>
+                    <li class="recent_comment_author">--steem</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/jay-huaxiao/p/13870707.html">3. Re:并发环境下，先操作数据库还是先操作缓存？</a></li>
+                    <li class="recent_comment_body"><p>学习。。。</p>
+</li>
+                    <li class="recent_comment_author">--民工也Coding</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/jay-huaxiao/p/12586598.html">4. Re:if-else代码优化的八种方案</a></li>
+                    <li class="recent_comment_body"><p>赞  暴赞</p>
+</li>
+                    <li class="recent_comment_author">--十色</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/jay-huaxiao/p/12179489.html">5. Re:Java程序员必备基础：内部类解析</a></li>
+                    <li class="recent_comment_body"><p>大佬。总结的很棒！</p>
+</li>
+                    <li class="recent_comment_author">--番小茄</li>
+        </ul>
+    </div>
+</div></div>
+
+
+<!-- 阅读排行榜 -->
+<div id="sidebar_topviewedposts" class="sidebar-block">
+<div id="topview_posts_wrap">
+    <h3 class="catListTitle">阅读排行榜</h3>
+    <div id="TopViewPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/jay-huaxiao/p/12586598.html">
+                            1. if-else代码优化的八种方案(12100)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/jay-huaxiao/p/11454416.html">
+                            2. 面试必备：Java线程池解析(9799)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/jay-huaxiao/p/11456921.html">
+                            3. Mysql死锁如何排查：insert on duplicate死锁一次排查分析过程(6981)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/jay-huaxiao/p/12546973.html">
+                            4. 后端程序员必备：书写高质量SQL的30条建议(4240)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/jay-huaxiao/p/11462232.html">
+                            5. 并发环境下，先操作数据库还是先操作缓存？(3807)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div></div>
+
+<!-- 评论排行榜 -->
+<div id="sidebar_topcommentedposts" class="sidebar-block"><div id="topfeedback_posts_wrap">
+    <h3 class="catListTitle">评论排行榜</h3>
+    <div id="TopFeedbackPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/jay-huaxiao/p/14045411.html">
+                            1. 写代码有这16个好习惯，可以减少80%非业务的bug(16)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/jay-huaxiao/p/11462232.html">
+                            2. 并发环境下，先操作数据库还是先操作缓存？(13)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/jay-huaxiao/p/12114178.html">
+                            3. 写代码有这些想法，同事才不会认为你是复制粘贴程序员(8)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/jay-huaxiao/p/12546973.html">
+                            4. 后端程序员必备：书写高质量SQL的30条建议(7)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/jay-huaxiao/p/13905103.html">
+                            5. Mysql中，21个写SQL的好习惯，可以看一下(5)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div></div>
+
+<!-- 推荐排行榜 -->
+<div id="sidebar_topdiggedposts" class="sidebar-block">
+<div id="topdigg_posts_wrap">
+    <div class="catListView">
+        <h3 class="catListTitle">推荐排行榜</h3>
+        <div id="TopDiggPostsBlock">
+            <ul style="word-break: break-all">
+                        <li>
+                            <a href="https://www.cnblogs.com/jay-huaxiao/p/12546973.html">
+                                1. 后端程序员必备：书写高质量SQL的30条建议(16)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/jay-huaxiao/p/14045411.html">
+                                2. 写代码有这16个好习惯，可以减少80%非业务的bug(15)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/jay-huaxiao/p/12114178.html">
+                                3. 写代码有这些想法，同事才不会认为你是复制粘贴程序员(13)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/jay-huaxiao/p/12586598.html">
+                                4. if-else代码优化的八种方案(8)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/jay-huaxiao/p/11454416.html">
+                                5. 面试必备：Java线程池解析(8)
+                            </a>
+                        </li>
+            </ul>
+        </div>
+    </div>
+</div></div></div>
+                    <script>loadBlogSideColumn();</script>
+
+</div>
+</div>
+<div class="clear"></div>
+<div id="footer">
+<p id="footer">
+	Powered by: 
+	<br>
+	
+	<a href="https://www.cnblogs.com/" id="footer_site_link">博客园</a>
+	<br>
+	Copyright © 2021 Jay_huaxiao
+<br><span id="poweredby">Powered by .NET 5.0 on Kubernetes</span>
+
+</p>
+
+
+</div>
+</div>
+
+
+    
+
+    <input type="hidden" id="antiforgery_token" value="CfDJ8L-rpLgFVEJMgssCVvNUAju23Th7fcoDWxGhf2CS8UjhYNoc2XUgFSQY7ejXWYtDKZzKbQ31eWVGkB2G5gFRDGcTLWnKVN8slhAjCz_ufAiPchvH3prDut5aU8bItvqEUyLX5mAJHhUT0NK4UbZXRJY">
+
+
+<iframe id="google_osd_static_frame_3878863932802" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px;" src="./100道MySQL数据库经典面试题解析（收藏版） - Jay_huaxiao - 博客园_files/saved_resource(2).html"></iframe></body></html>

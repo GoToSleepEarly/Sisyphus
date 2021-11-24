@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<!-- saved from url=(0045)https://www.cnblogs.com/nullzx/p/8729425.html -->
+<html lang="zh-cn"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="origin-when-crossorigin">
+    <meta name="description" content="简介：本文主要介绍了B树和B+树的插入、删除操作。写这篇博客的目的是发现没有相关博客以举例的方式详细介绍B+树的相关操作，由于自身对某些细节也感到很迷惑，通过查阅相关资料，对B+树的操作有所顿悟，写下">
+    <meta property="og:description" content="简介：本文主要介绍了B树和B+树的插入、删除操作。写这篇博客的目的是发现没有相关博客以举例的方式详细介绍B+树的相关操作，由于自身对某些细节也感到很迷惑，通过查阅相关资料，对B+树的操作有所顿悟，写下">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>B树和B+树的插入、删除图文详解 - nullzx - 博客园</title>
+    <link id="favicon" rel="shortcut icon" href="https://common.cnblogs.com/favicon.svg" type="image/svg+xml">
+    
+    <link rel="stylesheet" href="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/blog-common.min.css">
+    <link id="MainCss" rel="stylesheet" href="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/bundle-codinglife.min.css">
+    
+    <link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/bundle-codinglife-mobile.min.css">
+    
+    <link type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/nullzx/rss">
+    <link type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/nullzx/rsd.xml">
+    <link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/nullzx/wlwmanifest.xml">
+    <script src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/osd.js.下载"></script><script async="" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/analytics.js.下载"></script><script>
+        var currentBlogId = 254097;
+        var currentBlogApp = 'nullzx';
+        var cb_enable_mathjax = false;
+        var isLogined = false;
+        var isBlogOwner = false;
+        var skinName = 'CodingLife';
+        var visitorUserId = '';
+    </script>
+        <script>
+            var currentPostDateAdded = '2018-04-06 11:30';
+        </script>
+    <script src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/jquery-2.2.0.min.js.下载"></script>
+    <script src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/blog-common.min.js.下载"></script><style type="text/css">.medium-zoom-overlay{position:fixed;top:0;right:0;bottom:0;left:0;opacity:0;transition:opacity .3s;will-change:opacity}.medium-zoom--opened .medium-zoom-overlay{cursor:pointer;cursor:zoom-out;opacity:1}.medium-zoom-image{cursor:pointer;cursor:zoom-in;transition:transform .3s cubic-bezier(.2,0,.2,1)!important}.medium-zoom-image--hidden{visibility:hidden}.medium-zoom-image--opened{position:relative;cursor:pointer;cursor:zoom-out;will-change:transform}</style>
+    
+    
+    
+<meta http-equiv="origin-trial" content="A+b/H0b8RPXNaJgaNFpO0YOFuGK6myDQXlwnJB3SwzvNMfcndat4DZYMrP4ClJIzYWo3/yP2S+8FTZ/lpqbPAAEAAABueyJvcmlnaW4iOiJodHRwczovL2ltYXNkay5nb29nbGVhcGlzLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzVGhpcmRQYXJ0eSI6dHJ1ZX0="><meta http-equiv="origin-trial" content="A9ZgbRtm4pU3oZiuNzOsKcC8ppFSZdcjP2qYcdQrFKVzkmiWH1kdYY1Mi9x7G8+PS8HV9Ha9Cz0gaMdKsiVZIgMAAAB7eyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="AxL6oBxcpn5rQDPKSAs+d0oxNyJYq2/4esBUh3Yx5z8QfcLu+AU8iFCXYRcr/CEEfDnkxxLTsvXPJFQBxHfvkgMAAACBeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A9KPtG5kl3oLTk21xqynDPGQ5t18bSOpwt0w6kGa6dEWbuwjpffmdUpR3W+faZDubGT+KIk2do0BX2ca16x8qAcAAACBeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A3HucHUo1oW9s+9kIKz8mLkbcmdaj5lxt3eiIMp1Nh49dkkBlg1Fhg4Fd/r0vL69mRRA36YutI9P/lJUfL8csQoAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A0OysezhLoCRYomumeYlubLurZTCmsjTb087OvtCy95jNM65cfEsbajrJnhaGwiTxhz38ZZbm+UhUwQuXfVPTg0AAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="AxoOxdZQmIoA1WeAPDixRAeWDdgs7ZtVFfH2y19ziTgD1iaHE5ZGz2UdSjubkWvob9C5PrjUfkWi4ZSLgWk3Xg8AAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A7+rMYR5onPnACrz+niKSeFdH3xw1IyHo2AZSHmxrofRk9w4HcQPMYcpBUKu6OQ6zsdxf4m/vqa6tG6Na4OLpAQAAAB4eyJvcmlnaW4iOiJodHRwczovL2ltYXNkay5nb29nbGVhcGlzLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="AwfG8hAcHnPa/kJ1Co0EvG/K0F9l1s2JZGiDLt2mhC3QI5Fh4qmsmSwrWObZFbRC9ieDaSLU6lHRxhGUF/i9sgoAAACBeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiSW50ZXJlc3RDb2hvcnRBUEkiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="AwQ7dCmHkvR6FuOFxAuNnktYSQrGbL4dF+eBkrwNLALc69Wr//PnO1yzns3pjUoCaYbKHtVcnng2hU+8OUm0PAYAAACHeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiSW50ZXJlc3RDb2hvcnRBUEkiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="AysVDPGQTLD/Scn78x4mLwB1tMfje5jwUpAAzGRpWsr1NzoN7MTFhT3ClmImi2svDZA7V6nWGIV8YTPsSRTe0wYAAACHeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiSW50ZXJlc3RDb2hvcnRBUEkiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><script src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/pubads_impl_2021042001.js.下载" async=""></script><link rel="preload" href="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/f.txt" as="script"><script type="text/javascript" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/f.txt"></script><link rel="prefetch" href="https://52e848ae611e94b4d52fdac12245e999.safeframe.googlesyndication.com/safeframe/1-0-38/html/container.html"><link rel="prefetch" href="https://tpc.googlesyndication.com/safeframe/1-0-38/html/container.html"></head>
+<body class="has-navbar">
+    <a name="top"></a>
+    <div id="top_nav" class="navbar forpc">
+        <nav id="nav_main" class="navbar-main">
+            <ul id="nav_left" class="navbar-list navbar-left">
+                <li class="navbar-branding"><a href="https://www.cnblogs.com/" title="开发者的网上家园"><img src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/logo.svg" alt="博客园Logo"></a></li>
+                <li><a href="https://www.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-sitehome&#39;)">首页</a></li>
+                <li><a href="https://news.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-news&#39;)">新闻</a></li>
+                <li><a href="https://q.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-q&#39;)">博问</a></li>
+                <li><a id="nav_brandzone" href="https://brands.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-brands&#39;)">专区</a></li>
+                <li><a href="https://ing.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-ing&#39;)">闪存</a></li>
+                <li><a href="https://edu.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-edu&#39;)">班级</a></li>
+            </ul>
+            <ul id="nav_right" class="navbar-list navbar-right">
+                <li>
+                    <form id="zzk_search" class="navbar-search" action="https://zzk.cnblogs.com/s" method="get">
+                        <input name="w" id="zzk_search_input" placeholder="代码改变世界" type="text" tabindex="3">
+                        <button type="submit" id="zzk_search_button">
+                            <img src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/search.svg" alt="搜索">
+                        </button>
+                    </form>
+                </li>
+                <li id="navbar_login_status" class="navbar-list">
+                    <a class="navbar-user-info navbar-blog" href="https://i.cnblogs.com/EditPosts.aspx?opt=1" alt="写随笔" title="写随笔" style="display: none;">
+                        <img id="new_post_icon" class="navbar-icon" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/newpost.svg" alt="写随笔">
+                    </a>
+                    <a id="navblog-myblog-icon" class="navbar-user-info navbar-blog" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx" alt="我的博客" title="我的博客" style="display: none;">
+                        <img id="myblog_icon" class="navbar-icon" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/myblog.svg" alt="我的博客">
+                    </a>
+                    <a class="navbar-user-info navbar-message navbar-icon-wrapper" href="https://msg.cnblogs.com/" alt="短消息" title="短消息" style="display: none;">
+                        <img id="msg_icon" class="navbar-icon" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/message.svg" alt="短消息">
+                        <span id="msg_count" style="display: none"></span>
+                    </a>
+                    <div id="user_info" class="navbar-user-info dropdown" style="display: none;">
+                        <a class="dropdown-button" href="https://home.cnblogs.com/">
+                            <img id="user_icon" class="navbar-avatar" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/avatar-default.svg" alt="用户头像">
+                        </a>
+                        <div class="dropdown-menu">
+                            <a id="navblog-myblog-text" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx">我的博客</a>
+                            <a href="https://home.cnblogs.com/">我的园子</a>
+                            <a href="https://account.cnblogs.com/settings/account">账号设置</a>
+                            <a href="javascript:void(0)" id="navbar_lite_mode_toggle" title="简洁模式会使用简洁款皮肤显示所有博客">
+    简洁模式 <img id="navbar_lite_mode_on" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/lite-mode-check.svg" class="hide"><span id="navbar_lite_mode_spinner" class="hide">...</span>
+</a>
+                            <a href="javascript:void(0)" onclick="account.logout();">退出登录</a>
+                        </div>
+                    </div>
+                    <a class="navbar-anonymous" href="https://account.cnblogs.com/signup/" style="display: inline;">注册</a>
+                    <a class="navbar-anonymous" href="javascript:void(0);" onclick="account.login()" style="display: inline;">登录</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    
+    <!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+        <a id="lnkBlogLogo" href="https://www.cnblogs.com/nullzx/"><img id="blogLogo" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/logo.gif" alt="返回主页"></a>		
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle HeaderMainTitle" href="https://www.cnblogs.com/nullzx/">nullzx</a>
+</h1>
+<h2>这个世界上,聪明又有趣的人少之又少...</h2>
+
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+	<div id="navigator">
+		
+<ul id="navList">
+<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">
+博客园</a>
+</li>
+<li>
+<a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/nullzx/">
+首页</a>
+</li>
+<li>
+
+<a id="blog_nav_newpost" class="menu" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">
+新随笔</a>
+</li>
+<li>
+<a id="blog_nav_contact" class="menu" href="https://msg.cnblogs.com/send/nullzx">
+联系</a></li>
+<li>
+<a id="blog_nav_rss" class="menu" href="javascript:void(0)" data-rss="https://www.cnblogs.com/nullzx/rss/">
+订阅</a>
+<!--<partial name="./Shared/_XmlLink.cshtml" model="Model" /></li>--></li>
+<li>
+<a id="blog_nav_admin" class="menu" href="https://i.cnblogs.com/">
+管理</a>
+</li>
+</ul>
+
+
+		<div class="blogStats">
+			<span id="stats_post_count">随笔 - 43&nbsp; </span>
+<span id="stats_article_count">文章 - 2&nbsp; </span>
+<span id="stats-comment_count">评论 - 118&nbsp; </span>
+<span id="stats-total-view-count">阅读 - 
+<span title="总阅读数: 446054">
+44万</span></span>
+
+		</div><!--end: blogStats -->
+	</div><!--end: navigator 博客导航栏 -->
+</div><!--end: header 头部 -->
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		<div id="post_detail">
+    <!--done-->
+    <div id="topics">
+        <div class="post">
+            <h1 class="postTitle">
+                
+<a id="cb_post_title_url" class="postTitle2 vertical-middle" href="https://www.cnblogs.com/nullzx/p/8729425.html">
+    <span>B树和B+树的插入、删除图文详解</span>
+    
+
+
+
+</a>
+
+            </h1>
+            <div class="clear"></div>
+            <div class="postBody">
+                <div id="cnblogs_post_body" class="blogpost-body blogpost-body-html">
+<p><span style="font-family: 仿宋; font-size: 18px">简介：本文主要介绍了B树和B+树的插入、删除操作。写这篇博客的目的是发现没有相关博客以举例的方式详细介绍B+树的相关操作，由于自身对某些细节也感到很迷惑，通过查阅相关资料，对B+树的操作有所顿悟，写下这篇博客以做记录。由于是自身对B+树的理解，肯定有考虑不周的情况，或者理解错误的地方，请留言指出。</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 方正姚体; font-size: large">欢迎探讨，如有错误敬请指正 </span></p>
+<p><span style="font-family: 方正姚体; font-size: large">如需转载，请注明出处 </span><a href="http://www.cnblogs.com/nullzx/"><span style="font-family: 方正姚体; font-size: large">http://www.cnblogs.com/nullzx/</span></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 黑体; font-size: xx-large"><span style="font-weight: normal">1. B树</span></span></p>
+<p><span style="font-size: x-large"><span style="font-family: 黑体">1. B树的定义</span></span></p>
+<p><span style="font-family: 仿宋; font-size: large">B树也称B-树,它是一颗多路平衡查找树。我们描述一颗B树时需要指定它的阶数，阶数表示了一个结点最多有多少个孩子结点，一般用字母m表示阶数。当m取2时，就是我们常见的二叉搜索树。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">一颗m阶的B树定义如下：</span></p>
+<p><span style="font-family: 仿宋; font-size: large">1）每个结点最多有m-1个关键字。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">2）根结点最少可以只有1个关键字。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">3）非根结点至少有Math.ceil(m/2)-1个关键字。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">4）每个结点中的关键字都按照从小到大的顺序排列，每个关键字的左子树中的所有关键字都小于它，而右子树中的所有关键字都大于它。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">5）所有叶子结点都位于同一层，或者说根结点到每个叶子结点的长度都相同。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232632321-1557309284.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image002" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232634472-395289491.png" alt="clip_image002" width="691" height="291" border="0"></a></p>
+<p><span style="font-family: 仿宋; font-size: large">上图是一颗阶数为4的B树。在实际应用中的B树的阶数m都非常大（通常大于100），所以即使存储大量的数据，B树的高度仍然比较小。每个结点中存储了关键字（key）和关键字对应的数据（data），以及孩子结点的指针。<strong>我们将一个key和其对应的data称为一个记录</strong>。<strong>但为了方便描述，除非特别说明，后续文中就用key来代替（key, value）键值对这个整体</strong>。在数据库中我们将B树（和B+树）作为索引结构，可以加快查询速速，此时B树中的key就表示键，而data表示了这个键对应的条目在硬盘上的逻辑地址。</span></p>
+<p>&nbsp;</p>
+<p><span style="font-size: x-large"><span style="font-family: 黑体">1.2 B树的插入操作</span></span></p>
+<p><span style="font-family: 仿宋; font-size: large">插入操作是指插入一条记录，即（key, value）的键值对。如果B树中已存在需要插入的键值对，则用需要插入的value替换旧的value。若B树不存在这个key,则一定是在叶子结点中进行插入操作。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">1）根据要插入的key的值，找到叶子结点并插入。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">2）判断当前结点key的个数是否小于等于m-1，若满足则结束，否则进行第3步。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">3）以结点中间的key为中心分裂成左右两部分，然后将这个中间的key插入到父结点中，这个key的左子树指向分裂后的左半部分，这个key的右子支指向分裂后的右半部分，然后将当前结点指向父结点，继续进行第3步。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">下面以5阶B树为例，介绍B树的插入操作，在5阶B树中，结点最多有4个key,最少有2个key</span></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">a）在空树中插入39</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232636141-111908062.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image002[4]" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232637766-945625689.png" alt="clip_image002[4]" width="144" height="44" border="0"></a></p>
+<p><span style="font-family: 仿宋; font-size: large">此时根结点就一个key，此时根结点也是叶子结点</span></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">b）继续插入22，97和41</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232639538-1500322324.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image004" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232641280-907189483.png" alt="clip_image004" width="144" height="44" border="0"></a></p>
+<p><span style="font-family: 仿宋; font-size: large">根结点此时有4个key</span></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">c）继续插入53</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232643024-803862278.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image006" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232644645-1214967776.png" alt="clip_image006" width="172" height="44" border="0"></a></p>
+<p><span style="font-family: 仿宋; font-size: large">插入后超过了最大允许的关键字个数4，所以以key值为41为中心进行分裂，结果如下图所示，分裂后当前结点指针指向父结点，满足B树条件，插入操作结束。当阶数m为偶数时，需要分裂时就不存在排序恰好在中间的key，那么我们选择中间位置的前一个key或中间位置的后一个key为中心进行分裂即可。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232646553-550588616.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image008" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232701452-1205325216.png" alt="clip_image008" width="291" height="102" border="0"></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">d）依次插入13，21，40，同样会造成分裂，结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232714654-717185244.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image010" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232716269-1873273300.png" alt="clip_image010" width="382" height="94" border="0"></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">e）依次插入30，27, 33 ；36，35，34 ；24，29，结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232718059-1454315021.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image012" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232719931-1845157889.png" alt="clip_image012" width="715" height="137" border="0"></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">f）插入key值为26的记录，插入后的结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232722072-2101780219.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image014" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232724001-1518264552.png" alt="clip_image014" width="722" height="139" border="0"></a></p>
+<p><span style="font-family: 仿宋; font-size: large">当前结点需要以27为中心分裂，并向父结点进位27，然后当前结点指向父结点，结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232727483-1657363165.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image016" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232732844-330586131.png" alt="clip_image016" width="871" height="144" border="0"></a></p>
+<p><span style="font-family: 仿宋; font-size: large">进位后导致当前结点（即根结点）也需要分裂，分裂的结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232735788-403419538.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image018" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232737701-1115673096.png" alt="clip_image018" width="871" height="206" border="0"></a></p>
+<p>分裂后当前结点指向新的根，此时无需调整。</p>
+<hr align="center" size="3" width="100%">
+<p>g）最后再依次插入key为17,28,29,31,32的记录，结果如下图所示。</p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232742794-343445338.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image020" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232748270-1888091858.png" alt="clip_image020" width="893" height="177" border="0"></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">在实现B树的代码中，为了使代码编写更加容易，我们可以将结点中存储记录的数组长度定义为m而非m-1，这样方便底层的结点由于分裂向上层插入一个记录时，上层有多余的位置存储这个记录。同时，每个结点还可以存储它的父结点的引用，这样就不必编写递归程序。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">一般来说，对于确定的m和确定类型的记录，结点大小是固定的，无论它实际存储了多少个记录。但是分配固定结点大小的方法会存在浪费的情况，比如key为28,29所在的结点，还有2个key的位置没有使用，但是已经不可能继续在插入任何值了，因为这个结点的前序key是27,后继key是30,所有整数值都用完了。所以如果记录先按key的大小排好序，再插入到B树中，结点的使用率就会很低，最差情况下使用率仅为50%。</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 黑体; font-size: x-large">1.3 B树的删除操作</span></p>
+<p><span style="font-family: 仿宋; font-size: large">删除操作是指，根据key删除记录，如果B树中的记录中不存对应key的记录，则删除失败。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">1）如果当前需要删除的key位于非叶子结点上，则用后继key（这里的后继key均指后继记录的意思）覆盖要删除的key，然后在后继key所在的子支中删除该后继key。此时后继key一定位于叶子结点上，这个过程和二叉搜索树删除结点的方式类似。删除这个记录后执行第2步</span></p>
+<p><span style="font-family: 仿宋; font-size: large">2）该结点key个数大于等于Math.ceil(m/2)-1，结束删除操作，否则执行第3步。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">3）如果兄弟结点key个数大于Math.ceil(m/2)-1，则父结点中的key下移到该结点，兄弟结点中的一个key上移，删除操作结束。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">否则，将父结点中的key下移与当前结点及它的兄弟结点中的key合并，形成一个新的结点。原父结点中的key的两个孩子指针就变成了一个孩子指针，指向这个新结点。然后当前结点的指针指向父结点，重复上第2步。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">有些结点它可能即有左兄弟，又有右兄弟，那么我们任意选择一个兄弟结点进行操作即可。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">下面以5阶B树为例，介绍B树的删除操作，5阶B树中，结点最多有4个key,最少有2个key</span></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">a）原始状态</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232752206-912030342.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image021" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232754144-973589199.png" alt="clip_image021" width="893" height="177" border="0"></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">b）在上面的B树中删除21，删除后结点中的关键字个数仍然大于等2，所以删除结束。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232757867-616298444.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image023" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232800149-881832132.png" alt="clip_image023" width="871" height="174" border="0"></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">c）在上述情况下接着删除27。从上图可知27位于非叶子结点中，所以用27的后继替换它。从图中可以看出，27的后继为28，我们用28替换27，然后在28（原27）的右孩子结点中删除28。删除后的结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232802141-205923916.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image025" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232805316-736624542.png" alt="clip_image025" width="871" height="229" border="0"></a></p>
+<p><span style="font-family: 仿宋; font-size: large">删除后发现，当前叶子结点的记录的个数小于2，而它的兄弟结点中有3个记录（当前结点还有一个右兄弟，选择右兄弟就会出现合并结点的情况，不论选哪一个都行，只是最后B树的形态会不一样而已），我们可以从兄弟结点中借取一个key。所以父结点中的28下移，兄弟结点中的26上移,删除结束。结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232807512-453871893.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image027" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232813762-797146286.png" alt="clip_image027" width="871" height="175" border="0"></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: medium">d）在上述情况下接着32，结果如下图。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232815746-1461337715.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image029" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232817843-722364883.png" alt="clip_image029" width="871" height="226" border="0"></a></p>
+<p><span style="font-family: 仿宋; font-size: large">当删除后，当前结点中只key，而兄弟结点中也仅有2个key。所以只能让父结点中的30下移和这个两个孩子结点中的key合并，成为一个新的结点，当前结点的指针指向父结点。结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232825385-1019850877.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image031" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232829066-149754287.png" alt="clip_image031" width="871" height="175" border="0" class="medium-zoom-image"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">当前结点key的个数满足条件，故删除结束。</span></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">e）上述情况下，我们接着删除key为40的记录，删除后结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232835261-354192121.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image033" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232837287-2101391374.png" alt="clip_image033" width="871" height="226" border="0" class="medium-zoom-image"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">同理，当前结点的记录数小于2，兄弟结点中没有多余key，所以父结点中的key下移，和兄弟（这里我们选择左兄弟，选择右兄弟也可以）结点合并，合并后的指向当前结点的指针就指向了父结点。</span></p>
+<p><span style="font-family: 仿宋; font-size: large"><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232842439-531453423.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image035" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232846836-538278275.png" alt="clip_image035" width="800" height="161" border="0"></a></span></p>
+<p><span style="font-family: 仿宋; font-size: large">同理，对于当前结点而言只能继续合并了，最后结果如下所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232848657-2062660750.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image037" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232851299-447892778.png" alt="clip_image037" width="684" height="110" border="0"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">合并后结点当前结点满足条件，删除结束。</span></p>
+<p>&nbsp;</p>
+<h4><span style="font-size: xx-large"><span style="font-family: 黑体; font-weight: normal">2.B+树</span></span></h4>
+<p><span style="font-size: x-large"><span style="font-family: 黑体">2.1 B+树的定义</span></span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232853119-1460626460.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image039" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232854940-1019144331.png" alt="clip_image039" width="530" height="252" border="0"></a></p>
+<p><span style="font-family: 仿宋; font-size: large">各种资料上B+树的定义各有不同，一种定义方式是关键字个数和孩子结点个数相同。这里我们采取维基百科上所定义的方式，即关键字个数比孩子结点个数小1，这种方式是和B树基本等价的。上图就是一颗阶数为4的B+树。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">除此之外B+树还有以下的要求。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">1）B+树包含2种类型的结点：内部结点（也称索引结点）和叶子结点。根结点本身即可以是内部结点，也可以是叶子结点。根结点的关键字个数最少可以只有1个。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">2）B+树与B树最大的不同是内部结点不保存数据，只用于索引，所有数据（或者说记录）都保存在叶子结点中。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">3） m阶B+树表示了内部结点最多有m-1个关键字（或者说内部结点最多有m个子树），阶数m同时限制了叶子结点最多存储m-1个记录。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">4）内部结点中的key都按照从小到大的顺序排列，对于内部结点中的一个key，左树中的所有key都<strong>小于</strong>它，右子树中的key都<strong>大于等于</strong>它。叶子结点中的记录也按照key的大小排列。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">5）每个叶子结点都存有相邻叶子结点的指针，叶子结点本身依关键字的大小自小而大顺序链接。</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 黑体; font-size: x-large">2.2 B+树的插入操作</span></p>
+<p><span style="font-family: 仿宋; font-size: large">1）若为空树，创建一个叶子结点，然后将记录插入其中，此时这个叶子结点也是根结点，插入操作结束。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">2）针对叶子类型结点：根据key值找到叶子结点，向这个叶子结点插入记录。插入后，若当前结点key的个数小于等于m-1，则插入结束。否则将这个叶子结点分裂成左右两个叶子结点，左叶子结点包含前m/2个记录，右结点包含剩下的记录，将第m/2+1个记录的key进位到父结点中（父结点一定是索引类型结点），进位到父结点的key左孩子指针向左结点,右孩子指针向右结点。将当前结点的指针指向父结点，然后执行第3步。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">3）针对索引类型结点：若当前结点key的个数小于等于m-1，则插入结束。否则，将这个索引类型结点分裂成两个索引结点，左索引结点包含前(m-1)/2个key，右结点包含m-(m-1)/2个key，将第m/2个key进位到父结点中，进位到父结点的key左孩子指向左结点, 进位到父结点的key右孩子指向右结点。将当前结点的指针指向父结点，然后重复第3步。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">下面是一颗5阶B树的插入过程，5阶B数的结点最少2个key，最多4个key。</span></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">a）空树中插入5</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232856515-1989097703.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image041" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232858129-694616618.png" alt="clip_image041" width="155" height="56" border="0"></span></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">b）依次插入8，10，15</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232859746-1983069652.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image043" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232901391-1401289774.png" alt="clip_image043" width="150" height="55" border="0"></span></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">c）插入16</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232903956-296813367.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image045" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232905559-1698012761.png" alt="clip_image045" width="184" height="55" border="0"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">插入16后超过了关键字的个数限制，所以要进行分裂。在叶子结点分裂时，分裂出来的左结点2个记录，右边3个记录，中间key成为索引结点中的key，分裂后当前结点指向了父结点（根结点）。结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232907805-1210471622.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image047" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232909712-1807724284.png" alt="clip_image047" width="404" height="185" border="0"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">当然我们还有另一种分裂方式，给左结点3个记录，右结点2个记录，此时索引结点中的key就变为15。</span></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">d）插入17</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232911666-589419211.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image049" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232913379-576202883.png" alt="clip_image049" width="327" height="125" border="0"></span></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">e）插入18，插入后如下图所示</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232915173-859633380.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image051" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232917817-1240573630.png" alt="clip_image051" width="404" height="199" border="0"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">当前结点的关键字个数大于5，进行分裂。分裂成两个结点，左结点2个记录，右结点3个记录，关键字16进位到父结点（索引类型）中，将当前结点的指针指向父结点。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232919602-1261506387.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image053" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232921679-618565224.png" alt="clip_image053" width="520" height="140" border="0"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">当前结点的关键字个数满足条件，插入结束。</span></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">f）插入若干数据后</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232924458-602071692.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image055" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232926305-812650003.png" alt="clip_image055" width="761" height="129" border="0"></span></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">g）在上图中插入7，结果如下图所示 </span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232932420-897395371.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image057" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232935105-1001982143.png" alt="clip_image057" width="762" height="127" border="0"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">当前结点的关键字个数超过4，需要分裂。左结点2个记录，右结点3个记录。分裂后关键字7进入到父结点中，将当前结点的指针指向父结点，结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232938704-1997149607.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image059" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232940557-1204742223.png" alt="clip_image059" width="870" height="123" border="0" class="medium-zoom-image"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">当前结点的关键字个数超过4，需要继续分裂。左结点2个关键字，右结点2个关键字，关键字16进入到父结点中，将当前结点指向父结点，结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232943232-17049271.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image061" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232945267-543224744.png" alt="clip_image061" width="870" height="164" border="0" class="medium-zoom-image"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">当前结点的关键字个数满足条件，插入结束。</span></p>
+<p>&nbsp;</p>
+<p><span style="font-family: 黑体"><span style="font-size: x-large">2.3 B+树的删除操作</span></span></p>
+<p><span style="font-family: 仿宋; font-size: large">如果叶子结点中没有相应的key，则删除失败。否则执行下面的步骤</span></p>
+<p><span style="font-family: 仿宋; font-size: large">1）删除叶子结点中对应的key。删除后若结点的key的个数大于等于Math.ceil(m-1)/2 – 1，删除操作结束,否则执行第2步。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">2）若兄弟结点key有富余（大于Math.ceil(m-1)/2 – 1），向兄弟结点借一个记录，同时用借到的key替换父结（指当前结点和兄弟结点共同的父结点）点中的key，删除结束。否则执行第3步。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">3）若兄弟结点中没有富余的key,则当前结点和兄弟结点合并成一个新的叶子结点，并删除父结点中的key（父结点中的这个key两边的孩子指针就变成了一个指针，正好指向这个新的叶子结点），将当前结点指向父结点（必为索引结点），执行第4步（第4步以后的操作和B树就完全一样了，主要是为了更新索引结点）。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">4）若索引结点的key的个数大于等于Math.ceil(m-1)/2 – 1，则删除操作结束。否则执行第5步</span></p>
+<p><span style="font-family: 仿宋; font-size: large">5）若兄弟结点有富余，父结点key下移，兄弟结点key上移，删除结束。否则执行第6步</span></p>
+<p><span style="font-family: 仿宋; font-size: large">6）当前结点和兄弟结点及父结点下移key合并成一个新的结点。将当前结点指向父结点，重复第4步。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">注意，通过B+树的删除操作后，索引结点中存在的key，不一定在叶子结点中存在对应的记录。</span></p>
+<p><span style="font-family: 仿宋; font-size: large">下面是一颗5阶B树的删除过程，5阶B数的结点最少2个key，最多4个key。</span></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">a）初始状态</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232947400-1567033079.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image063" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232951603-2095664521.png" alt="clip_image063" width="870" height="164" border="0" class="medium-zoom-image"></span></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">b）删除22,删除后结果如下图</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232954830-219884109.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image065" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406232956857-909502342.png" alt="clip_image065" width="870" height="164" border="0" class="medium-zoom-image"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">删除后叶子结点中key的个数大于等于2，删除结束</span></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">c）删除15，删除后的结果如下图所示</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406232959965-1316994866.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image067" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406233002074-155906598.png" alt="clip_image067" width="870" height="218" border="0" class="medium-zoom-image"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">删除后当前结点只有一个key,不满足条件，而兄弟结点有三个key，可以从兄弟结点借一个关键字为9的记录,同时更新将父结点中的关键字由10也变为9，删除结束。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406233005979-1876471897.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image069" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406233008129-433585803.png" alt="clip_image069" width="872" height="165" border="0" class="medium-zoom-image"></span></a></p>
+<hr align="center" size="3" width="100%">
+<p><span style="font-family: 仿宋; font-size: large">d）删除7，删除后的结果如下图所示</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406233010241-2135973119.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image071" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406233017339-92051658.png" alt="clip_image071" width="1024" height="254" border="0" class="medium-zoom-image"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">当前结点关键字个数小于2，（左）兄弟结点中的也没有富余的关键字（当前结点还有个右兄弟，不过选择任意一个进行分析就可以了，这里我们选择了左边的），所以当前结点和兄弟结点合并，并删除父结点中的key，当前结点指向父结点。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406233019407-1044051627.png"><span style="font-family: 仿宋; font-size: large"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image073" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406233022828-172757536.png" alt="clip_image073" width="870" height="171" border="0" class="medium-zoom-image"></span></a></p>
+<p><span style="font-family: 仿宋; font-size: large">此时当前结点的关键字个数小于2，兄弟结点的关键字也没有富余，所以父结点中的关键字下移，和两个孩子结点合并，结果如下图所示。</span></p>
+<p><a href="https://images2018.cnblogs.com/blog/834468/201804/834468-20180406233024613-583960048.png"><img style="background-image: none; padding-top: 0; padding-left: 0; display: inline; padding-right: 0; border: 0" title="clip_image075" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/834468-20180406233027773-1578264573.png" alt="clip_image075" width="871" height="140" border="0"></a></p>
+<h4>&nbsp;</h4>
+<h4><span style="font-family: 黑体; font-size: large; font-weight: normal">3.参考内容</span></h4>
+<p>[1] <a href="https://www.cnblogs.com/wade-luffy/p/6292784.html">B+树介绍</a></p>
+<p>[2] <a href="http://hedengcheng.com/?p=525">从MySQL Bug#67718浅谈B+树索引的分裂优化</a></p>
+<p>[3] <a href="https://www.jianshu.com/p/6f68d3c118d6">B+树的几点总结</a></p>
+</div>
+<div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block"><div id="BlogPostCategory">
+    分类: 
+            <a href="https://www.cnblogs.com/nullzx/category/895622.html" target="_blank">算法</a></div>
+
+
+    <div id="blog_post_info">
+<div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(8729425,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+        <a id="green_channel_follow" onclick="follow(&#39;3c9e220d-bb86-e511-9fc1-ac853d9f53cc&#39;);" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/nullzx/" target="_blank"><img src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/20151115214952.png" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/nullzx/">nullzx</a><br>
+            <a href="https://home.cnblogs.com/u/nullzx/followees/">关注 - 4</a><br>
+            <a href="https://home.cnblogs.com/u/nullzx/followers/">粉丝 - 253</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow(&#39;3c9e220d-bb86-e511-9fc1-ac853d9f53cc&#39;);return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(8729425,&#39;Digg&#39;)">
+        <span class="diggnum" id="digg_count">79</span>
+    </div>
+    <div class="buryit" onclick="votePost(8729425,&#39;Bury&#39;)">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips">
+    </div>
+</div>
+
+<script type="text/javascript">
+    currentDiggType = 0;
+</script></div>
+    <div class="clear"></div>
+    <div id="post_next_prev">
+
+    <a href="https://www.cnblogs.com/nullzx/p/8647220.html" class="p_n_p_prefix">« </a> 上一篇：    <a href="https://www.cnblogs.com/nullzx/p/8647220.html" title="发布于 2018-03-25 21:55">Java8 中 ConcurrentHashMap工作原理的要点分析</a>
+    <br>
+    <a href="https://www.cnblogs.com/nullzx/p/8932977.html" class="p_n_p_prefix">» </a> 下一篇：    <a href="https://www.cnblogs.com/nullzx/p/8932977.html" title="发布于 2018-04-24 19:10">JAVA NIO工作原理及代码示例</a>
+
+</div>
+</div>
+            </div>
+            <div class="postDesc">posted @ 
+<span id="post-date">2018-04-06 23:30</span>&nbsp;
+<a href="https://www.cnblogs.com/nullzx/">nullzx</a>&nbsp;
+阅读(<span id="post_view_count">138786</span>)&nbsp;
+评论(<span id="post_comment_count">36</span>)&nbsp;
+<a href="https://i.cnblogs.com/EditPosts.aspx?postid=8729425" rel="nofollow">编辑</a>&nbsp;
+<a href="javascript:void(0)" onclick="AddToWz(8729425);return false;">收藏</a></div>
+        </div>
+	    
+	    
+    </div><!--end: topics 文章、评论容器-->
+</div>
+<script src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/highlight.min.js.下载"></script>
+<script>markdown_highlight();</script>
+<script>
+    var allowComments = true, cb_blogId = 254097, cb_blogApp = 'nullzx', cb_blogUserGuid = '3c9e220d-bb86-e511-9fc1-ac853d9f53cc';
+    var cb_entryId = 8729425, cb_entryCreatedDate = '2018-04-06 23:30', cb_postType = 1;
+    updatePostStats(
+        [cb_entryId],
+        function(id, count) { $("#post_view_count").text(count) },
+        function(id, count) { $("#post_comment_count").text(count) })
+    zoomManager.apply("#cnblogs_post_body img:not(.code_img_closed):not(.code_img_opened)");
+</script>
+<a name="!comments"></a>
+<div id="blog-comments-placeholder"></div>
+<div id="comment_form" class="commentform">
+    <a name="commentform"></a>
+    <div id="divCommentShow"></div>
+    <div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="https://www.cnblogs.com/nullzx/p/8729425.html#" onclick="return RefreshPage();">刷新页面</a><a href="https://www.cnblogs.com/nullzx/p/8729425.html#top">返回顶部</a></div>
+    <div id="comment_form_container" style="visibility: visible;"><div class="login_tips">
+    登录后才能查看或发表评论，立即 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return account.login(&#39;!comments&#39;);">登录</a> 或者
+    <a href="https://www.cnblogs.com/">逛逛</a> 博客园首页
+</div>
+</div>
+    <div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+    <div id="ad_t2"><a href="http://www.uccpsoft.com/index.htm" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-ucancode&#39;)">【推荐】大型组态、工控、仿真、CAD\GIS 50万行VC++源码免费下载!</a><br><a href="https://brands.cnblogs.com/huawei" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-华为专区&#39;)">【推荐】创新 聚力 融合，HMS Core.Sparkle 影音娱乐创新沙龙，邀您参加</a><br><a href="http://www.moojnn.com/?source=bokeyuan" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-魔镜&#39;)">【推荐】限时秒杀！国云大数据魔镜，企业级云分析平台</a><br></div>
+    <div id="opt_under_post"></div>
+    <div id="cnblogs_c1" class="under-post-card">
+        <div id="div-gpt-ad-1592365906576-0" style="width: 300px; height: 250px;" data-google-query-id="CNb2qPCZl_ACFQzCTAIdeP0CUw"><div id="google_ads_iframe_/1090369/C1_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C1_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C1_0" width="300" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" data-google-container-id="1" style="border: 0px; vertical-align: bottom;" data-load-complete="true" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/saved_resource.html"></iframe></div></div>
+    </div>
+    <div id="under_post_card1"><div class="under-post-card"><b>园子动态</b>：<br>· <a href="https://www.cnblogs.com/cmt/p/14585828.html" target="_blank">致园友们的一封检讨书：都是我们的错</a><br>· <a href="https://www.cnblogs.com/cmt/p/14595262.html" target="_blank">数据库实例 CPU 100% 引发全站故障</a><br>· <a href="https://www.cnblogs.com/cmt/p/14217355.html" target="_blank">发起一个开源项目：博客引擎 fluss</a><br></div></div>
+    <div id="cnblogs_c2" class="under-post-card">
+        <div id="div-gpt-ad-1592366332455-0" style="width: 468px; height: 60px;" data-google-query-id="CNf2qPCZl_ACFQzCTAIdeP0CUw"><div id="google_ads_iframe_/1090369/C2_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C2_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C2_0" width="468" height="60" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" data-google-container-id="2" style="border: 0px; vertical-align: bottom;" data-load-complete="true" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/saved_resource(1).html"></iframe></div></div>
+    </div>
+    <div id="under_post_card2"><div class="itnews under-post-card">
+    <b>最新新闻</b>：
+    <br>
+ ·          <a href="https://news.cnblogs.com/n/691630/" target="_blank">销售二手事故车被判“退一赔三”！特斯拉专家团称切割车比原装车更安全</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/691629/" target="_blank">索尼提议为Linux提供新的软件看门狗以维持系统健康运行</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/691628/" target="_blank">为提高探测效率，我国将在月球表面建立基础设施</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/691627/" target="_blank">特斯拉发声明回应广州事故：在全力配合交管部门的调查工作</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/691626/" target="_blank">蓝箭航天与中信书店联合举办航天日科普活动</a>
+        <br>
+    » <a href="https://news.cnblogs.com/" title="IT 新闻" target="_blank">更多新闻...</a>
+</div></div>
+    <div id="HistoryToday" class="under-post-card"></div>
+    <script type="text/javascript">
+       var commentManager = new blogCommentManager();
+       commentManager.renderComments(0);
+       fixPostBody();
+       deliverBigBanner();
+setTimeout(function() { incrementViewCount(cb_entryId); }, 50);       deliverT2();
+       deliverC1C2();
+       loadNewsAndKb();
+       loadBlogSignature();
+LoadPostCategoriesTags(cb_blogId, cb_entryId);       LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+       GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+       loadOptUnderPost();
+       GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);
+    </script>
+</div>
+
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+	<div id="sideBar">
+		<div id="sideBarMain">
+			<div id="sidebar_news" class="newsItem"><!--done-->
+<h3 class="catListTitle">公告</h3>
+
+<div id="blog-news">
+    本人学识渊博、经验丰富，代码风骚、效率恐怖，c/c++、java、php无不精通，熟练掌握各种框架，深山苦练20余年，一天只睡4小时，千里之外定位问题，瞬息之间修复上线。身体强壮、健步如飞，可连续编程100小时不休息，讨论技术方案5小时不喝水，上至带项目、出方案，下至盗账号、威胁pm，啥都能干。泡面矿泉水已备好，学校不支持编程已辍学，家人不支持编程已断绝关系，老婆不支持编程已离婚，小孩不支持编程已送养。
+    <div id="profile_block">
+        昵称：
+        <a href="https://home.cnblogs.com/u/nullzx/">
+            nullzx
+        </a>
+        <br>
+        园龄：
+        <a href="https://home.cnblogs.com/u/nullzx/" title="入园时间：2015-11-09">
+            5年5个月
+        </a>
+        <br>
+        粉丝：
+        <a href="https://home.cnblogs.com/u/nullzx/followers/">
+            253
+        </a>
+        <br>
+        关注：
+        <a href="https://home.cnblogs.com/u/nullzx/followees/">
+            4
+        </a>
+        <div id="p_b_follow">
+<a href="javascript:void(0)" onclick="follow(&#39;3c9e220d-bb86-e511-9fc1-ac853d9f53cc&#39;)">+加关注</a></div>
+        <script>getFollowStatus('3c9e220d-bb86-e511-9fc1-ac853d9f53cc');</script>
+    </div>
+</div>
+
+</div>
+<div id="sidebar_c3"></div>
+			<div id="blog-calendar" style="">
+
+<table id="blogCalendar" class="Cal" cellspacing="0" cellpadding="0" title="Calendar" border="0">
+    <tbody>
+        <tr>
+            <td colspan="7">
+                <table class="CalTitle" cellspacing="0" border="0">
+                    <tbody>
+                        <tr>
+                            <td class="CalNextPrev">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2021/03/24&#39;); return false;">&lt;</a>
+                            </td>
+                            <td align="center">2021年4月</td>
+                            <td align="right" class="CalNextPrev">
+                                <a href="javascript:void(0);" onclick="loadBlogCalendar(&#39;2021/05/24&#39;); return false;">&gt;</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    <tr>
+        <th class="CalDayHeader" align="center" abbr="日" scope="col">日</th>
+        <th class="CalDayHeader" align="center" abbr="一" scope="col">一</th>
+        <th class="CalDayHeader" align="center" abbr="二" scope="col">二</th>
+        <th class="CalDayHeader" align="center" abbr="三" scope="col">三</th>
+        <th class="CalDayHeader" align="center" abbr="四" scope="col">四</th>
+        <th class="CalDayHeader" align="center" abbr="五" scope="col">五</th>
+        <th class="CalDayHeader" align="center" abbr="六" scope="col">六</th>
+    </tr>
+            <tr>
+                            <td class="CalOtherMonthDay" align="center">28</td>
+                            <td class="CalOtherMonthDay" align="center">29</td>
+                            <td class="CalOtherMonthDay" align="center">30</td>
+                            <td class="CalOtherMonthDay" align="center">31</td>
+                        <td class="" align="center">
+                            1
+                        </td>
+                        <td class="" align="center">
+                            2
+                        </td>
+                    <td class="CalWeekendDay" align="center">
+                        3
+                    </td>
+            </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            4
+                        </td>
+                            <td class="" align="center">
+                                5
+                            </td>
+                            <td class="" align="center">
+                                6
+                            </td>
+                            <td class="" align="center">
+                                7
+                            </td>
+                            <td class="" align="center">
+                                8
+                            </td>
+                            <td class="" align="center">
+                                9
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            10
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            11
+                        </td>
+                            <td class="" align="center">
+                                12
+                            </td>
+                            <td class="" align="center">
+                                13
+                            </td>
+                            <td class="" align="center">
+                                14
+                            </td>
+                            <td class="" align="center">
+                                15
+                            </td>
+                            <td class="" align="center">
+                                16
+                            </td>
+                        <td class="CalWeekendDay" align="center">
+                            17
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            18
+                        </td>
+                            <td class="" align="center">
+                                19
+                            </td>
+                            <td class="" align="center">
+                                20
+                            </td>
+                            <td class="" align="center">
+                                21
+                            </td>
+                            <td class="" align="center">
+                                22
+                            </td>
+                            <td class="" align="center">
+                                23
+                            </td>
+                        <td class="CalTodayDay" align="center">
+                            24
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalWeekendDay" align="center">
+                            25
+                        </td>
+                            <td class="" align="center">
+                                26
+                            </td>
+                            <td class="" align="center">
+                                27
+                            </td>
+                            <td class="" align="center">
+                                28
+                            </td>
+                            <td class="" align="center">
+                                29
+                            </td>
+                            <td class="" align="center">
+                                30
+                            </td>
+                        <td class="CalOtherMonthDay" align="center">
+                            1
+                        </td>
+                </tr>
+                <tr>
+                        <td class="CalOtherMonthDay" align="center">
+                            2
+                        </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                3
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                4
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                5
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                6
+                            </td>
+                            <td class="CalOtherMonthDay" align="center">
+                                7
+                            </td>
+                        <td class="CalOtherMonthDay" align="center">
+                            8
+                        </td>
+                </tr>
+    </tbody>
+</table></div><script>loadBlogDefaultCalendar();</script>			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"><!-- 搜索 -->
+<div id="sidebar_search" class="sidebar-block">
+    
+</div>
+
+<!-- 常用链接 -->
+<div id="sidebar_shortcut" class="sidebar-block"><div class="catListLink">
+<h3 class="catListTitle">
+常用链接
+</h3>
+<ul>
+    
+<li><a href="https://www.cnblogs.com/nullzx/p/" title="我的博客的随笔列表">我的随笔</a></li>
+<li><a href="https://www.cnblogs.com/nullzx/MyComments.html" title="我的发表过的评论列表">我的评论</a></li>
+<li><a href="https://www.cnblogs.com/nullzx/OtherPosts.html" title="我评论过的随笔列表">我的参与</a></li>
+<li><a href="https://www.cnblogs.com/nullzx/RecentComments.html" title="我的博客的评论列表">最新评论</a></li>
+<li><a href="https://www.cnblogs.com/nullzx/tag/" title="我的博客的标签列表">我的标签</a></li>
+
+</ul>
+</div>
+
+</div>
+
+<!-- 最新随笔 -->
+<div id="sidebar_recentposts" class="sidebar-block"><div class="catListEssay">
+<h3 class="catListTitle">最新随笔</h3>
+    <ul>
+                <li>
+                    
+<a href="https://www.cnblogs.com/nullzx/p/10991305.html">1.笨办法理解动态规划算法</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/nullzx/p/10891689.html">2.EclipseEE的Web开发环境配置（使用Tomcat作为Web服务器）</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/nullzx/p/9234058.html">3.二分类神经网络公式推导过程</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/nullzx/p/8978177.html">4.B+树在磁盘存储中的应用</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/nullzx/p/8932977.html">5.JAVA NIO工作原理及代码示例</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/nullzx/p/8729425.html">6.B树和B+树的插入、删除图文详解</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/nullzx/p/8647220.html">7.Java8 中 ConcurrentHashMap工作原理的要点分析</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/nullzx/p/8433219.html">8.二分搜索以及其扩展形式</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/nullzx/p/7968110.html">9.Tarjan算法：求解图的割点与桥（割边）</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/nullzx/p/7798504.html">10.生产者消费者模型的正确姿势</a>
+
+                </li>
+    </ul>
+</div>
+
+</div>
+
+<!-- 我的标签 -->
+<div id="sidebar_toptags" class="sidebar-block"></div>
+
+<!-- 积分与排名 -->
+
+
+<!-- 随笔分类、随笔档案、文章分类、新闻分类、相册、链接 -->
+<div id="sidebar_categories">
+
+    <div id="sidebar_postcategory" class="catListPostCategory sidebar-block">
+        <h3 class="catListTitle">
+            
+随笔分类
+
+
+
+        </h3>
+
+        <ul>
+
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/nullzx/category/843048.html" rel="" target="">
+    C语言(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/nullzx/category/756071.html" rel="" target="">
+    Java 并发编程(15)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/nullzx/category/766387.html" rel="" target="">
+    Java基础(7)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/nullzx/category/1242717.html" rel="" target="">
+    机器学习(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/nullzx/category/895622.html" rel="" target="">
+    算法(17)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/nullzx/category/1017031.html" rel="" target="">
+    正则表达式(1)
+</a>
+ 
+
+                </li>                
+            
+        </ul>
+
+
+    </div>    
+</div>
+
+<!-- 最新评论 -->
+<div id="sidebar_recentcomments" class="sidebar-block"><div class="catListComment">
+<h3 class="catListTitle">最新评论</h3>
+
+	<div class="RecentCommentBlock">
+        <ul>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/8729425.html">1. Re:B树和B+树的插入、删除图文详解</a></li>
+                    <li class="recent_comment_body">@求教一下一个问题。 在B树的删除操作中，加入将第 d 步删除32改为删除40，会出现个没有列举出来的情况，请教一下这种情况改如何处理啊，谢谢！ “加入”改为“假如”...</li>
+                    <li class="recent_comment_author">--大海-f</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/8729425.html">2. Re:B树和B+树的插入、删除图文详解</a></li>
+                    <li class="recent_comment_body"><p>求教一下一个问题。<br>
+在B树的删除操作中，加入将第 d 步删除32改为删除40，会出现个没有列举出来的情况，请教一下这种情况改如何处理啊，谢谢！</p>
+</li>
+                    <li class="recent_comment_author">--大海-f</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/6111175.html">3. Re:从2-3-4树到红黑树（上）</a></li>
+                    <li class="recent_comment_body">@Route66 第一点，我可能看懂你的意思了，删除之后树的高度得一致，得平衡...</li>
+                    <li class="recent_comment_author">--season-qd</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/7499397.html">4. Re:多模字符串匹配算法之AC自动机—原理与实现</a></li>
+                    <li class="recent_comment_body">需要说明的是，当指针位于结点b（图中曲线经过了两次b,这里指第二次的b，即目标字符串“ijabdf”中的b）,这时读取文本串字符下标为9的字符（即‘d’）时，由于b的所有孩子结点（这里恰好只有一个孩子...</li>
+                    <li class="recent_comment_author">--vinceall</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/8729425.html">5. Re:B树和B+树的插入、删除图文详解</a></li>
+                    <li class="recent_comment_body"><p>图文并茂</p>
+</li>
+                    <li class="recent_comment_author">--李哲操的博客</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/8729425.html">6. Re:B树和B+树的插入、删除图文详解</a></li>
+                    <li class="recent_comment_body"><p>B树插入操作里面g步骤写错了吧？<br>
+最后再依次插入key为17,28,29,31,32的记录</p>
+<p>我看图上插入的是：17,23,28,31,32</p>
+</li>
+                    <li class="recent_comment_author">--Lawliet147</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/7499397.html">7. Re:多模字符串匹配算法之AC自动机—原理与实现</a></li>
+                    <li class="recent_comment_body"><p>目前看过的写的最清晰的一篇文章，谢谢大佬～</p>
+</li>
+                    <li class="recent_comment_author">--ba哥</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/7499397.html">8. Re:多模字符串匹配算法之AC自动机—原理与实现</a></li>
+                    <li class="recent_comment_body"><p>楼主公告也太逗了。。</p>
+</li>
+                    <li class="recent_comment_author">--ba哥</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/8729425.html">9. Re:B树和B+树的插入、删除图文详解</a></li>
+                    <li class="recent_comment_body"><p>写的好呀，非常棒</p>
+</li>
+                    <li class="recent_comment_author">--路远且行</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/8729425.html">10. Re:B树和B+树的插入、删除图文详解</a></li>
+                    <li class="recent_comment_body"><p>上图是一颗阶数为4的B树？？？？不分明是3么</p>
+</li>
+                    <li class="recent_comment_author">--techdashen</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/6624731.html">11. Re:索引优先队列的工作原理与简易实现</a></li>
+                    <li class="recent_comment_body"><p>很棒，学习了</p>
+</li>
+                    <li class="recent_comment_author">--收纸箱易拉罐</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/8932977.html">12. Re:JAVA NIO工作原理及代码示例</a></li>
+                    <li class="recent_comment_body"><p>找了很多NIO的中文帖子，这个最系统最详细，赞</p>
+</li>
+                    <li class="recent_comment_author">--SiaoLeio</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/8932977.html">13. Re:JAVA NIO工作原理及代码示例</a></li>
+                    <li class="recent_comment_body"><p>有点厉害，满满的都是干货，谢了博主，把这些理解透，对NIO应该能有一定的理解了（谢谢！）</p>
+</li>
+                    <li class="recent_comment_author">--这是一个谬论</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/8729425.html">14. Re:B树和B+树的插入、删除图文详解</a></li>
+                    <li class="recent_comment_body">对于M阶B树和 结合B树和ISAM的创造出的 第一种M阶B+树，都共用以下结论： ①每个结点最多可以有m-1个key，非叶子结点最多有m个指针使用，所以最多可以有m个子结点。(框架) ②(非叶子结点)...</li>
+                    <li class="recent_comment_author">--dora_ovo</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/7968110.html">15. Re:Tarjan算法：求解图的割点与桥（割边）</a></li>
+                    <li class="recent_comment_body">@我在这儿 附议...</li>
+                    <li class="recent_comment_author">--凤源</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/7499397.html">16. Re:多模字符串匹配算法之AC自动机—原理与实现</a></li>
+                    <li class="recent_comment_body"><p>真牛逼</p>
+</li>
+                    <li class="recent_comment_author">--凤源</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/8729425.html">17. Re:B树和B+树的插入、删除图文详解</a></li>
+                    <li class="recent_comment_body"><p>B+树的非叶子节点不存储父节点吗</p>
+</li>
+                    <li class="recent_comment_author">--Tobu</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/6437926.html">18. Re:Kosaraju算法解析: 求解图的强连通分量</a></li>
+                    <li class="recent_comment_body"><h6 id="tarjan"><em><del>Tarjan 大法好</del></em></h6>
+</li>
+                    <li class="recent_comment_author">--ztx666nb</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/7406151.html">19. Re:Java中的四种引用以及ReferenceQueue和WeakHashMap的使用示例</a></li>
+                    <li class="recent_comment_body"><p>1.4 虚引用，拼错了，应该是：<strong>PhantomReference</strong></p>
+</li>
+                    <li class="recent_comment_author">--IITII</li>
+                    <li class="recent_comment_title"><a href="https://www.cnblogs.com/nullzx/p/7968110.html">20. Re:Tarjan算法：求解图的割点与桥（割边）</a></li>
+                    <li class="recent_comment_body"><p>请问，4.2 low 数组那里，最后一句话，“那么顶点low[u]就表示了不通过顶点U的父节点所能访问到的最早祖先节点。”，这里应该是U的孩子节点吧</p>
+</li>
+                    <li class="recent_comment_author">--我在这儿</li>
+        </ul>
+    </div>
+</div>
+
+</div>
+
+
+<!-- 阅读排行榜 -->
+<div id="sidebar_topviewedposts" class="sidebar-block"><div class="catListView">
+<h3 class="catListTitle">阅读排行榜</h3>
+	<div id="TopViewPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/8729425.html">
+                            1. B树和B+树的插入、删除图文详解(138786)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/6437926.html">
+                            2. Kosaraju算法解析: 求解图的强连通分量(36125)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/7968110.html">
+                            3. Tarjan算法：求解图的割点与桥（割边）(21918)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/7499397.html">
+                            4. 多模字符串匹配算法之AC自动机—原理与实现(17597)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/5880191.html">
+                            5. 快速排序算法原理及实现（单轴快速排序、三向切分快速排序、双轴快速排序）(17585)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/5175574.html">
+                            6. 线程池的工作原理及使用示例(14871)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/5270233.html">
+                            7. Java并发包中Semaphore的工作原理、源码分析及使用示例(12191)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/5598574.html">
+                            8. C语言的标准输入输出(11521)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/5188890.html">
+                            9. ScheduleThreadPoolExecutor的工作原理与使用示例(11473)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/5184164.html">
+                            10. 线程池ThreadPoolExecutor、Executors参数详解与源代码分析(10989)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div>
+
+</div>
+
+<!-- 评论排行榜 -->
+<div id="sidebar_topcommentedposts" class="sidebar-block"><div class="catListFeedback">
+<h3 class="catListTitle">评论排行榜</h3>
+	<div id="TopFeedbackPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/8729425.html">
+                            1. B树和B+树的插入、删除图文详解(36)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/7499397.html">
+                            2. 多模字符串匹配算法之AC自动机—原理与实现(11)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/7968110.html">
+                            3. Tarjan算法：求解图的割点与桥（割边）(9)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/6437926.html">
+                            4. Kosaraju算法解析: 求解图的强连通分量(9)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/5880191.html">
+                            5. 快速排序算法原理及实现（单轴快速排序、三向切分快速排序、双轴快速排序）(6)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/8647220.html">
+                            6. Java8 中 ConcurrentHashMap工作原理的要点分析(5)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/7092157.html">
+                            7. 1000行代码徒手写正则表达式引擎【1】--JAVA中正则表达式的使用(5)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/10991305.html">
+                            8. 笨办法理解动态规划算法(4)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/7798504.html">
+                            9. 生产者消费者模型的正确姿势(4)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/nullzx/p/6192984.html">
+                            10. 从2-3-4树到红黑树(下) Java与C的实现(4)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div>
+
+</div>
+
+<!-- 推荐排行榜 -->
+<div id="sidebar_topdiggedposts" class="sidebar-block">
+<div id="topdigg_posts_wrap">
+    <div class="catListView">
+        <h3 class="catListTitle">推荐排行榜</h3>
+        <div id="TopDiggPostsBlock">
+            <ul style="word-break: break-all">
+                        <li>
+                            <a href="https://www.cnblogs.com/nullzx/p/8729425.html">
+                                1. B树和B+树的插入、删除图文详解(79)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/nullzx/p/7968110.html">
+                                2. Tarjan算法：求解图的割点与桥（割边）(16)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/nullzx/p/6437926.html">
+                                3. Kosaraju算法解析: 求解图的强连通分量(11)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/nullzx/p/6111175.html">
+                                4. 从2-3-4树到红黑树（上）(8)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/nullzx/p/8978177.html">
+                                5. B+树在磁盘存储中的应用(7)
+                            </a>
+                        </li>
+            </ul>
+        </div>
+    </div>
+</div></div></div>
+                    <script>loadBlogSideColumn();</script>
+			</div>			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		<!--done-->
+Copyright © 2021 nullzx
+<br><span id="poweredby">Powered by .NET 5.0 on Kubernetes</span>
+
+
+
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+
+    
+
+    <input type="hidden" id="antiforgery_token" value="CfDJ8L-rpLgFVEJMgssCVvNUAjup_YPSF6IACMejJYC2mm6S_omhsIsl8kOMtDEcvpcpH7oa40MYk--dHaKaPB3Bsk1UpRBdaiFvfdlQGq_8kElQrmoqzImsqTmhuJ85ez3Jg0MMhXIFJN6o_fPuTTNawEo">
+
+
+<iframe id="google_osd_static_frame_5723547261989" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px;" src="./B树和B+树的插入、删除图文详解 - nullzx - 博客园_files/saved_resource(2).html"></iframe></body></html>

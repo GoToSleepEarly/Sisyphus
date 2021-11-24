@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<!-- saved from url=(0051)https://www.cnblogs.com/butterfly100/p/9034281.html -->
+<html lang="zh-cn"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="origin-when-crossorigin">
+    <meta name="description" content="一. 数据切分 关系型数据库本身比较容易成为系统瓶颈，单机存储容量、连接数、处理能力都有限。当单表的数据量达到1000W或100G以后，由于查询维度较多，即使添加从库、优化索引，做很多操作时性能仍下降">
+    <meta property="og:description" content="一. 数据切分 关系型数据库本身比较容易成为系统瓶颈，单机存储容量、连接数、处理能力都有限。当单表的数据量达到1000W或100G以后，由于查询维度较多，即使添加从库、优化索引，做很多操作时性能仍下降">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>数据库分库分表思路 - butterfly100 - 博客园</title>
+    <link id="favicon" rel="shortcut icon" href="https://common.cnblogs.com/favicon.svg" type="image/svg+xml">
+    
+    <link rel="stylesheet" href="./数据库分库分表思路 - butterfly100 - 博客园_files/blog-common.min.css">
+    
+    <link type="text/css" rel="stylesheet" href="./数据库分库分表思路 - butterfly100 - 博客园_files/custom.css">
+    <link id="mobile-style" media="only screen and (max-width: 767px)" type="text/css" rel="stylesheet" href="./数据库分库分表思路 - butterfly100 - 博客园_files/bundle-darkgreentrip-mobile.min.css">
+    
+    <link type="application/rss+xml" rel="alternate" href="https://www.cnblogs.com/butterfly100/rss">
+    <link type="application/rsd+xml" rel="EditURI" href="https://www.cnblogs.com/butterfly100/rsd.xml">
+    <link type="application/wlwmanifest+xml" rel="wlwmanifest" href="https://www.cnblogs.com/butterfly100/wlwmanifest.xml">
+    <script src="./数据库分库分表思路 - butterfly100 - 博客园_files/osd.js.下载"></script><script async="" src="./数据库分库分表思路 - butterfly100 - 博客园_files/analytics.js.下载"></script><script type="text/javascript" src="./数据库分库分表思路 - butterfly100 - 博客园_files/encoder.js.下载"></script><script>
+        var currentBlogId = 394698;
+        var currentBlogApp = 'butterfly100';
+        var cb_enable_mathjax = false;
+        var isLogined = false;
+        var isBlogOwner = false;
+        var skinName = 'darkgreentrip';
+        var visitorUserId = '';
+    </script>
+        <script>
+            var currentPostDateAdded = '2018-05-14 02:26';
+        </script>
+    <script src="./数据库分库分表思路 - butterfly100 - 博客园_files/jquery-2.2.0.min.js.下载"></script>
+    <script src="./数据库分库分表思路 - butterfly100 - 博客园_files/blog-common.min.js.下载"></script><style type="text/css">.medium-zoom-overlay{position:fixed;top:0;right:0;bottom:0;left:0;opacity:0;transition:opacity .3s;will-change:opacity}.medium-zoom--opened .medium-zoom-overlay{cursor:pointer;cursor:zoom-out;opacity:1}.medium-zoom-image{cursor:pointer;cursor:zoom-in;transition:transform .3s cubic-bezier(.2,0,.2,1)!important}.medium-zoom-image--hidden{visibility:hidden}.medium-zoom-image--opened{position:relative;cursor:pointer;cursor:zoom-out;will-change:transform}</style>
+    
+    
+    
+<meta http-equiv="origin-trial" content="A+b/H0b8RPXNaJgaNFpO0YOFuGK6myDQXlwnJB3SwzvNMfcndat4DZYMrP4ClJIzYWo3/yP2S+8FTZ/lpqbPAAEAAABueyJvcmlnaW4iOiJodHRwczovL2ltYXNkay5nb29nbGVhcGlzLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzVGhpcmRQYXJ0eSI6dHJ1ZX0="><meta http-equiv="origin-trial" content="A9ZgbRtm4pU3oZiuNzOsKcC8ppFSZdcjP2qYcdQrFKVzkmiWH1kdYY1Mi9x7G8+PS8HV9Ha9Cz0gaMdKsiVZIgMAAAB7eyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="AxL6oBxcpn5rQDPKSAs+d0oxNyJYq2/4esBUh3Yx5z8QfcLu+AU8iFCXYRcr/CEEfDnkxxLTsvXPJFQBxHfvkgMAAACBeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A9KPtG5kl3oLTk21xqynDPGQ5t18bSOpwt0w6kGa6dEWbuwjpffmdUpR3W+faZDubGT+KIk2do0BX2ca16x8qAcAAACBeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiVHJ1c3RUb2tlbnMiLCJleHBpcnkiOjE2MjYyMjA3OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A3HucHUo1oW9s+9kIKz8mLkbcmdaj5lxt3eiIMp1Nh49dkkBlg1Fhg4Fd/r0vL69mRRA36YutI9P/lJUfL8csQoAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A0OysezhLoCRYomumeYlubLurZTCmsjTb087OvtCy95jNM65cfEsbajrJnhaGwiTxhz38ZZbm+UhUwQuXfVPTg0AAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="AxoOxdZQmIoA1WeAPDixRAeWDdgs7ZtVFfH2y19ziTgD1iaHE5ZGz2UdSjubkWvob9C5PrjUfkWi4ZSLgWk3Xg8AAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A7+rMYR5onPnACrz+niKSeFdH3xw1IyHo2AZSHmxrofRk9w4HcQPMYcpBUKu6OQ6zsdxf4m/vqa6tG6Na4OLpAQAAAB4eyJvcmlnaW4iOiJodHRwczovL2ltYXNkay5nb29nbGVhcGlzLmNvbTo0NDMiLCJmZWF0dXJlIjoiQ29udmVyc2lvbk1lYXN1cmVtZW50IiwiZXhwaXJ5IjoxNjI2MjIwNzk5LCJpc1RoaXJkUGFydHkiOnRydWV9"><script src="./数据库分库分表思路 - butterfly100 - 博客园_files/pubads_impl_2021050401.js.下载" async=""></script><link rel="preload" href="./数据库分库分表思路 - butterfly100 - 博客园_files/f.txt" as="script"><script type="text/javascript" src="./数据库分库分表思路 - butterfly100 - 博客园_files/f.txt"></script><link rel="prefetch" href="https://cbfb3d6777405751804a35a80ded5a2d.safeframe.googlesyndication.com/safeframe/1-0-38/html/container.html"><link rel="prefetch" href="https://tpc.googlesyndication.com/safeframe/1-0-38/html/container.html"></head>
+<body class="no-navbar">
+    <a name="top"></a>
+    <div id="top_nav" class="navbar forpc navbar-custom">
+        <nav id="nav_main" class="navbar-main">
+            <ul id="nav_left" class="navbar-list navbar-left">
+                <li class="navbar-branding"><a href="https://www.cnblogs.com/" title="开发者的网上家园"><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/logo.svg" alt="博客园Logo"></a></li>
+                <li><a href="https://www.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-sitehome&#39;)">首页</a></li>
+                <li><a href="https://news.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-news&#39;)">新闻</a></li>
+                <li><a href="https://q.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-q&#39;)">博问</a></li>
+                <li><a id="nav_brandzone" href="https://brands.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-brands&#39;)">专区</a></li>
+                <li><a href="https://ing.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-ing&#39;)">闪存</a></li>
+                <li><a href="https://edu.cnblogs.com/" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;skin-navbar-edu&#39;)">班级</a></li>
+            </ul>
+            <ul id="nav_right" class="navbar-list navbar-right">
+                <li>
+                    <form id="zzk_search" class="navbar-search" action="https://zzk.cnblogs.com/s" method="get">
+                        <input name="w" id="zzk_search_input" placeholder="代码改变世界" type="text" tabindex="3">
+                        <button type="submit" id="zzk_search_button">
+                            <img src="./数据库分库分表思路 - butterfly100 - 博客园_files/search.svg" alt="搜索">
+                        </button>
+                    </form>
+                </li>
+                <li id="navbar_login_status" class="navbar-list">
+                    <a class="navbar-user-info navbar-blog" href="https://i.cnblogs.com/EditPosts.aspx?opt=1" alt="写随笔" title="写随笔" style="display: none;">
+                        <img id="new_post_icon" class="navbar-icon" src="./数据库分库分表思路 - butterfly100 - 博客园_files/newpost.svg" alt="写随笔">
+                    </a>
+                    <a id="navblog-myblog-icon" class="navbar-user-info navbar-blog" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx" alt="我的博客" title="我的博客" style="display: none;">
+                        <img id="myblog_icon" class="navbar-icon" src="./数据库分库分表思路 - butterfly100 - 博客园_files/myblog.svg" alt="我的博客">
+                    </a>
+                    <a class="navbar-user-info navbar-message navbar-icon-wrapper" href="https://msg.cnblogs.com/" alt="短消息" title="短消息" style="display: none;">
+                        <img id="msg_icon" class="navbar-icon" src="./数据库分库分表思路 - butterfly100 - 博客园_files/message.svg" alt="短消息">
+                        <span id="msg_count" style="display: none"></span>
+                    </a>
+                    <div id="user_info" class="navbar-user-info dropdown" style="display: none;">
+                        <a class="dropdown-button" href="https://home.cnblogs.com/">
+                            <img id="user_icon" class="navbar-avatar" src="./数据库分库分表思路 - butterfly100 - 博客园_files/avatar-default.svg" alt="用户头像">
+                        </a>
+                        <div class="dropdown-menu">
+                            <a id="navblog-myblog-text" href="https://passport.cnblogs.com/GetBlogApplyStatus.aspx">我的博客</a>
+                            <a href="https://home.cnblogs.com/">我的园子</a>
+                            <a href="https://account.cnblogs.com/settings/account">账号设置</a>
+                            <a href="javascript:void(0)" id="navbar_lite_mode_toggle" title="简洁模式会使用简洁款皮肤显示所有博客">
+    简洁模式 <img id="navbar_lite_mode_on" src="./数据库分库分表思路 - butterfly100 - 博客园_files/lite-mode-check.svg" class="hide"><span id="navbar_lite_mode_spinner" class="hide">...</span>
+</a>
+                            <a href="javascript:void(0)" onclick="account.logout();">退出登录</a>
+                        </div>
+                    </div>
+                    <a class="navbar-anonymous" href="https://account.cnblogs.com/signup/" style="display: inline;">注册</a>
+                    <a class="navbar-anonymous" href="javascript:void(0);" onclick="account.login()" style="display: inline;">登录</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div id="page_begin_html">
+        <div id="userAvatar">
+    <a title="butterfly100">        
+        <img src="./数据库分库分表思路 - butterfly100 - 博客园_files/20180512165053.png" alt="butterfly100">
+    </a>
+</div>
+    </div>
+    <!--done-->
+<div id="home">
+<div id="header">
+	<div id="blogTitle">
+        <a id="lnkBlogLogo" href="https://www.cnblogs.com/butterfly100/"><img id="blogLogo" src="./数据库分库分表思路 - butterfly100 - 博客园_files/logo.gif" alt="返回主页"></a>		
+		
+<!--done-->
+<h1><a id="Header1_HeaderTitle" class="headermaintitle HeaderMainTitle" href="https://www.cnblogs.com/butterfly100/">butterfly100</a>
+</h1>
+<h2></h2>
+
+
+
+
+		
+	</div><!--end: blogTitle 博客的标题和副标题 -->
+	<div id="navigator">
+		
+<ul id="navList">
+<li><a id="blog_nav_sitehome" class="menu" href="https://www.cnblogs.com/">
+博客园</a>
+</li>
+<li>
+<a id="blog_nav_myhome" class="menu" href="https://www.cnblogs.com/butterfly100/">
+首页</a>
+</li>
+<li>
+
+<a id="blog_nav_newpost" class="menu" href="https://i.cnblogs.com/EditPosts.aspx?opt=1">
+新随笔</a>
+</li>
+<li>
+<a id="blog_nav_contact" class="menu" href="https://msg.cnblogs.com/send/butterfly100">
+联系</a></li>
+<li>
+<a id="blog_nav_rss" class="menu" href="javascript:void(0)" data-rss="https://www.cnblogs.com/butterfly100/rss/">
+订阅</a>
+<!--<partial name="./Shared/_XmlLink.cshtml" model="Model" /></li>--></li>
+<li>
+<a id="blog_nav_admin" class="menu" href="https://i.cnblogs.com/">
+管理</a>
+</li>
+</ul>
+
+
+		<div class="blogStats">
+			<span id="stats_post_count">随笔 - 21&nbsp; </span>
+<span id="stats_article_count">文章 - 0&nbsp; </span>
+<span id="stats-comment_count">评论 - 38&nbsp; </span>
+<span id="stats-total-view-count">阅读 - 
+<span title="总阅读数: 198489">
+19万</span></span>
+
+		</div><!--end: blogStats -->
+	</div><!--end: navigator 博客导航栏 -->
+</div><!--end: header 头部 -->
+<div id="main">
+	<div id="mainContent">
+	<div class="forFlow">
+		<div id="post_detail">
+    <!--done-->
+    <div id="topics">
+        <div class="post">
+            <h1 class="postTitle">
+                
+<a id="cb_post_title_url" class="postTitle2 vertical-middle" href="https://www.cnblogs.com/butterfly100/p/9034281.html">
+    <span>数据库分库分表思路</span>
+    
+
+
+
+</a>
+
+            </h1>
+            <div class="clear"></div>
+            <div class="postBody">
+                <div id="cnblogs_post_body" class="blogpost-body blogpost-body-html">
+<h2 id="一-数据切分" data-anchor-id="eq2p">一. 数据切分</h2>
+<p data-anchor-id="nne9">关系型数据库本身比较容易成为系统瓶颈，单机存储容量、连接数、处理能力都有限。当单表的数据量达到1000W或100G以后，由于查询维度较多，即使添加从库、优化索引，做很多操作时性能仍下降严重。此时就要考虑对其进行切分了，切分的目的就在于减少数据库的负担，缩短查询时间。</p>
+<p data-anchor-id="5wpb"><span style="color: rgba(51, 102, 255, 1)">数据库分布式核心内容无非就是数据切分（Sharding）</span>，以及切分后对数据的定位、整合。数据切分就是将数据分散存储到多个数据库中，使得单一数据库中的数据量变小，通过扩充主机的数量缓解单一数据库的性能问题，从而达到提升数据库操作性能的目的。</p>
+<p data-anchor-id="q9o8">数据切分根据其切分类型，可以分为两种方式：<span style="color: rgba(0, 0, 0, 1)">垂直（纵向）切分和水平（横向）切分</span></p>
+<p data-anchor-id="q9o8">&nbsp;</p>
+<h3 id="1垂直纵向切分" data-anchor-id="ptoh">1、垂直（纵向）切分</h3>
+<p data-anchor-id="06w9">垂直切分常见有垂直分库和垂直分表两种。</p>
+<p data-anchor-id="10m7"><span style="color: rgba(51, 102, 255, 1)">垂直分库</span>就是根据业务耦合性，将关联度低的不同表存储在不同的数据库。做法与大系统拆分为多个小系统类似，按业务分类进行独立划分。与"微服务治理"的做法相似，每个微服务使用单独的一个数据库。如图：</p>
+<p data-anchor-id="10m7"><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514014303109-1826311184.png" alt="" width="400" class="medium-zoom-image"></p>
+<p data-anchor-id="10m7"><span style="color: rgba(51, 102, 255, 1)">垂直分表</span>是基于数据库中的"列"进行，某个表字段较多，可以新建一张扩展表，将不经常用或字段长度较大的字段拆分出去到扩展表中。在字段很多的情况下（例如一个大表有100多个字段），通过"大表拆小表"，更便于开发与维护，也能避免跨页问题，MySQL底层是通过数据页存储的，一条记录占用空间过大会导致跨页，造成额外的性能开销。另外数据库以行为单位将数据加载到内存中，这样表中字段长度较短且访问频率较高，内存能加载更多的数据，命中率更高，减少了磁盘IO，从而提升了数据库性能。</p>
+<p><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514014417237-1672001359.png" alt="" width="400" class="medium-zoom-image"></p>
+<p data-anchor-id="u3j9">垂直切分的优点：</p>
+<ul data-anchor-id="xjkp">
+<li>解决业务系统层面的耦合，业务清晰</li>
+<li>与微服务的治理类似，也能对不同业务的数据进行分级管理、维护、监控、扩展等</li>
+<li>高并发场景下，垂直切分一定程度的提升IO、数据库连接数、单机硬件资源的瓶颈</li>
+</ul>
+<p data-anchor-id="wy9p">缺点：</p>
+<ul data-anchor-id="lk8h">
+<li>部分表无法join，只能通过接口聚合方式解决，提升了开发的复杂度</li>
+<li>分布式事务处理复杂</li>
+<li>依然存在单表数据量过大的问题（需要水平切分）</li>
+</ul>
+<p>&nbsp;</p>
+<h3 id="2水平横向切分" data-anchor-id="ux1c">2、水平（横向）切分</h3>
+<p data-anchor-id="65hz">当一个应用难以再细粒度的垂直切分，或切分后数据量行数巨大，存在单库读写、存储性能瓶颈，这时候就需要进行水平切分了。</p>
+<p data-anchor-id="v57u">水平切分分为<span style="color: rgba(51, 102, 255, 1)">库内分表和分库分表</span>，是根据表内数据内在的逻辑关系，将同一个表按不同的条件分散到多个数据库或多个表中，每个表中只包含一部分数据，从而使得单个表的数据量变小，达到分布式的效果。如图所示：<span class="Apple-converted-space">&nbsp;</span></p>
+<div class="md-section-divider"><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514014833061-560502066.png" alt="" width="400">
+<p data-anchor-id="tobh">库内分表只解决了单一表数据量过大的问题，但没有将表分布到不同机器的库上，因此对于减轻MySQL数据库的压力来说，帮助不是很大，大家还是竞争同一个物理机的CPU、内存、网络IO，最好通过分库分表来解决。</p>
+<p data-anchor-id="yty0">水平切分的优点：</p>
+<ul data-anchor-id="qixb">
+<li>不存在单库数据量过大、高并发的性能瓶颈，提升系统稳定性和负载能力</li>
+<li>应用端改造较小，不需要拆分业务模块</li>
+</ul>
+<p data-anchor-id="lhix">缺点：</p>
+<ul data-anchor-id="mpv4">
+<li>跨分片的事务一致性难以保证</li>
+<li>跨库的join关联查询性能较差</li>
+<li>数据多次扩展难度和维护量极大</li>
+</ul>
+<p data-anchor-id="qbrh">水平切分后同一张表会出现在多个数据库/表中，每个库/表的内容不同。几种典型的数据分片规则为：</p>
+<h4 data-anchor-id="zcm5"><span style="color: rgba(0, 0, 0, 1)">1、根据数值范围</span></h4>
+<p data-anchor-id="v7s0"><span style="color: rgba(51, 102, 255, 1)">按照时间区间或ID区间来切分</span>。例如：按日期将不同月甚至是日的数据分散到不同的库中；将userId为1~9999的记录分到第一个库，10000~20000的分到第二个库，以此类推。某种意义上，某些系统中使用的"<span style="color: rgba(51, 102, 255, 1)">冷热数据分离</span>"，将一些使用较少的历史数据迁移到其他库中，业务功能上只提供热点数据的查询，也是类似的实践。</p>
+<p data-anchor-id="mao9">这样的优点在于：</p>
+<ul data-anchor-id="mbgg">
+<li>单表大小可控</li>
+<li>天然便于水平扩展，后期如果想对整个分片集群扩容时，只需要添加节点即可，无需对其他分片的数据进行迁移</li>
+<li>使用分片字段进行范围查找时，连续分片可快速定位分片进行快速查询，有效避免跨分片查询的问题。</li>
+</ul>
+<p data-anchor-id="haum">缺点：</p>
+<ul data-anchor-id="bj43">
+<li>热点数据成为性能瓶颈。连续分片可能存在数据热点，例如按时间字段分片，有些分片存储最近时间段内的数据，可能会被频繁的读写，而有些分片存储的历史数据，则很少被查询</li>
+</ul>
+<p><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514015656387-1154395691.png" alt="" width="400" class="medium-zoom-image"></p>
+<h4 data-anchor-id="vx5e"><span style="color: rgba(0, 0, 0, 1)">2、根据数值取模</span></h4>
+<p data-anchor-id="r5ms"><span style="color: rgba(51, 102, 255, 1)">一般采用hash取模mod的切分方式</span>，例如：将 Customer 表根据 cusno 字段切分到4个库中，余数为0的放到第一个库，余数为1的放到第二个库，以此类推。这样同一个用户的数据会分散到同一个库中，如果查询条件带有cusno字段，则可明确定位到相应库去查询。</p>
+<p data-anchor-id="47xh">优点：</p>
+<ul data-anchor-id="e6ln">
+<li>数据分片相对比较均匀，不容易出现热点和并发访问的瓶颈</li>
+</ul>
+<p data-anchor-id="7dep">缺点：</p>
+<ul data-anchor-id="ru3w">
+<li>后期分片集群扩容时，需要迁移旧的数据（使用一致性hash算法能较好的避免这个问题）</li>
+<li>容易面临跨分片查询的复杂问题。比如上例中，如果频繁用到的查询条件中不带cusno时，将会导致无法定位数据库，从而需要同时向4个库发起查询，再在内存中合并数据，取最小集返回给应用，分库反而成为拖累。</li>
+</ul>
+</div>
+<p><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514015805333-1409715906.png" alt="" width="400" class="medium-zoom-image"></p>
+<h2 id="二-分库分表带来的问题" data-anchor-id="ftmo">二. 分库分表带来的问题</h2>
+<p data-anchor-id="v2eb">分库分表能有效的环节单机和单库带来的性能瓶颈和压力，突破网络IO、硬件资源、连接数的瓶颈，同时也带来了一些问题。下面将描述这些技术挑战以及对应的解决思路。&nbsp;</p>
+<h3 id="1事务一致性问题" data-anchor-id="ww6y">1、事务一致性问题</h3>
+<h4 data-anchor-id="t5gz">分布式事务</h4>
+<p data-anchor-id="s2d0">当更新内容同时分布在不同库中，不可避免会带来跨库事务问题。跨分片事务也是<span style="color: rgba(51, 102, 255, 1)">分布式事务，没有简单的方案，一般可使用"XA协议"和"两阶段提交"处理</span>。</p>
+<p data-anchor-id="km3j">分布式事务能最大限度保证了数据库操作的原子性。但在提交事务时需要协调多个节点，推后了提交事务的时间点，延长了事务的执行时间。导致事务在访问共享资源时发生冲突或死锁的概率增高。随着数据库节点的增多，这种趋势会越来越严重，从而成为系统在数据库层面上水平扩展的枷锁。</p>
+<h4 data-anchor-id="bq3t">最终一致性</h4>
+<p data-anchor-id="m1xc">对于那些性能要求很高，但对一致性要求不高的系统，<span style="color: rgba(51, 102, 255, 1)">往往不苛求系统的实时一致性，只要在允许的时间段内达到最终一致性即可，可采用事务补偿的方式</span>。与事务在执行中发生错误后立即回滚的方式不同，事务补偿是一种事后检查补救的措施，一些常见的实现方法有：对数据进行对账检查，基于日志进行对比，定期同标准数据来源进行同步等等。事务补偿还要结合业务系统来考虑。</p>
+<div class="md-section-divider">&nbsp;</div>
+<h3 id="2跨节点关联查询-join-问题" data-anchor-id="sad2">2、跨节点关联查询 join 问题</h3>
+<p data-anchor-id="8fxk">切分之前，系统中很多列表和详情页所需的数据可以通过sql join来完成。而切分之后，数据可能分布在不同的节点上，此时join带来的问题就比较麻烦了，考虑到性能，尽量避免使用join查询。</p>
+<p data-anchor-id="d29f">解决这个问题的一些方法：</p>
+<h4 data-anchor-id="doi8">1）全局表</h4>
+<p data-anchor-id="hy4e">全局表，也可看做是"数据字典表"，就是系统中所有模块都可能依赖的一些表，为了避免跨库join查询，<span style="color: rgba(51, 102, 255, 1)">可以将这类表在每个数据库中都保存一份</span>。这些数据通常很少会进行修改，所以也不担心一致性的问题。</p>
+<h4 data-anchor-id="mtw0">2）字段冗余</h4>
+<p data-anchor-id="aj8i">一种典型的反范式设计，<span style="color: rgba(51, 102, 255, 1)">利用空间换时间</span>，为了性能而避免join查询。例如：订单表保存userId时候，也将userName冗余保存一份，这样查询订单详情时就不需要再去查询"买家user表"了。</p>
+<p data-anchor-id="6kve">但这种方法适用场景也有限，比较适用于依赖字段比较少的情况。而冗余字段的数据一致性也较难保证，就像上面订单表的例子，买家修改了userName后，是否需要在历史订单中同步更新呢？这也要结合实际业务场景进行考虑。</p>
+<h4 data-anchor-id="ivwe">3）数据组装</h4>
+<p data-anchor-id="aelq">在系统层面，<span style="color: rgba(51, 102, 255, 1)">分两次查询</span>，第一次查询的结果集中找出关联数据id，然后根据id发起第二次请求得到关联数据。最后将获得到的数据进行字段拼装。</p>
+<h4 data-anchor-id="4i4v">4）ER分片</h4>
+<p data-anchor-id="zrfs">关系型数据库中，如果可以先确定表之间的关联关系，并<span style="color: rgba(51, 102, 255, 1)">将那些存在关联关系的表记录存放在同一个分片上</span>，那么就能较好的避免跨分片join问题。在1:1或1:n的情况下，通常按照主表的ID主键切分。如下图所示：</p>
+<p><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514020222377-732069408.png" alt="" width="400" class="medium-zoom-image"></p>
+<p data-anchor-id="y9b0">这样一来，Data Node1上面的order订单表与orderdetail订单详情表就可以通过orderId进行局部的关联查询了，Data Node2上也一样。</p>
+<div class="md-section-divider">&nbsp;</div>
+<h3 id="3跨节点分页排序函数问题" data-anchor-id="umi8">3、跨节点分页、排序、函数问题</h3>
+<p data-anchor-id="p9qu">跨节点多库进行查询时，会出现limit分页、order by排序等问题。分页需要按照指定字段进行排序，当排序字段就是分片字段时，通过分片规则就比较容易定位到指定的分片；当排序字段非分片字段时，就变得比较复杂了。需要<span style="color: rgba(51, 102, 255, 1)">先在不同的分片节点中将数据进行排序并返回，然后将不同分片返回的结果集进行汇总和再次排序，最终返回给用户</span>。如图所示：</p>
+<p><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514020338000-1035095990.png" alt="" width="400" class="medium-zoom-image"></p>
+<p data-anchor-id="1gvq">上图中只是取第一页的数据，对性能影响还不是很大。但是如果取得页数很大，情况则变得复杂很多，因为各分片节点中的数据可能是随机的，为了排序的准确性，需要将所有节点的前N页数据都排序好做合并，最后再进行整体的排序，这样的操作时很耗费CPU和内存资源的，所以页数越大，系统的性能也会越差。</p>
+<p data-anchor-id="7spy">在使用Max、Min、Sum、Count之类的函数进行计算的时候，也需要<span style="color: rgba(51, 102, 255, 1)">先在每个分片上执行相应的函数，然后将各个分片的结果集进行汇总和再次计算，最终将结果返回</span>。如图所示：</p>
+<p><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514020407207-1066476374.png" alt="" width="400" class="medium-zoom-image"></p>
+<h3 data-anchor-id="q6fr">&nbsp;</h3>
+<h3 id="4全局主键避重问题" data-anchor-id="q6fr">4、全局主键避重问题</h3>
+<p data-anchor-id="1qxi">在分库分表环境中，由于表中数据同时存在不同数据库中，主键值平时使用的自增长将无用武之地，某个分区数据库自生成的ID无法保证全局唯一。因此需要单独设计全局主键，以避免跨库主键重复问题。有一些常见的主键生成策略：</p>
+<h4 data-anchor-id="52ye">1）UUID</h4>
+<p data-anchor-id="5bxp">UUID标准形式包含32个16进制数字，分为5段，形式为8-4-4-4-12的36个字符，例如：550e8400-e29b-41d4-a716-446655440000</p>
+<p data-anchor-id="h0i7">UUID是主键是最简单的方案，本地生成，性能高，没有网络耗时。但缺点也很明显，由于UUID非常长，会占用大量的存储空间；另外，作为主键建立索引和基于索引进行查询时都会存在性能问题，在InnoDB下，UUID的无序性会引起数据位置频繁变动，导致分页。</p>
+<h4 data-anchor-id="570p">2）结合数据库维护主键ID表</h4>
+<p data-anchor-id="qm2y">在数据库中建立 sequence 表：</p>
+<div class="cnblogs_code">
+<pre><span style="color: rgba(0, 0, 255, 1)">CREATE</span> <span style="color: rgba(0, 0, 255, 1)">TABLE</span><span style="color: rgba(0, 0, 0, 1)"> `sequence` (  
+  `id` </span><span style="color: rgba(0, 0, 255, 1)">bigint</span>(<span style="color: rgba(128, 0, 0, 1); font-weight: bold">20</span>) unsigned <span style="color: rgba(128, 128, 128, 1)">NOT</span> <span style="color: rgba(0, 0, 255, 1)">NULL</span><span style="color: rgba(0, 0, 0, 1)"> auto_increment,  
+  `stub` </span><span style="color: rgba(0, 0, 255, 1)">char</span>(<span style="color: rgba(128, 0, 0, 1); font-weight: bold">1</span>) <span style="color: rgba(128, 128, 128, 1)">NOT</span> <span style="color: rgba(0, 0, 255, 1)">NULL</span> <span style="color: rgba(0, 0, 255, 1)">default</span> <span style="color: rgba(255, 0, 0, 1)">''</span><span style="color: rgba(0, 0, 0, 1)">,  
+  </span><span style="color: rgba(0, 0, 255, 1)">PRIMARY</span> <span style="color: rgba(0, 0, 255, 1)">KEY</span><span style="color: rgba(0, 0, 0, 1)">  (`id`),  
+  </span><span style="color: rgba(0, 0, 255, 1)">UNIQUE</span> <span style="color: rgba(0, 0, 255, 1)">KEY</span><span style="color: rgba(0, 0, 0, 1)"> `stub` (`stub`)  
+) ENGINE</span><span style="color: rgba(128, 128, 128, 1)">=</span>MyISAM;</pre>
+</div>
+<p>stub字段设置为唯一索引，同一stub值在sequence表中只有一条记录，可以同时为多张表生成全局ID。sequence表的内容，如下所示：</p>
+<div class="cnblogs_code">
+<pre><span style="color: rgba(128, 128, 128, 1)">+</span><span style="color: rgba(0, 128, 128, 1)">--</span><span style="color: rgba(0, 128, 128, 1)">-----------------+------+  </span>
+<span style="color: rgba(128, 128, 128, 1)">|</span> id                <span style="color: rgba(128, 128, 128, 1)">|</span> stub <span style="color: rgba(128, 128, 128, 1)">|</span>  
+<span style="color: rgba(128, 128, 128, 1)">+</span><span style="color: rgba(0, 128, 128, 1)">--</span><span style="color: rgba(0, 128, 128, 1)">-----------------+------+  </span>
+<span style="color: rgba(128, 128, 128, 1)">|</span> <span style="color: rgba(128, 0, 0, 1); font-weight: bold">72157623227190423</span> <span style="color: rgba(128, 128, 128, 1)">|</span>    a <span style="color: rgba(128, 128, 128, 1)">|</span>  
+<span style="color: rgba(128, 128, 128, 1)">+</span><span style="color: rgba(0, 128, 128, 1)">--</span><span style="color: rgba(0, 128, 128, 1)">-----------------+------+  </span></pre>
+</div>
+<p>使用 MyISAM 存储引擎而不是 InnoDB，以获取更高的性能。MyISAM使用的是表级别的锁，对表的读写是串行的，所以不用担心在并发时两次读取同一个ID值。</p>
+<p data-anchor-id="odfw">当需要全局唯一的64位ID时，执行：</p>
+<div class="cnblogs_code">
+<pre><span style="color: rgba(255, 0, 255, 1)">REPLACE</span> <span style="color: rgba(0, 0, 255, 1)">INTO</span> sequence (stub) <span style="color: rgba(0, 0, 255, 1)">VALUES</span> (<span style="color: rgba(255, 0, 0, 1)">'</span><span style="color: rgba(255, 0, 0, 1)">a</span><span style="color: rgba(255, 0, 0, 1)">'</span><span style="color: rgba(0, 0, 0, 1)">);  
+</span><span style="color: rgba(0, 0, 255, 1)">SELECT</span> LAST_INSERT_ID();  </pre>
+</div>
+<p data-anchor-id="y6lh">这两条语句是Connection级别的，select last_insert_id() 必须与 replace into 在同一数据库连接下才能得到刚刚插入的新ID。</p>
+<p data-anchor-id="w9sn">使用replace into代替insert into好处是避免了表行数过大，不需要另外定期清理。</p>
+<p data-anchor-id="q3dx">此方案较为简单，但缺点也明显：存在单点问题，强依赖DB，当DB异常时，整个系统都不可用。配置主从可以增加可用性，但当主库挂了，主从切换时，数据一致性在特殊情况下难以保证。另外性能瓶颈限制在单台MySQL的读写性能。</p>
+<p data-anchor-id="do9o"><span style="color: rgba(51, 102, 255, 1)">flickr团队使用的一种主键生成策略，与上面的sequence表方案类似，但更好的解决了单点和性能瓶颈的问题。</span></p>
+<p data-anchor-id="ddoy">这一方案的整体思想是：建立2个以上的全局ID生成的服务器，每个服务器上只部署一个数据库，每个库有一张sequence表用于记录当前全局ID。表中ID增长的步长是库的数量，起始值依次错开，这样能将ID的生成散列到各个数据库上。如下图所示：</p>
+<p><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514020903056-1177673891.png" alt="" width="500" class="medium-zoom-image"></p>
+<p data-anchor-id="7wzy">由两个数据库服务器生成ID，设置不同的auto_increment值。第一台sequence的起始值为1，每次步长增长2，另一台的sequence起始值为2，每次步长增长也是2。结果第一台生成的ID都是奇数（1, 3, 5, 7 ...），第二台生成的ID都是偶数（2, 4, 6, 8 ...）。</p>
+<p data-anchor-id="jddd">这种方案将生成ID的压力均匀分布在两台机器上。同时提供了系统容错，第一台出现了错误，可以自动切换到第二台机器上获取ID。但有以下几个缺点：系统添加机器，水平扩展时较复杂；每次获取ID都要读写一次DB，DB的压力还是很大，只能靠堆机器来提升性能。</p>
+<p data-anchor-id="645s"><span style="color: rgba(51, 102, 255, 1)">可以基于flickr的方案继续优化，使用批量的方式降低数据库的写压力，每次获取一段区间的ID号段，用完之后再去数据库获取，可以大大减轻数据库的压力</span>。如下图所示：</p>
+<p><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514021005283-2029806965.png" alt="" width="300"></p>
+<p data-anchor-id="3qt7">还是使用两台DB保证可用性，数据库中只存储当前的最大ID。ID生成服务每次批量拉取6个ID，先将max_id修改为5，当应用访问ID生成服务时，就不需要访问数据库，从号段缓存中依次派发0~5的ID。当这些ID发完后，再将max_id修改为11，下次就能派发6~11的ID。于是，数据库的压力降低为原来的1/6。</p>
+<h4 data-anchor-id="q1ke">3）Snowflake分布式自增ID算法</h4>
+<p data-anchor-id="erje">Twitter的snowflake算法解决了分布式系统生成全局ID的需求，生成64位的Long型数字，组成部分：</p>
+<ul data-anchor-id="zquj">
+<li>第一位未使用</li>
+<li>接下来41位是毫秒级时间，41位的长度可以表示69年的时间</li>
+<li>5位datacenterId，5位workerId。10位的长度最多支持部署1024个节点</li>
+<li>最后12位是毫秒内的计数，12位的计数顺序号支持每个节点每毫秒产生4096个ID序列</li>
+</ul>
+<p><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514021100630-1326514542.png" alt="" width="500" class="medium-zoom-image"></p>
+<p data-anchor-id="i8gj">这样的好处是：毫秒数在高位，生成的ID整体上按时间趋势递增；不依赖第三方系统，稳定性和效率较高，理论上QPS约为409.6w/s（1000*2^12），并且整个分布式系统内不会产生ID碰撞；可根据自身业务灵活分配bit位。</p>
+<p data-anchor-id="hx1f">不足就在于：强依赖机器时钟，如果时钟回拨，则可能导致生成ID重复。</p>
+<h4 data-anchor-id="g251">综上</h4>
+<p data-anchor-id="d3bo">结合数据库和snowflake的唯一ID方案，可以参考业界较为成熟的解法：<span style="color: rgba(255, 0, 0, 1)"><a href="https://tech.meituan.com/MT_Leaf.html" target="_blank"><span style="color: rgba(255, 0, 0, 1)">Leaf——美团点评分布式ID生成系统</span></a></span>，并考虑到了高可用、容灾、分布式下时钟等问题。</p>
+<p>&nbsp;</p>
+<h3 id="5数据迁移扩容问题" data-anchor-id="1xzk">5、数据迁移、扩容问题</h3>
+<p data-anchor-id="m58l">当业务高速发展，面临性能和存储的瓶颈时，才会考虑分片设计，此时就不可避免的需要考虑历史数据迁移的问题。一般做法是先读出历史数据，然后按指定的分片规则再将数据写入到各个分片节点中。此外还需要根据当前的数据量和QPS，以及业务发展的速度，进行容量规划，推算出大概需要多少分片（一般建议单个分片上的单表数据量不超过1000W）</p>
+<p data-anchor-id="mgis">如果采用数值范围分片，只需要添加节点就可以进行扩容了，不需要对分片数据迁移。如果采用的是数值取模分片，则考虑后期的扩容问题就相对比较麻烦。</p>
+<h2 id="三-什么时候考虑切分" data-anchor-id="52rj">三. 什么时候考虑切分</h2>
+<p data-anchor-id="axbv">下面讲述一下什么时候需要考虑做数据切分。</p>
+<h3 data-anchor-id="fbdy">1、能不切分尽量不要切分</h3>
+<p data-anchor-id="iw8e">并不是所有表都需要进行切分，主要还是看数据的增长速度。切分后会在某种程度上提升业务的复杂度，数据库除了承载数据的存储和查询外，协助业务更好的实现需求也是其重要工作之一。</p>
+<p data-anchor-id="z7iz"><span style="color: rgba(51, 102, 255, 1)">不到万不得已不用轻易使用分库分表这个大招，避免"过度设计"和"过早优化"</span>。分库分表之前，不要为分而分，先尽力去做力所能及的事情，例如：升级硬件、升级网络、读写分离、索引优化等等。当数据量达到单表的瓶颈时候，再考虑分库分表。</p>
+<h3 data-anchor-id="au0i">2、数据量过大，正常运维影响业务访问</h3>
+<p data-anchor-id="tlba">这里说的运维，指：</p>
+<p data-anchor-id="5660">1）对数据库备份，如果单表太大，备份时需要大量的磁盘IO和网络IO。例如1T的数据，网络传输占50MB时候，需要20000秒才能传输完毕，整个过程的风险都是比较高的</p>
+<p data-anchor-id="wgkg">2）对一个很大的表进行DDL修改时，MySQL会锁住全表，这个时间会很长，这段时间业务不能访问此表，影响很大。如果使用pt-online-schema-change，使用过程中会创建触发器和影子表，也需要很长的时间。在此操作过程中，都算为风险时间。将数据表拆分，总量减少，有助于降低这个风险。</p>
+<p data-anchor-id="pcrn">3）大表会经常访问与更新，就更有可能出现锁等待。将数据切分，用空间换时间，变相降低访问压力</p>
+<h3 data-anchor-id="1nwm">3、随着业务发展，需要对某些字段垂直拆分</h3>
+<p data-anchor-id="obqi">举个例子，假如项目一开始设计的用户表如下：</p>
+<div class="cnblogs_code">
+<pre>id                   <span style="color: rgba(0, 0, 255, 1)">bigint</span><span style="color: rgba(0, 0, 0, 1)">             #用户的ID
+name                 </span><span style="color: rgba(0, 0, 255, 1)">varchar</span><span style="color: rgba(0, 0, 0, 1)">            #用户的名字
+last_login_time      </span><span style="color: rgba(0, 0, 255, 1)">datetime</span><span style="color: rgba(0, 0, 0, 1)">           #最近登录时间
+personal_info        </span><span style="color: rgba(0, 0, 255, 1)">text</span><span style="color: rgba(0, 0, 0, 1)">               #私人信息
+.....                                   #其他信息字段</span></pre>
+</div>
+<p>在项目初始阶段，这种设计是满足简单的业务需求的，也方便快速迭代开发。而当业务快速发展时，用户量从10w激增到10亿，用户非常的活跃，每次登录会更新 last_login_name 字段，使得 user 表被不断update，压力很大。而其他字段：id, name, personal_info 是不变的或很少更新的，此时在业务角度，就要将 last_login_time 拆分出去，新建一个 user_time 表。</p>
+<p data-anchor-id="dzyy">personal_info 属性是更新和查询频率较低的，并且text字段占据了太多的空间。这时候，就要对此垂直拆分出 user_ext 表了。</p>
+<h3 data-anchor-id="dii1">4、数据量快速增长</h3>
+<p data-anchor-id="z8rj">随着业务的快速发展，单表中的数据量会持续增长，当性能接近瓶颈时，就需要考虑水平切分，做分库分表了。此时一定要选择合适的切分规则，提前预估好数据容量</p>
+<h3 data-anchor-id="mi08">5、安全性和可用性</h3>
+<p data-anchor-id="tg5b">鸡蛋不要放在一个篮子里。在业务层面上垂直切分，将不相关的业务的数据库分隔，因为每个业务的数据量、访问量都不同，不能因为一个业务把数据库搞挂而牵连到其他业务。利用水平切分，当一个数据库出现问题时，不会影响到100%的用户，每个库只承担业务的一部分数据，这样整体的可用性就能提高。</p>
+<h2 id="四-案例分析" data-anchor-id="fl9j">四. 案例分析</h2>
+<h3 id="用户中心" data-anchor-id="qxfo">1、用户中心业务场景</h3>
+<p data-anchor-id="yho5">用户中心是一个非常常见的业务，主要提供用户注册、登录、查询/修改等功能，其核心表为：</p>
+<div class="cnblogs_code">
+<pre><span style="color: rgba(255, 0, 255, 1)">User</span><span style="color: rgba(0, 0, 0, 1)">(uid, login_name, passwd, sex, age, nickname)
+
+uid为用户ID,  主键
+login_name, passwd, sex, age, nickname,  用户属性</span></pre>
+</div>
+<p data-anchor-id="sfft"><span style="color: rgba(51, 102, 255, 1)"><code>任何脱离业务的架构设计都是耍流氓</code></span>，在进行分库分表前，需要对业务场景需求进行梳理：</p>
+<ul data-anchor-id="2x7e">
+<li>
+<p>用户侧：前台访问，访问量较大，需要保证高可用和高一致性。主要有两类需求：</p>
+<ul>
+<li>用户登录：通过login_name/phone/email查询用户信息，1%请求属于这种类型</li>
+<li>用户信息查询：登录之后，通过uid来查询用户信息，99%请求属这种类型</li>
+</ul>
+</li>
+<li>
+<p>运营侧：后台访问，支持运营需求，按照年龄、性别、登陆时间、注册时间等进行分页的查询。是内部系统，访问量较低，对可用性、一致性的要求不高。</p>
+</li>
+</ul>
+<p>&nbsp;</p>
+<h3 id="水平切分方法" data-anchor-id="wrcs">2、水平切分方法</h3>
+<p data-anchor-id="dt7p">当数据量越来越大时，需要对数据库进行水平切分，上文描述的切分方法有"根据数值范围"和"根据数值取模"。</p>
+<p data-anchor-id="hgtc"><span style="color: rgba(51, 102, 255, 1)">"根据数值范围"</span>：以主键uid为划分依据，按uid的范围将数据水平切分到多个数据库上。例如：user-db1存储uid范围为0~1000w的数据，user-db2存储uid范围为1000w~2000wuid数据。</p>
+<ul data-anchor-id="zcxo">
+<li>
+<p>优点是：扩容简单，如果容量不够，只要增加新db即可。</p>
+</li>
+<li>
+<p>不足是：请求量不均匀，一般新注册的用户活跃度会比较高，所以新的user-db2会比user-db1负载高，导致服务器利用率不平衡</p>
+</li>
+</ul>
+<p data-anchor-id="6prl"><span style="color: rgba(51, 102, 255, 1)">"根据数值取模"</span>：也是以主键uid为划分依据，按uid取模的值将数据水平切分到多个数据库上。例如：user-db1存储uid取模得1的数据，user-db2存储uid取模得0的uid数据。</p>
+<ul data-anchor-id="8mty">
+<li>
+<p>优点是：数据量和请求量分布均均匀</p>
+</li>
+<li>
+<p>不足是：扩容麻烦，当容量不够时，新增加db，需要rehash。需要考虑对数据进行平滑的迁移。</p>
+</li>
+</ul>
+<div class="md-section-divider">&nbsp;</div>
+<h3 id="非uid的查询方法" data-anchor-id="a448">3、非uid的查询方法</h3>
+<p data-anchor-id="5b35">水平切分后，对于按uid查询的需求能很好的满足，可以直接路由到具体数据库。而按非uid的查询，例如login_name，就不知道具体该访问哪个库了，此时需要遍历所有库，性能会降低很多。</p>
+<p data-anchor-id="fedq"><span style="color: rgba(51, 102, 255, 1)">对于用户侧，可以采用"建立非uid属性到uid的映射关系"的方案；对于运营侧，可以采用"前台与后台分离"的方案</span>。</p>
+<h4 data-anchor-id="qte3">3.1、建立非uid属性到uid的映射关系</h4>
+<p data-anchor-id="tn15"><span style="color: rgba(51, 102, 255, 1)">1）映射关系</span></p>
+<p data-anchor-id="djjl">例如：login_name不能直接定位到数据库，可以<span style="color: rgba(51, 102, 255, 1)">建立<code>login_name→uid的映射关系</code>，用索引表或缓存来存储</span>。当访问login_name时，先通过映射表查询出login_name对应的uid，再通过uid定位到具体的库。</p>
+<p data-anchor-id="v9pw">映射表只有两列，可以承载很多数据，当数据量过大时，也可以对映射表再做水平切分。这类kv格式的索引结构，可以很好的使用cache来优化查询性能，而且映射关系不会频繁变更，缓存命中率会很高。</p>
+<p data-anchor-id="vsfn"><span style="color: rgba(51, 102, 255, 1)">2）基因法</span></p>
+<p data-anchor-id="nb7d">分库基因：假如通过uid分库，分为8个库，采用uid%8的方式进行路由，此时是由uid的最后3bit来决定这行User数据具体落到哪个库上，那么这3bit可以看为分库基因。</p>
+<p data-anchor-id="m5db">上面的映射关系的方法需要额外存储映射表，按非uid字段查询时，还需要多一次数据库或cache的访问。如果想要消除多余的存储和查询，可以通过f函数取login_name的基因作为uid的分库基因。生成uid时，参考上文所述的分布式唯一ID生成方案，再加上最后3位bit值=f(login_name)。当查询login_name时，只需计算f(login_name)%8的值，就可以定位到具体的库。不过这样需要提前做好容量规划，预估未来几年的数据量需要分多少库，要预留一定bit的分库基因。</p>
+<p data-anchor-id="m5db"><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/1278254-20180514215400436-1634253632.png" alt="" width="500" class="medium-zoom-image"></p>
+<p>&nbsp;</p>
+<h4 data-anchor-id="6d8h">3.2、前台与后台分离</h4>
+<p data-anchor-id="ahds">对于用户侧，主要需求是以单行查询为主，需要建立login_name/phone/email到uid的映射关系，可以解决这些字段的查询问题。</p>
+<p data-anchor-id="8phf">而对于运营侧，很多批量分页且条件多样的查询，这类查询计算量大，返回数据量大，对数据库的性能消耗较高。此时，如果和用户侧公用同一批服务或数据库，可能因为后台的少量请求，占用大量数据库资源，而导致用户侧访问性能降低或超时。</p>
+<p data-anchor-id="nyai">这类业务最好采用"前台与后台分离"的方案，<span style="color: rgba(51, 102, 255, 1)">运营侧后台业务抽取独立的service和db，解决和前台业务系统的耦合</span>。由于运营侧对可用性、一致性的要求不高，可以不访问实时库，而是<span style="color: rgba(51, 102, 255, 1)">通过binlog异步同步数据到运营库进行访问。在数据量很大的情况下，还可以使用ES搜索引擎或Hive来满足后台复杂的查询方式。</span></p>
+<h2 id="五-支持分库分表中间件" data-anchor-id="3ewh">五. 支持分库分表中间件</h2>
+<p data-anchor-id="xm9f">站在巨人的肩膀上能省力很多，目前分库分表已经有一些较为成熟的开源解决方案：</p>
+<ul data-anchor-id="vqbs">
+<li><span style="color: rgba(0, 0, 255, 1)"><a href="https://github.com/shardingjdbc" target="_blank"><span style="color: rgba(0, 0, 255, 1)">sharding-jdbc（当当）</span></a></span></li>
+<li><span style="color: rgba(0, 0, 255, 1)"><a href="https://github.com/baihui212/tsharding" target="_blank"><span style="color: rgba(0, 0, 255, 1)">TSharding（蘑菇街）</span></a></span></li>
+<li><span style="color: rgba(0, 0, 255, 1)"><a href="https://github.com/Qihoo360/Atlas" target="_blank"><span style="color: rgba(0, 0, 255, 1)">Atlas（奇虎360）</span></a></span></li>
+<li><span style="color: rgba(0, 0, 255, 1)"><a href="https://github.com/alibaba/cobar" target="_blank"><span style="color: rgba(0, 0, 255, 1)">Cobar（阿里巴巴）</span></a></span></li>
+<li><span style="color: rgba(0, 0, 255, 1)"><a href="http://www.mycat.io/" target="_blank"><span style="color: rgba(0, 0, 255, 1)">MyCAT（基于Cobar）</span></a></span></li>
+<li><span style="color: rgba(0, 0, 255, 1)"><a href="https://github.com/58code/Oceanus" target="_blank"><span style="color: rgba(0, 0, 255, 1)">Oceanus（58同城）</span></a></span></li>
+<li><span style="color: rgba(0, 0, 255, 1)"><a href="https://github.com/vitessio/vitess" target="_blank"><span style="color: rgba(0, 0, 255, 1)">Vitess（谷歌）</span></a></span></li>
+</ul>
+<h2 id="六-参考" data-anchor-id="73fa">六. 参考</h2>
+<p data-anchor-id="73fa"><span style="color: rgba(0, 0, 255, 1)"><a href="https://zhuanlan.zhihu.com/p/27871998" target="_blank"><span style="color: rgba(0, 0, 255, 1)">数据库分布式架构扫盲——分库分表（及银行核心系统适用性思考）</span></a><span class="Apple-converted-space">&nbsp;</span></span></p>
+<p data-anchor-id="73fa"><span style="color: rgba(0, 0, 255, 1)"><span class="Apple-converted-space"><a href="https://www.cnblogs.com/jshen/p/7682502.html" target="_blank"><span style="color: rgba(0, 0, 255, 1)">分库分表的思想</span></a><span class="Apple-converted-space">&nbsp;</span></span></span></p>
+<p data-anchor-id="73fa"><span style="color: rgba(0, 0, 255, 1)"><span class="Apple-converted-space"><span class="Apple-converted-space"><a href="http://www.infoq.com/cn/articles/key-steps-and-likely-problems-of-horizontal-split-table" target="_blank"><span style="color: rgba(0, 0, 255, 1)">水平分库分表的关键步骤以及可能遇到的问题</span></a></span></span></span><em id="__mceDel"><em id="__mceDel"><em id="__mceDel"><span style="color: rgba(0, 0, 255, 1)"><span class="Apple-converted-space"><span class="Apple-converted-space"><span class="Apple-converted-space">&nbsp;</span></span></span></span></em></em></em></p>
+<p data-anchor-id="nbee"><span style="color: rgba(0, 0, 255, 1)"><span class="Apple-converted-space"><span class="Apple-converted-space"><span class="Apple-converted-space"><a href="http://www.ywnds.com/?p=7239" target="_blank"><span style="color: rgba(0, 0, 255, 1)">从原则、方案、策略及难点阐述分库分表</span></a><span class="Apple-converted-space">&nbsp;</span></span></span></span></span></p>
+<p data-anchor-id="nbee"><span style="color: rgba(0, 0, 255, 1)"><span class="Apple-converted-space"><span class="Apple-converted-space"><span class="Apple-converted-space"><span class="Apple-converted-space"><a href="https://tech.meituan.com/MT_Leaf.html" target="_blank"><span style="color: rgba(0, 0, 255, 1)">Leaf——美团点评分布式ID生成系统</span></a></span></span></span></span>&nbsp;</span></p>
+<p><span style="color: rgba(0, 0, 255, 1)"><a href="https://mp.weixin.qq.com/s?__biz=MjM5ODYxMDA5OQ==&amp;mid=2651960212&amp;idx=1&amp;sn=ab4c52ab0309f7380f7e0207fa357128&amp;pass_ticket=G8v3RrpK9Is7NJZH0fOShUfY8lp5oz9un8K5L24LeGGVtiBTXkBMc9UKkTMdQeDS" target="_blank"><span style="color: rgba(0, 0, 255, 1)">数据库水平切分架构实践-【架构师之路】公众号</span></a></span></p>
+<p data-anchor-id="nbee">&nbsp;</p>
+</div>
+<div id="MySignature"></div>
+<div class="clear"></div>
+<div id="blog_post_info_block"><div id="BlogPostCategory">
+    分类: 
+            <a href="https://www.cnblogs.com/butterfly100/category/1153501.html" target="_blank">系统设计</a></div>
+<div id="EntryTag">
+    标签: 
+            <a href="https://www.cnblogs.com/butterfly100/tag/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">分库分表</a>,             <a href="https://www.cnblogs.com/butterfly100/tag/%E6%95%B0%E6%8D%AE%E5%88%87%E5%88%86/">数据切分</a></div>
+
+    <div id="blog_post_info">
+<div id="green_channel">
+        <a href="javascript:void(0);" id="green_channel_digg" onclick="DiggIt(9034281,cb_blogId,1);green_channel_success(this,&#39;谢谢推荐！&#39;);">好文要顶</a>
+        <a id="green_channel_follow" onclick="follow(&#39;c1196640-72a8-41eb-becf-08d523685c8c&#39;);" href="javascript:void(0);">关注我</a>
+    <a id="green_channel_favorite" onclick="AddToWz(cb_entryId);return false;" href="javascript:void(0);">收藏该文</a>
+    <a id="green_channel_weibo" href="javascript:void(0);" title="分享至新浪微博" onclick="ShareToTsina()"><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/icon_weibo_24.png" alt=""></a>
+    <a id="green_channel_wechat" href="javascript:void(0);" title="分享至微信" onclick="shareOnWechat()"><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/wechat.png" alt=""></a>
+</div>
+<div id="author_profile">
+    <div id="author_profile_info" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/butterfly100/" target="_blank"><img src="./数据库分库分表思路 - butterfly100 - 博客园_files/20180512165053(1).png" class="author_avatar" alt=""></a>
+        <div id="author_profile_detail" class="author_profile_info">
+            <a href="https://home.cnblogs.com/u/butterfly100/">butterfly100</a><br>
+            <a href="https://home.cnblogs.com/u/butterfly100/followees/">关注 - 3</a><br>
+            <a href="https://home.cnblogs.com/u/butterfly100/followers/">粉丝 - 103</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div id="author_profile_honor"></div>
+    <div id="author_profile_follow">
+                <a href="javascript:void(0);" onclick="follow(&#39;c1196640-72a8-41eb-becf-08d523685c8c&#39;);return false;">+加关注</a>
+    </div>
+</div>
+<div id="div_digg">
+    <div class="diggit" onclick="votePost(9034281,&#39;Digg&#39;)">
+        <span class="diggnum" id="digg_count">86</span>
+    </div>
+    <div class="buryit" onclick="votePost(9034281,&#39;Bury&#39;)">
+        <span class="burynum" id="bury_count">0</span>
+    </div>
+    <div class="clear"></div>
+    <div class="diggword" id="digg_tips" style="color: red;">请先<a href="javascript:void(0);" onclick="account.login()">登录</a></div>
+</div>
+
+<script type="text/javascript">
+    currentDiggType = 0;
+</script></div>
+    <div class="clear"></div>
+    <div id="post_next_prev">
+
+    <a href="https://www.cnblogs.com/butterfly100/p/9015531.html" class="p_n_p_prefix">« </a> 上一篇：    <a href="https://www.cnblogs.com/butterfly100/p/9015531.html" title="发布于 2018-05-09 22:19">polysh安装与使用-同时查看多台机器日志</a>
+    <br>
+    <a href="https://www.cnblogs.com/butterfly100/p/9260731.html" class="p_n_p_prefix">» </a> 下一篇：    <a href="https://www.cnblogs.com/butterfly100/p/9260731.html" title="发布于 2018-07-08 14:33">Dubbo架构整理</a>
+
+</div>
+</div>
+            </div>
+            <div class="postDesc">posted @ 
+<span id="post-date">2018-05-14 02:26</span>&nbsp;
+<a href="https://www.cnblogs.com/butterfly100/">butterfly100</a>&nbsp;
+阅读(<span id="post_view_count">114858</span>)&nbsp;
+评论(<span id="post_comment_count">28</span>)&nbsp;
+<a href="https://i.cnblogs.com/EditPosts.aspx?postid=9034281" rel="nofollow">编辑</a>&nbsp;
+<a href="javascript:void(0)" onclick="AddToWz(9034281);return false;">收藏</a></div>
+        </div>
+	    
+	    
+    </div><!--end: topics 文章、评论容器-->
+</div>
+<script src="./数据库分库分表思路 - butterfly100 - 博客园_files/highlight.min.js.下载"></script>
+<script>markdown_highlight();</script>
+<script>
+    var allowComments = true, cb_blogId = 394698, cb_blogApp = 'butterfly100', cb_blogUserGuid = 'c1196640-72a8-41eb-becf-08d523685c8c';
+    var cb_entryId = 9034281, cb_entryCreatedDate = '2018-05-14 02:26', cb_postType = 1;
+    updatePostStats(
+        [cb_entryId],
+        function(id, count) { $("#post_view_count").text(count) },
+        function(id, count) { $("#post_comment_count").text(count) })
+    zoomManager.apply("#cnblogs_post_body img:not(.code_img_closed):not(.code_img_opened)");
+</script>
+<a name="!comments"></a>
+<div id="blog-comments-placeholder"></div>
+<div id="comment_form" class="commentform">
+    <a name="commentform"></a>
+    <div id="divCommentShow"></div>
+    <div id="comment_nav"><span id="span_refresh_tips"></span><a href="javascript:void(0);" onclick="return RefreshCommentList();" id="lnk_RefreshComments" runat="server" clientidmode="Static">刷新评论</a><a href="https://www.cnblogs.com/butterfly100/p/9034281.html#" onclick="return RefreshPage();">刷新页面</a><a href="https://www.cnblogs.com/butterfly100/p/9034281.html#top">返回顶部</a></div>
+    <div id="comment_form_container" style="visibility: visible;"><div class="login_tips">
+    登录后才能查看或发表评论，立即 <a rel="nofollow" href="javascript:void(0);" class="underline" onclick="return account.login(&#39;!comments&#39;);">登录</a> 或者
+    <a href="https://www.cnblogs.com/">逛逛</a> 博客园首页
+</div>
+</div>
+    <div class="ad_text_commentbox" id="ad_text_under_commentbox"></div>
+    <div id="ad_t2"><a href="https://brands.cnblogs.com/huawei" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-华为专区&#39;)">【推荐】玩转开发板：旧键盘+OpenHarmony 变身蓝牙键盘 v0.1</a><br><a href="http://www.uccpsoft.com/index.htm" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-ucancode&#39;)">【推荐】大型组态、工控、仿真、CAD\GIS 50万行VC++源码免费下载!</a><br><a href="https://www.aliyun.com/activity/daily/bestoffer?userCode=swh7dvlt" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-阿里云-cps&#39;)">【推荐】阿里云爆品销量榜单，精选爆款产品低至0.55折</a><br><a href="http://www.moojnn.com/?source=bokeyuan" target="_blank" onclick="ga(&#39;send&#39;, &#39;event&#39;, &#39;Link&#39;, &#39;click&#39;, &#39;T2-魔镜&#39;)">【推荐】限时秒杀！国云大数据魔镜，企业级云分析平台</a><br></div>
+    <div id="opt_under_post"></div>
+    <div id="cnblogs_c1" class="under-post-card">
+        <div id="div-gpt-ad-1592365906576-0" style="width: 300px; height: 250px;" data-google-query-id="CKjryuystfACFWLbTAIdySYEwg"><div id="google_ads_iframe_/1090369/C1_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C1_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C1_0" width="300" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" data-google-container-id="1" style="border: 0px; vertical-align: bottom;" data-load-complete="true" src="./数据库分库分表思路 - butterfly100 - 博客园_files/saved_resource.html"></iframe></div></div>
+    </div>
+    <div id="under_post_card1"><div class="under-post-card"><b>园子动态</b>：<br>· <a href="https://www.cnblogs.com/cmt/p/14585828.html" target="_blank">致园友们的一封检讨书：都是我们的错</a><br>· <a href="https://www.cnblogs.com/cmt/p/14595262.html" target="_blank">数据库实例 CPU 100% 引发全站故障</a><br>· <a href="https://www.cnblogs.com/cmt/p/14217355.html" target="_blank">发起一个开源项目：博客引擎 fluss</a><br></div></div>
+    <div id="cnblogs_c2" class="under-post-card">
+        <div id="div-gpt-ad-1592366332455-0" style="width: 468px; height: 60px;" data-google-query-id="CKnryuystfACFWLbTAIdySYEwg"><div id="google_ads_iframe_/1090369/C2_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/1090369/C2_0" title="3rd party ad content" name="google_ads_iframe_/1090369/C2_0" width="468" height="60" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" data-google-container-id="2" style="border: 0px; vertical-align: bottom;" data-load-complete="true" src="./数据库分库分表思路 - butterfly100 - 博客园_files/saved_resource(1).html"></iframe></div></div>
+    </div>
+    <div id="under_post_card2"><div class="itnews under-post-card">
+    <b>最新新闻</b>：
+    <br>
+ ·          <a href="https://news.cnblogs.com/n/693312/" target="_blank">特斯拉与马斯克其他公司关系到底有多密切？看看这些数字就明白了</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/693310/" target="_blank">传特斯拉第二季度产能已全部售罄 产量将创历史新高</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/693309/" target="_blank">IBM宣布推出2纳米芯片制程 速度比主流7纳米芯片快45%</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/693307/" target="_blank">中国手机用户换机越来越慢了：平均已达25.3个月、iPhone最淡定</a>
+        <br>
+ ·          <a href="https://news.cnblogs.com/n/693306/" target="_blank">里程碑！IBM宣布造出全球首颗2nm EUV芯片</a>
+        <br>
+    » <a href="https://news.cnblogs.com/" title="IT 新闻" target="_blank">更多新闻...</a>
+</div></div>
+    <div id="HistoryToday" class="under-post-card"></div>
+    <script type="text/javascript">
+       var commentManager = new blogCommentManager();
+       commentManager.renderComments(0);
+       fixPostBody();
+       deliverBigBanner();
+setTimeout(function() { incrementViewCount(cb_entryId); }, 50);       deliverT2();
+       deliverC1C2();
+       loadNewsAndKb();
+       loadBlogSignature();
+LoadPostCategoriesTags(cb_blogId, cb_entryId);       LoadPostInfoBlock(cb_blogId, cb_entryId, cb_blogApp, cb_blogUserGuid);
+       GetPrevNextPost(cb_entryId, cb_blogId, cb_entryCreatedDate, cb_postType);
+       loadOptUnderPost();
+       GetHistoryToday(cb_blogId, cb_blogApp, cb_entryCreatedDate);
+    </script>
+</div>
+
+	</div><!--end: forFlow -->
+	</div><!--end: mainContent 主体内容容器-->
+	<div id="sideBar">
+		<div id="sideBarMain">
+			<div id="sidebar_news" class="newsItem"><!--done-->
+<h3 class="catListTitle">公告</h3>
+
+<div id="blog-news">
+    
+    <div id="profile_block">
+        昵称：
+        <a href="https://home.cnblogs.com/u/butterfly100/">
+            butterfly100
+        </a>
+        <br>
+        园龄：
+        <a href="https://home.cnblogs.com/u/butterfly100/" title="入园时间：2017-11-13">
+            3年5个月
+        </a>
+        <br>
+        粉丝：
+        <a href="https://home.cnblogs.com/u/butterfly100/followers/">
+            103
+        </a>
+        <br>
+        关注：
+        <a href="https://home.cnblogs.com/u/butterfly100/followees/">
+            3
+        </a>
+        <div id="p_b_follow">
+<a href="javascript:void(0)" onclick="follow(&#39;c1196640-72a8-41eb-becf-08d523685c8c&#39;)">+加关注</a></div>
+        <script>getFollowStatus('c1196640-72a8-41eb-becf-08d523685c8c');</script>
+    </div>
+</div>
+
+</div>
+<div id="sidebar_c3"></div>
+			<div id="blog-calendar" style="display:none"></div><script>loadBlogDefaultCalendar();</script>			
+			<div id="leftcontentcontainer">
+				<div id="blog-sidecolumn"><!-- 搜索 -->
+<div id="sidebar_search" class="sidebar-block">
+    <div id="sidebar_search" class="mySearch">
+        <h3 class="catListTitle">搜索</h3>
+        <div id="sidebar_search_box">
+            <div id="widget_my_zzk" class="div_my_zzk">
+                <input type="text" id="q" onkeydown="return zzk_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="zzk_go()" type="button" value="找找看" id="btnZzk" class="btn_my_zzk">
+            </div>
+            <div id="widget_my_google" class="div_my_zzk">
+                <input type="text" name="google_q" id="google_q" onkeydown="return google_go_enter(event);" class="input_my_zzk">&nbsp;<input onclick="google_go()" type="button" value="谷歌搜索" class="btn_my_zzk">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 常用链接 -->
+
+
+<!-- 最新随笔 -->
+<div id="sidebar_recentposts" class="sidebar-block"><div class="catListEssay">
+<h3 class="catListTitle">最新随笔</h3>
+    <ul>
+                <li>
+                    
+<a href="https://www.cnblogs.com/butterfly100/p/9175673.html">1.JVM的内存管理机制</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/butterfly100/p/9260731.html">2.Dubbo架构整理</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/butterfly100/p/9034281.html">3.数据库分库分表思路</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/butterfly100/p/9015531.html">4.polysh安装与使用-同时查看多台机器日志</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/butterfly100/p/8981747.html">5.Salesforce的数据权限机制</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/butterfly100/p/8910553.html">6.Java并发编程：Java内存模型和volatile</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/butterfly100/p/8786856.html">7.Java并发编程：synchronized和锁优化</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/butterfly100/p/8698425.html">8.权限控制和OAuth</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/butterfly100/p/8436627.html">9.python学习笔记</a>
+
+                </li>
+                <li>
+                    
+<a href="https://www.cnblogs.com/butterfly100/p/8287569.html">10.MySQL explain详解</a>
+
+                </li>
+    </ul>
+</div>
+
+</div>
+
+<!-- 我的标签 -->
+
+
+<!-- 积分与排名 -->
+<div id="sidebar_scorerank" class="sidebar-block"><div class="catListBlogRank">
+<h3 class="catListTitle">积分与排名</h3>
+<ul>
+	<li class="liScore">
+		积分 -	
+32432
+	</li>
+	<li class="liRank">
+		排名 -	
+35771
+	</li>
+</ul>
+</div>
+
+
+
+</div>
+
+<!-- 随笔分类、随笔档案、文章分类、新闻分类、相册、链接 -->
+<div id="sidebar_categories">
+
+    <div id="sidebar_postcategory" class="catListPostCategory sidebar-block">
+        <h3 class="catListTitle">
+            
+随笔分类
+<span style="font-size:11px;font-weight:normal">(21)</span>
+
+
+        </h3>
+
+        <ul>
+
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/category/1114162.html" rel="" target="">
+    Java并发编程(2)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/category/1114163.html" rel="" target="">
+    JVM(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/category/1114070.html" rel="" target="">
+    MySQL(2)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/category/1114071.html" rel="" target="">
+    领域驱动设计(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/category/1114072.html" rel="" target="">
+    微服务(8)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/category/1153501.html" rel="" target="">
+    系统设计(3)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/category/1213648.html" rel="" target="">
+    效率工具(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/category/1153502.html" rel="" target="">
+    语言学习(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/category/1114467.html" rel="" target="">
+    源码阅读(2)
+</a>
+ 
+
+                </li>                
+            
+        </ul>
+
+
+    </div>    
+    <div id="sidebar_postarchive" class="catListPostArchive sidebar-block">
+        <h3 class="catListTitle">
+            
+随笔档案
+<span style="font-size:11px;font-weight:normal">(21)</span>
+
+
+        </h3>
+
+        <ul>
+
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/archive/2018/08.html" rel="" target="">
+    2018年8月(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/archive/2018/07.html" rel="" target="">
+    2018年7月(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/archive/2018/05.html" rel="" target="">
+    2018年5月(3)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/archive/2018/04.html" rel="" target="">
+    2018年4月(3)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/archive/2018/02.html" rel="" target="">
+    2018年2月(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/archive/2018/01.html" rel="" target="">
+    2018年1月(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/archive/2017/12.html" rel="" target="">
+    2017年12月(1)
+</a>
+ 
+
+                </li>                
+                <li data-category-list-item-visible="true" style="display: block">
+                    
+<a href="https://www.cnblogs.com/butterfly100/archive/2017/11.html" rel="" target="">
+    2017年11月(10)
+</a>
+ 
+
+                </li>                
+            
+        </ul>
+
+
+    </div>    
+</div>
+
+<!-- 最新评论 -->
+
+
+
+<!-- 阅读排行榜 -->
+<div id="sidebar_topviewedposts" class="sidebar-block"><div class="catListView">
+<h3 class="catListTitle">阅读排行榜</h3>
+	<div id="TopViewPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/9034281.html">
+                            1. 数据库分库分表思路(114855)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/8287569.html">
+                            2. MySQL explain详解(35826)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/7827870.html">
+                            3. 领域驱动设计的基础知识总结(14220)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/9175673.html">
+                            4. JVM的内存管理机制(8613)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/8698425.html">
+                            5. 权限控制和OAuth(5719)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/8981747.html">
+                            6. Salesforce的数据权限机制(5195)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/9015531.html">
+                            7. polysh安装与使用-同时查看多台机器日志(2495)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/8786856.html">
+                            8. Java并发编程：synchronized和锁优化(2133)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/9260731.html">
+                            9. Dubbo架构整理(1695)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/8910553.html">
+                            10. Java并发编程：Java内存模型和volatile(1215)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div>
+
+</div>
+
+<!-- 评论排行榜 -->
+<div id="sidebar_topcommentedposts" class="sidebar-block"><div class="catListFeedback">
+<h3 class="catListTitle">评论排行榜</h3>
+	<div id="TopFeedbackPostsBlock">
+        <ul style="word-break:break-all">
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/9034281.html">
+                            1. 数据库分库分表思路(28)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/8981747.html">
+                            2. Salesforce的数据权限机制(2)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/8786856.html">
+                            3. Java并发编程：synchronized和锁优化(2)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/8287569.html">
+                            4. MySQL explain详解(2)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/7839197.html">
+                            5. HashMap源码阅读(2)
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://www.cnblogs.com/butterfly100/p/7827870.html">
+                            6. 领域驱动设计的基础知识总结(2)
+                        </a>
+                    </li>
+        </ul>
+    </div>
+</div>
+
+</div>
+
+<!-- 推荐排行榜 -->
+<div id="sidebar_topdiggedposts" class="sidebar-block">
+<div id="topdigg_posts_wrap">
+    <div class="catListView">
+        <h3 class="catListTitle">推荐排行榜</h3>
+        <div id="TopDiggPostsBlock">
+            <ul style="word-break: break-all">
+                        <li>
+                            <a href="https://www.cnblogs.com/butterfly100/p/9034281.html">
+                                1. 数据库分库分表思路(86)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/butterfly100/p/8287569.html">
+                                2. MySQL explain详解(9)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/butterfly100/p/7827870.html">
+                                3. 领域驱动设计的基础知识总结(8)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/butterfly100/p/8981747.html">
+                                4. Salesforce的数据权限机制(6)
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.cnblogs.com/butterfly100/p/8786856.html">
+                                5. Java并发编程：synchronized和锁优化(3)
+                            </a>
+                        </li>
+            </ul>
+        </div>
+    </div>
+</div></div></div>
+                    <script>loadBlogSideColumn();</script>
+			</div>			
+		</div><!--end: sideBarMain -->
+	</div><!--end: sideBar 侧边栏容器 -->
+	<div class="clear"></div>
+	</div><!--end: main -->
+	<div class="clear"></div>
+	<div id="footer">
+		<!--done-->
+Copyright © 2021 butterfly100
+<br><span id="poweredby">Powered by .NET 5.0 on Kubernetes</span>
+
+
+
+	</div><!--end: footer -->
+</div><!--end: home 自定义的最大容器 -->
+
+
+    
+
+    <input type="hidden" id="antiforgery_token" value="CfDJ8L-rpLgFVEJMgssCVvNUAjsyQ04oh6TmHKjVqpycKzyUxwlmzzKp35Ipt1eDi7K7W1MA7Szi4fIAqNS7GUQcEvtPtnvjaYU06eDQ9maVcTzD91ksLIhmMQ2tL7i47J85M-cH6pkUsVl7VujeHVliYIU">
+
+
+<iframe id="google_osd_static_frame_3079684970691" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px;" src="./数据库分库分表思路 - butterfly100 - 博客园_files/saved_resource(2).html"></iframe></body></html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Page title</title>
+</head>
+<body>
+    
+</body>
+</html>
+
+/*
+    这是我应用在博客园上的Markdown样式.
+    https://www.cnblogs.com/asheng2016
+*/
+
+
+/* 文章标题样式(这个不是markdown里的标题) */
+#topics .postTitle a {
+    color: #169fe6;
+}
+
+/* 普通文字样式 */
+#cnblogs_post_body p {
+    margin: 18px auto;
+    color: #000;
+    font-family: Consolas, "Microsoft YaHei", monospace;
+    font-size: 16px;
+    text-indent: 0;
+}
+
+/* 标题样式 */
+#cnblogs_post_body h1 {
+    font-family: Consolas, "Microsoft YaHei", monospace;
+    font-size: 32px;
+    font-weight: bold;
+    line-height: 1.5;
+    margin: 10px 0;
+}
+
+#cnblogs_post_body h2 {
+    font-family: Consolas, "Microsoft YaHei", monospace;
+    font-size: 26px;
+    font-weight: bold;
+    line-height: 1.5;
+    margin: 20px 0;
+}
+
+#cnblogs_post_body h3 {
+    font-family: Consolas, "Microsoft YaHei", monospace;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1.5;
+    margin: 10px 0;
+}
+
+#cnblogs_post_body h4 {
+    font-family: Consolas, "Microsoft YaHei", monospace;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+/* 标题样式设置结束 */
+
+/* 去除双下划线斜体样式 */
+em {
+    font-style: normal;
+    color: #000;
+}
+
+/* 无序列表 */
+#cnblogs_post_body ul li {
+    font-family: Consolas, "Microsoft YaHei", monospace;
+    color: #000;
+    font-size: 16px;
+    list-style-type: disc;
+}
+
+/* 有序列表 */
+#cnblogs_post_body ol li {
+    font-family: Consolas, "Microsoft YaHei", monospace;
+    color: #000;
+    font-size: 16px;
+    list-style-type: decimal;
+}
+
+/* 超链接 */
+#cnblogs_post_body a:link {
+    text-decoration: none;
+    color: #002C99;
+}
+
+/* 引用背景 */
+#topics .postBody blockquote {
+    background: #fff3d4;
+    border: none;
+    border-left: 5px solid #f6b73c;
+    margin: 0;
+    padding-left: 10px;
+}
+
+/* 单行代码 */
+.cnblogs-markdown code {
+    font-family: Consolas, "Microsoft YaHei", monospace !important;
+    font-size: 16px!important;
+    line-height: 20px;
+    background-color: #f5f5f5!important;
+    border: 1px solid #ccc!important;
+    padding: 0 5px!important;
+    border-radius: 3px!important;
+    line-height: 1.8;
+    margin: 1px 5px;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+/* 多行代码, 引用 */
+.cnblogs-markdown .hljs {
+    font-family: Consolas, "Microsoft YaHei", monospace !important;
+    font-size: 16px!important;
+    line-height: 1.5!important;
+    padding: 5px!important;
+}
